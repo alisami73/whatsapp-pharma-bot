@@ -1,0 +1,362 @@
+[
+  {
+    "id": "message-1775984015808",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000001",
+    "theme_id": null,
+    "body": "bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:53:35.808Z",
+    "updated_at": "2026-04-12T08:53:35.808Z"
+  },
+  {
+    "id": "message-1775984015820",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000001",
+    "theme_id": null,
+    "body": "OUI",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:53:35.820Z",
+    "updated_at": "2026-04-12T08:53:35.820Z"
+  },
+  {
+    "id": "message-1775984015841",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000002",
+    "theme_id": null,
+    "body": "EN SAVOIR PLUS",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:53:35.841Z",
+    "updated_at": "2026-04-12T08:53:35.841Z"
+  },
+  {
+    "id": "message-1775984046373",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000003",
+    "theme_id": null,
+    "body": "bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:54:06.373Z",
+    "updated_at": "2026-04-12T08:54:06.373Z"
+  },
+  {
+    "id": "message-1775984054392",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000003",
+    "theme_id": null,
+    "body": "OUI",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:54:14.392Z",
+    "updated_at": "2026-04-12T08:54:14.392Z"
+  },
+  {
+    "id": "message-1775984054407",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000004",
+    "theme_id": null,
+    "body": "EN SAVOIR PLUS",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:54:14.407Z",
+    "updated_at": "2026-04-12T08:54:14.407Z"
+  },
+  {
+    "id": "message-1775984065295",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000005",
+    "theme_id": null,
+    "body": "OUI",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:54:25.295Z",
+    "updated_at": "2026-04-12T08:54:25.295Z"
+  },
+  {
+    "id": "message-1775984071460",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000005",
+    "theme_id": null,
+    "body": "1",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "onboarding_role"
+    },
+    "created_at": "2026-04-12T08:54:31.460Z",
+    "updated_at": "2026-04-12T08:54:31.460Z"
+  },
+  {
+    "id": "message-1775984115123",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000010",
+    "theme_id": null,
+    "body": "bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:55:15.123Z",
+    "updated_at": "2026-04-12T08:55:15.123Z"
+  },
+  {
+    "id": "message-1775984115154",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000010",
+    "theme_id": null,
+    "body": "OUI",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:55:15.155Z",
+    "updated_at": "2026-04-12T08:55:15.155Z"
+  },
+  {
+    "id": "message-1775984115181",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000010",
+    "theme_id": null,
+    "body": "1",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "onboarding_role"
+    },
+    "created_at": "2026-04-12T08:55:15.181Z",
+    "updated_at": "2026-04-12T08:55:15.181Z"
+  },
+  {
+    "id": "message-1775984265659",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000020",
+    "theme_id": null,
+    "body": "EN SAVOIR PLUS",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:57:45.659Z",
+    "updated_at": "2026-04-12T08:57:45.659Z"
+  },
+  {
+    "id": "message-1775984265713",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000020",
+    "theme_id": null,
+    "body": "OUI",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent_details"
+    },
+    "created_at": "2026-04-12T08:57:45.713Z",
+    "updated_at": "2026-04-12T08:57:45.713Z"
+  },
+  {
+    "id": "message-1775984265737",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000030",
+    "theme_id": null,
+    "body": "NON",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T08:57:45.737Z",
+    "updated_at": "2026-04-12T08:57:45.737Z"
+  },
+  {
+    "id": "message-1775984566989",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000010",
+    "theme_id": null,
+    "body": "PROFIL",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "onboarding_name"
+    },
+    "created_at": "2026-04-12T09:02:46.989Z",
+    "updated_at": "2026-04-12T09:02:46.989Z"
+  },
+  {
+    "id": "message-1775984567042",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600000010",
+    "theme_id": null,
+    "body": "AIDE",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "onboarding_name"
+    },
+    "created_at": "2026-04-12T09:02:47.042Z",
+    "updated_at": "2026-04-12T09:02:47.042Z"
+  },
+  {
+    "id": "message-1775985401905",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212661095271",
+    "theme_id": null,
+    "body": "bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T09:16:41.905Z",
+    "updated_at": "2026-04-12T09:16:41.905Z"
+  },
+  {
+    "id": "message-1775985401909",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212661095271",
+    "theme_id": null,
+    "body": "bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-12T09:16:41.910Z",
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  }
+]

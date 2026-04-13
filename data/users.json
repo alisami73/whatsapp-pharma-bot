@@ -1,0 +1,65 @@
+[
+  {
+    "phone": "whatsapp:+212600000001",
+    "current_theme": null,
+    "current_state": "onboarding_role",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000002",
+    "current_theme": null,
+    "current_state": "awaiting_consent_details",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000003",
+    "current_theme": null,
+    "current_state": "onboarding_role",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000004",
+    "current_theme": null,
+    "current_state": "awaiting_consent_details",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000005",
+    "current_theme": "fse",
+    "current_state": "theme_menu",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000010",
+    "current_theme": null,
+    "current_state": "onboarding_name",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000020",
+    "current_theme": null,
+    "current_state": "onboarding_role",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212600000030",
+    "current_theme": null,
+    "current_state": "awaiting_consent",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "phone": "whatsapp:+212661095271",
+    "current_theme": null,
+    "current_state": "awaiting_consent",
+    "authenticated": false,
+    "updated_at": "2026-04-12T09:16:41.910Z"
+  }
+]

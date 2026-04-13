@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base de connaissances interne</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h1 id="pageTitle">Base de connaissances interne</h1>
+          <p class="subtitle" id="themeSubtitle">Ces contenus sont utilises en interne pour faire correspondre les questions libres.</p>
+        </div>
+        <a class="button" href="/admin/themes">Retour themes</a>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab" href="/admin">Accueil</a>
+        <a class="tab" href="/admin/themes">Themes</a>
+        <a class="tab active" href="#">Base interne</a>
+      </nav>
+
+      <main class="layout-two-columns">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 id="formTitle">Ajouter une entree interne</h2>
+            <button class="button" id="resetButton" type="button">Nouveau</button>
+          </div>
+
+          <form id="topicForm" class="form-stack">
+            <label>
+              <span>Titre interne</span>
+              <input id="title" name="title" type="text" required />
+            </label>
+
+            <label>
+              <span>Reponse associee</span>
+              <textarea id="answer" name="answer" rows="8"></textarea>
+            </label>
+
+            <label>
+              <span>Mots-cles de rapprochement</span>
+              <input id="keywords" name="keywords" type="text" placeholder="mot 1, mot 2, mot 3" />
+            </label>
+
+            <div class="actions">
+              <button class="button button-primary" type="submit">Enregistrer</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Base de connaissances interne</h2>
+            <button class="button" id="refreshButton" type="button">Actualiser</button>
+          </div>
+          <div id="topicList" class="stack"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const themeId = params.get('theme_id');
+      const topicForm = document.getElementById('topicForm');
+      const topicList = document.getElementById('topicList');
+      const pageTitle = document.getElementById('pageTitle');
+      const themeSubtitle = document.getElementById('themeSubtitle');
+      const formTitle = document.getElementById('formTitle');
+      const resetButton = document.getElementById('resetButton');
+      const refreshButton = document.getElementById('refreshButton');
+
+      let theme = null;
+      let topicsCache = [];
+      let editingId = null;
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function resetForm() {
+        editingId = null;
+        formTitle.textContent = 'Ajouter une entree interne';
+        topicForm.reset();
+      }
+
+      function fillForm(topic) {
+        editingId = topic.id;
+        formTitle.textContent = `Modifier: ${topic.title}`;
+        document.getElementById('title').value = topic.title || '';
+        document.getElementById('answer').value = topic.answer || '';
+        document.getElementById('keywords').value = Array.isArray(topic.keywords) ? topic.keywords.join(', ') : '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function renderTopics() {
+        if (!topicsCache.length) {
+          topicList.innerHTML = '<div class="empty-state">Aucune entree de connaissance pour ce theme.</div>';
+          return;
+        }
+
+        topicList.innerHTML = topicsCache
+          .map((topic) => {
+            const keywords = Array.isArray(topic.keywords) && topic.keywords.length
+              ? topic.keywords.map((keyword) => `<span class="chip">${escapeHtml(keyword)}</span>`).join('')
+              : '<span class="muted">Aucun mot-cle</span>';
+
+            return `
+              <article class="card">
+                <div class="card-row">
+                  <div>
+                    <h3>${escapeHtml(topic.title)}</h3>
+                    <p class="muted">${escapeHtml(topic.answer || 'Aucune reponse')}</p>
+                  </div>
+                </div>
+                <div class="chips">${keywords}</div>
+                <div class="actions">
+                  <button class="button" type="button" onclick="editTopic('${topic.id}')">Modifier</button>
+                  <button class="button button-danger" type="button" onclick="deleteTopic('${topic.id}')">Supprimer</button>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      async function loadContent() {
+        if (!themeId) {
+          topicList.innerHTML = '<div class="empty-state">theme_id manquant.</div>';
+          topicForm.querySelector('button[type="submit"]').disabled = true;
+          return;
+        }
+
+        topicList.innerHTML = '<div class="empty-state">Chargement...</div>';
+
+        const response = await fetch(`/admin/api/content?theme_id=${encodeURIComponent(themeId)}`);
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Theme not found' }));
+          topicList.innerHTML = `<div class="empty-state">${escapeHtml(data.error || 'Theme not found')}</div>`;
+          topicForm.querySelector('button[type="submit"]').disabled = true;
+          return;
+        }
+
+        const data = await response.json();
+        theme = data.theme;
+        topicsCache = data.topics || [];
+
+        pageTitle.textContent = `Base interne: ${theme.title}`;
+        themeSubtitle.textContent = 'Ces contenus restent internes et servent a repondre aux questions libres dans WhatsApp.';
+
+        renderTopics();
+      }
+
+      async function saveTopic(payload) {
+        const url = editingId
+          ? `/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(editingId)}`
+          : `/admin/api/content?theme_id=${encodeURIComponent(themeId)}`;
+        const method = editingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(data.error || 'Request failed');
+        }
+      }
+
+      async function removeTopic(id) {
+        const response = await fetch(
+          `/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(id)}`,
+          { method: 'DELETE' },
+        );
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(data.error || 'Request failed');
+        }
+      }
+
+      topicForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          title: document.getElementById('title').value.trim(),
+          answer: document.getElementById('answer').value.trim(),
+          keywords: document.getElementById('keywords').value
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        };
+
+        try {
+          await saveTopic(payload);
+          resetForm();
+          await loadContent();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      resetButton.addEventListener('click', resetForm);
+      refreshButton.addEventListener('click', loadContent);
+
+      window.editTopic = (id) => {
+        const topic = topicsCache.find((entry) => entry.id === id);
+
+        if (topic) {
+          fillForm(topic);
+        }
+      };
+
+      window.deleteTopic = async (id) => {
+        const topic = topicsCache.find((entry) => entry.id === id);
+        const label = topic ? topic.title : id;
+
+        if (!window.confirm(`Supprimer l'entree "${label}" ?`)) {
+          return;
+        }
+
+        try {
+          await removeTopic(id);
+          if (editingId === id) {
+            resetForm();
+          }
+          await loadContent();
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+
+      resetForm();
+      loadContent();
+    </script>
+  </body>
+</html>

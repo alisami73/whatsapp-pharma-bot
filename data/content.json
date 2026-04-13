@@ -1,0 +1,92 @@
+{
+  "fse": [
+    {
+      "id": "fse-refusee",
+      "title": "FSE refusee",
+      "answer": "Les causes les plus frequentes sont une erreur d'identification patient, une convention non a jour ou une teletransmission incomplete. Verifiez les donnees, la date de soin et relancez l'envoi apres correction.",
+      "keywords": [
+        "fse refusee",
+        "refus",
+        "rejete",
+        "cnss",
+        "teletransmission"
+      ]
+    },
+    {
+      "id": "envoyer-fse",
+      "title": "Comment envoyer une FSE",
+      "answer": "Ouvrez le dossier patient, verifiez les droits, controlez les donnees obligatoires puis lancez la transmission depuis votre logiciel. En cas d'echec, conservez le message d'erreur pour analyse.",
+      "keywords": [
+        "envoyer fse",
+        "transmettre",
+        "teletransmission",
+        "envoi",
+        "feuille de soins"
+      ]
+    },
+    {
+      "id": "probleme-cnss",
+      "title": "Probleme CNSS",
+      "answer": "Si la CNSS bloque le traitement, controlez le numero d'affiliation, la validite des droits et la coherence entre ordonnance et prestation. Si le blocage persiste, remontez le dossier avec la reference de la FSE.",
+      "keywords": [
+        "cnss",
+        "affiliation",
+        "droits",
+        "blocage",
+        "assure"
+      ]
+    }
+  ],
+  "nouveautes-medicaments": [
+    {
+      "id": "nouveaux-produits",
+      "title": "Nouveaux produits du mois",
+      "answer": "Cette rubrique peut etre mise a jour chaque mois pour publier les nouveaux produits, les campagnes saisonnieres et les informations de lancement.",
+      "keywords": [
+        "nouveau",
+        "nouveaute",
+        "mois",
+        "campagne",
+        "lancement"
+      ]
+    },
+    {
+      "id": "promotions-labos",
+      "title": "Promotions laboratoires",
+      "answer": "Ajoutez ici les offres fournisseurs en cours, les conditions de commande et les dates limites de validite pour aider les equipes en officine.",
+      "keywords": [
+        "promotion",
+        "labo",
+        "offre",
+        "commande",
+        "remise"
+      ]
+    }
+  ],
+  "acces-stock": [
+    {
+      "id": "produit-indisponible",
+      "title": "Produit indisponible",
+      "answer": "Controlez d'abord le stock theorique, puis les receptions en attente et les sorties recentes. Si l'ecart persiste, faites un inventaire rapide et informez votre responsable.",
+      "keywords": [
+        "rupture",
+        "indisponible",
+        "stock",
+        "manquant",
+        "inventaire"
+      ]
+    },
+    {
+      "id": "demande-reappro",
+      "title": "Demande de reapprovisionnement",
+      "answer": "Preparez la liste des references critiques, verifiez les seuils mini et transmettez la demande de reapprovisionnement via votre circuit habituel pour eviter une rupture prolongee.",
+      "keywords": [
+        "reapprovisionnement",
+        "reappro",
+        "commande",
+        "seuil",
+        "approvisionnement"
+      ]
+    }
+  ]
+}

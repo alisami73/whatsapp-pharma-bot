@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Templates WhatsApp</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h1>Templates WhatsApp</h1>
+          <p class="subtitle">Gérez vos modèles de messages Twilio / Meta et envoyez-les manuellement.</p>
+        </div>
+        <div class="header-actions">
+          <button class="button button-primary" id="newTemplateBtn" type="button">+ Nouveau template</button>
+          <a class="button" href="/admin">Accueil</a>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab" href="/admin">Accueil</a>
+        <a class="tab" href="/admin/themes">Themes</a>
+        <a class="tab" href="/admin/crm">CRM</a>
+        <a class="tab active" href="/admin/templates">Templates</a>
+        <a class="tab" href="/admin/monitoring">Monitoring</a>
+      </nav>
+
+      <!-- Info Twilio Content API -->
+      <section class="panel" style="margin-bottom:20px;background:var(--info-soft);">
+        <p class="eyebrow">Note technique</p>
+        <p>
+          Les templates avec <strong>Content SID</strong> utilisent la <a href="https://www.twilio.com/docs/content" target="_blank" style="color:var(--accent);text-decoration:underline;">Twilio Content API</a>.
+          Créez d'abord vos templates dans la console Twilio, puis renseignez leur SID ici pour les envoyer via WhatsApp Business.
+          Les templates sans Content SID envoient le texte brut (hors 24h, soumis à approbation Meta).
+        </p>
+      </section>
+
+      <!-- Liste des templates -->
+      <section class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Bibliothèque</p>
+            <h2>Templates enregistrés</h2>
+          </div>
+        </div>
+        <div id="templatesList">
+          <p style="color:var(--muted);">Chargement...</p>
+        </div>
+      </section>
+
+      <!-- Formulaire création -->
+      <section class="panel" id="newTemplateSection" style="display:none;">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Création</p>
+            <h2>Nouveau template</h2>
+          </div>
+          <button class="button" id="cancelNewTemplate">Annuler</button>
+        </div>
+        <form id="newTemplateForm">
+          <label>Nom interne *
+            <input type="text" id="tplName" class="input" placeholder="alerte_stock_mensuelle" required />
+          </label>
+          <label>Corps du message *
+            <textarea id="tplBody" class="input" rows="4" placeholder="Bonjour {{1}}, voici votre bilan mensuel..." required></textarea>
+          </label>
+          <label>Langue
+            <select id="tplLanguage" class="input">
+              <option value="fr">Français (fr)</option>
+              <option value="ar">Arabe (ar)</option>
+              <option value="en">Anglais (en)</option>
+            </select>
+          </label>
+          <label>Catégorie Meta
+            <select id="tplCategory" class="input">
+              <option value="UTILITY">UTILITY (notifications transactionnelles)</option>
+              <option value="MARKETING">MARKETING (promotions)</option>
+              <option value="AUTHENTICATION">AUTHENTICATION (codes OTP)</option>
+            </select>
+          </label>
+          <label>Content SID Twilio (optionnel)
+            <input type="text" id="tplContentSid" class="input" placeholder="HX..." />
+            <small style="color:var(--muted);">SID de votre template approuvé dans la Twilio Content API.</small>
+          </label>
+          <div style="margin-top:16px;">
+            <button type="submit" class="button button-primary">Créer le template</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Modal d'envoi -->
+      <div id="sendModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:var(--surface);padding:28px;border-radius:12px;width:min(440px,96vw);">
+          <h3 id="sendModalTitle" style="margin:0 0 20px;">Envoyer le template</h3>
+          <input type="hidden" id="sendTemplateId" />
+          <label>Numéro WhatsApp destinataire *
+            <input type="text" id="sendPhone" class="input" placeholder="+212600000000" />
+          </label>
+          <label>Variables (JSON, optionnel)
+            <input type="text" id="sendVariables" class="input" placeholder='{"1":"Dupont","2":"42"}' />
+          </label>
+          <div id="sendResult" style="margin:12px 0;display:none;"></div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="button button-primary" id="confirmSend">Envoyer</button>
+            <button class="button" id="closeSendModal">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      async function loadTemplates() {
+        const container = $('templatesList');
+        try {
+          const res = await fetch('/admin/api/templates');
+          const list = await res.json();
+          if (!list.length) {
+            container.innerHTML = '<p style="color:var(--muted);">Aucun template. Créez-en un avec le bouton ci-dessus.</p>';
+            return;
+          }
+          container.innerHTML = list.map((t) => `
+            <article style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                <div>
+                  <strong>${t.name}</strong>
+                  <span style="margin-left:8px;font-size:.8rem;color:var(--muted);">${t.language} · ${t.category}</span>
+                  ${t.content_sid ? `<span style="margin-left:8px;font-size:.75rem;background:var(--accent-soft);color:var(--accent-strong);padding:2px 6px;border-radius:4px;">Content SID</span>` : ''}
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="button" onclick="openSend('${t.id}','${t.name}')">Envoyer</button>
+                  <button class="button" style="color:var(--danger);" onclick="deleteTemplate('${t.id}')">Supprimer</button>
+                </div>
+              </div>
+              <pre style="margin:8px 0 0;font-size:.8rem;color:var(--muted);white-space:pre-wrap;word-break:break-word;">${t.body_text}</pre>
+              ${t.content_sid ? `<code style="font-size:.75rem;color:var(--muted);">SID: ${t.content_sid}</code>` : ''}
+            </article>
+          `).join('');
+        } catch (e) {
+          container.innerHTML = '<p style="color:var(--danger);">Erreur de chargement</p>';
+        }
+      }
+
+      $('newTemplateBtn').addEventListener('click', () => {
+        $('newTemplateSection').style.display = 'block';
+        $('newTemplateSection').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      $('cancelNewTemplate').addEventListener('click', () => {
+        $('newTemplateSection').style.display = 'none';
+      });
+
+      $('newTemplateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          name: $('tplName').value.trim(),
+          body_text: $('tplBody').value.trim(),
+          language: $('tplLanguage').value,
+          category: $('tplCategory').value,
+          content_sid: $('tplContentSid').value.trim() || null,
+        };
+        const res = await fetch('/admin/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          $('newTemplateForm').reset();
+          $('newTemplateSection').style.display = 'none';
+          await loadTemplates();
+        } else {
+          const err = await res.json();
+          alert('Erreur : ' + (err.error || 'Inconnue'));
+        }
+      });
+
+      async function deleteTemplate(id) {
+        if (!confirm('Supprimer ce template ?')) return;
+        await fetch(`/admin/api/templates/${id}`, { method: 'DELETE' });
+        await loadTemplates();
+      }
+
+      function openSend(id, name) {
+        $('sendTemplateId').value = id;
+        $('sendModalTitle').textContent = `Envoyer : ${name}`;
+        $('sendPhone').value = '';
+        $('sendVariables').value = '';
+        $('sendResult').style.display = 'none';
+        $('sendModal').style.display = 'flex';
+      }
+
+      $('closeSendModal').addEventListener('click', () => {
+        $('sendModal').style.display = 'none';
+      });
+
+      $('confirmSend').addEventListener('click', async () => {
+        const id = $('sendTemplateId').value;
+        const phone = $('sendPhone').value.trim();
+        if (!phone) { alert('Numéro requis'); return; }
+        let variables = null;
+        const varStr = $('sendVariables').value.trim();
+        if (varStr) {
+          try { variables = JSON.parse(varStr); } catch { alert('Variables JSON invalides'); return; }
+        }
+        const payload = { phone, variables };
+        const res = await fetch(`/admin/api/templates/${id}/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        const resultEl = $('sendResult');
+        resultEl.style.display = 'block';
+        if (res.ok) {
+          resultEl.style.color = 'var(--accent)';
+          resultEl.textContent = `Envoyé ! SID: ${data.messageSid}`;
+        } else {
+          resultEl.style.color = 'var(--danger)';
+          resultEl.textContent = `Erreur : ${data.error}`;
+        }
+      });
+
+      loadTemplates();
+    </script>
+  </body>
+</html>

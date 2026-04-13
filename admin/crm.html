@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRM Pharmaciens</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h1>CRM Pharmaciens</h1>
+          <p class="subtitle">Profils collectés via l'onboarding WhatsApp.</p>
+        </div>
+        <div class="header-actions">
+          <a class="button button-primary" href="/admin">Accueil</a>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab" href="/admin">Accueil</a>
+        <a class="tab" href="/admin/themes">Themes</a>
+        <a class="tab active" href="/admin/crm">CRM</a>
+        <a class="tab" href="/admin/templates">Templates</a>
+        <a class="tab" href="/admin/monitoring">Monitoring</a>
+      </nav>
+
+      <!-- Statistiques CRM -->
+      <section class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Statistiques</p>
+            <h2>Vue d'ensemble</h2>
+          </div>
+          <button class="button" id="refreshBtn" type="button">Actualiser</button>
+        </div>
+        <div class="metric-grid" id="statsGrid">
+          <article class="metric-card">
+            <span class="metric-label">Pharmaciens</span>
+            <strong class="metric-value" id="totalPharmacists">–</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Onboarding complet</span>
+            <strong class="metric-value" id="onboardingCompleted">–</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Consentements explicites</span>
+            <strong class="metric-value" id="explicitConsents">–</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Abonnements actifs</span>
+            <strong class="metric-value" id="totalSubscriptions">–</strong>
+          </article>
+        </div>
+        <div style="margin-top:16px;">
+          <strong>Logiciels :</strong>
+          <span id="softwareStats" style="margin-left:8px;color:var(--muted);">chargement...</span>
+        </div>
+      </section>
+
+      <!-- Liste pharmaciens -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Base contacts</p>
+            <h2>Pharmaciens enregistrés</h2>
+          </div>
+        </div>
+        <div id="pharmacistsList" style="overflow-x:auto;">
+          <p style="color:var(--muted);">Chargement...</p>
+        </div>
+      </section>
+
+      <!-- Modal édition -->
+      <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:var(--surface);padding:28px;border-radius:12px;width:min(480px,96vw);max-height:90vh;overflow-y:auto;">
+          <h3 id="editModalTitle" style="margin:0 0 20px;">Modifier le profil</h3>
+          <form id="editForm">
+            <input type="hidden" id="editPhone" />
+            <label>Nom
+              <input type="text" id="editName" class="input" placeholder="Prénom Nom" />
+            </label>
+            <label>Pharmacie
+              <input type="text" id="editPharmacy" class="input" placeholder="Nom de la pharmacie" />
+            </label>
+            <label>Ville
+              <input type="text" id="editCity" class="input" placeholder="Casablanca, Rabat..." />
+            </label>
+            <label>Rôle
+              <select id="editRole" class="input">
+                <option value="">Non renseigné</option>
+                <option value="titulaire">Pharmacien titulaire</option>
+                <option value="adjoint">Pharmacien adjoint / collaborateur</option>
+                <option value="autre">Autre utilisateur</option>
+              </select>
+            </label>
+            <label>Logiciel
+              <select id="editSoftware" class="input">
+                <option value="">Non renseigné</option>
+                <option value="blink">Blink Pharma</option>
+                <option value="sobrus">Sobrus</option>
+                <option value="autre">Autre</option>
+              </select>
+            </label>
+            <label>ID pharmacie logiciel
+              <input type="text" id="editSoftwareId" class="input" placeholder="ID dans Blink/Sobrus" />
+            </label>
+            <div style="display:flex;gap:10px;margin-top:20px;">
+              <button type="submit" class="button button-primary">Enregistrer</button>
+              <button type="button" class="button" id="closeEditModal">Annuler</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function formatPhone(phone) {
+        return phone.replace('whatsapp:', '');
+      }
+
+      function softwareLabel(s) {
+        return { blink: 'Blink Pharma', sobrus: 'Sobrus', autre: 'Autre' }[s] || '–';
+      }
+
+      function roleLabel(r) {
+        return { titulaire: 'Titulaire', adjoint: 'Adjoint', autre: 'Autre' }[r] || '–';
+      }
+
+      function consentBadge(status) {
+        if (status === 'accepted') return '<span style="color:#16a34a;font-weight:600;">✓ Accepte</span>';
+        if (status === 'refused') return '<span style="color:#dc2626;">✗ Refuse</span>';
+        if (status === 'revoked') return '<span style="color:#9333ea;">⊘ Revoque</span>';
+        return '<span style="color:var(--muted);">–</span>';
+      }
+
+      async function loadStats() {
+        try {
+          const res = await fetch('/admin/api/crm/stats');
+          const data = await res.json();
+          $('totalPharmacists').textContent = data.total_pharmacists;
+          $('onboardingCompleted').textContent = data.onboarding_completed;
+          $('explicitConsents').textContent = data.explicit_consents;
+          $('totalSubscriptions').textContent = data.total_subscriptions;
+          $('softwareStats').textContent =
+            `Blink: ${data.by_software.blink}  |  Sobrus: ${data.by_software.sobrus}  |  Autre: ${data.by_software.autre}  |  Non renseigné: ${data.by_software.unknown}`;
+        } catch (e) {
+          $('softwareStats').textContent = 'Erreur de chargement';
+        }
+      }
+
+      async function loadPharmacists() {
+        const container = $('pharmacistsList');
+        try {
+          const res = await fetch('/admin/api/crm/pharmacists');
+          const list = await res.json();
+
+          if (!list.length) {
+            container.innerHTML = '<p style="color:var(--muted);">Aucun pharmacien enregistré. Les profils apparaissent après un premier message WhatsApp.</p>';
+            return;
+          }
+
+          // Charger les statuts de consentement en parallèle
+          const consentMap = {};
+          await Promise.allSettled(list.map(async (p) => {
+            try {
+              const r = await fetch(`/admin/api/consent/status/${encodeURIComponent(p.phone)}`);
+              if (r.ok) consentMap[p.phone] = await r.json();
+            } catch {}
+          }));
+
+          const rows = list.map((p) => {
+            const cs = consentMap[p.phone];
+            const cStatus = cs ? cs.consent_status : null;
+            const cVersion = cs ? (cs.consent_version || '') : '';
+            return `
+            <tr>
+              <td><code>${formatPhone(p.phone)}</code></td>
+              <td>${p.name || '<em style="color:var(--muted)">–</em>'}</td>
+              <td>${p.pharmacy_name || '<em style="color:var(--muted)">–</em>'}</td>
+              <td>${p.city || '–'}</td>
+              <td>${roleLabel(p.role)}</td>
+              <td>${softwareLabel(p.software)}</td>
+              <td>${consentBadge(cStatus)}${cVersion ? ' <small style="color:var(--muted)">'+cVersion+'</small>' : ''}</td>
+              <td>${p.onboarding_completed ? '✓' : '–'}</td>
+              <td><button class="button" onclick="openEdit('${p.phone}')">Modifier</button></td>
+            </tr>
+          `}).join('');
+
+          container.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:.875rem;">
+              <thead>
+                <tr style="text-align:left;border-bottom:1px solid var(--border);">
+                  <th style="padding:8px 12px;">Téléphone</th>
+                  <th style="padding:8px 12px;">Nom</th>
+                  <th style="padding:8px 12px;">Pharmacie</th>
+                  <th style="padding:8px 12px;">Ville</th>
+                  <th style="padding:8px 12px;">Rôle</th>
+                  <th style="padding:8px 12px;">Logiciel</th>
+                  <th style="padding:8px 12px;">Consentement</th>
+                  <th style="padding:8px 12px;">Onboarding</th>
+                  <th style="padding:8px 12px;"></th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        } catch (e) {
+          container.innerHTML = '<p style="color:var(--danger);">Erreur de chargement</p>';
+        }
+      }
+
+      // Chargement de toutes les données (pour le modal)
+      let allPharmacists = [];
+
+      async function openEdit(phone) {
+        const res = await fetch(`/admin/api/crm/pharmacists/${encodeURIComponent(phone)}`);
+        if (!res.ok) return;
+        const p = await res.json();
+        $('editPhone').value = p.phone;
+        $('editModalTitle').textContent = `Modifier : ${formatPhone(p.phone)}`;
+        $('editName').value = p.name || '';
+        $('editPharmacy').value = p.pharmacy_name || '';
+        $('editCity').value = p.city || '';
+        $('editRole').value = p.role || '';
+        $('editSoftware').value = p.software || '';
+        $('editSoftwareId').value = p.software_pharmacy_id || '';
+        $('editModal').style.display = 'flex';
+      }
+
+      $('closeEditModal').addEventListener('click', () => {
+        $('editModal').style.display = 'none';
+      });
+
+      $('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const phone = $('editPhone').value;
+        const payload = {
+          name: $('editName').value.trim() || null,
+          pharmacy_name: $('editPharmacy').value.trim() || null,
+          city: $('editCity').value.trim() || null,
+          role: $('editRole').value || null,
+          software: $('editSoftware').value || null,
+          software_pharmacy_id: $('editSoftwareId').value.trim() || null,
+        };
+        const res = await fetch(`/admin/api/crm/pharmacists/${encodeURIComponent(phone)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          $('editModal').style.display = 'none';
+          await loadPharmacists();
+        } else {
+          alert('Erreur lors de la sauvegarde');
+        }
+      });
+
+      $('refreshBtn').addEventListener('click', () => {
+        loadStats();
+        loadPharmacists();
+      });
+
+      loadStats();
+      loadPharmacists();
+    </script>
+  </body>
+</html>

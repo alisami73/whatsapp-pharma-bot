@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion des themes</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h1>Gestion des themes</h1>
+          <p class="subtitle">Activez, desactivez ou modifiez les modules affiches dans WhatsApp.</p>
+        </div>
+        <a class="button" href="/admin">Retour accueil</a>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab" href="/admin">Accueil</a>
+        <a class="tab active" href="/admin/themes">Themes</a>
+      </nav>
+
+      <main class="layout-two-columns">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 id="formTitle">Ajouter un theme</h2>
+            <button class="button" id="resetButton" type="button">Nouveau</button>
+          </div>
+
+          <form id="themeForm" class="form-stack">
+            <label>
+              <span>Titre</span>
+              <input id="title" name="title" type="text" required />
+            </label>
+
+            <label>
+              <span>Message d'introduction</span>
+              <textarea id="intro_message" name="intro_message" rows="4"></textarea>
+            </label>
+
+            <label>
+              <span>Focus actuel</span>
+              <textarea id="current_focus" name="current_focus" rows="3"></textarea>
+            </label>
+
+            <label class="toggle-row">
+              <input id="active" name="active" type="checkbox" checked />
+              <span>Theme actif</span>
+            </label>
+
+            <label class="toggle-row">
+              <input id="requires_auth" name="requires_auth" type="checkbox" />
+              <span>Authentification requise</span>
+            </label>
+
+            <label class="toggle-row">
+              <input id="allow_free_question" name="allow_free_question" type="checkbox" checked />
+              <span>Activer la question libre</span>
+            </label>
+
+            <label class="toggle-row">
+              <input id="allow_subscription" name="allow_subscription" type="checkbox" />
+              <span>Autoriser les mises a jour par abonnement</span>
+            </label>
+
+            <div class="actions">
+              <button class="button button-primary" type="submit">Enregistrer</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Liste des themes</h2>
+            <button class="button" id="refreshButton" type="button">Actualiser</button>
+          </div>
+          <div id="themeList" class="stack"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const themeForm = document.getElementById('themeForm');
+      const themeList = document.getElementById('themeList');
+      const resetButton = document.getElementById('resetButton');
+      const refreshButton = document.getElementById('refreshButton');
+      const formTitle = document.getElementById('formTitle');
+
+      let themesCache = [];
+      let editingId = null;
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function resetForm() {
+        editingId = null;
+        formTitle.textContent = 'Ajouter un theme';
+        themeForm.reset();
+        document.getElementById('active').checked = true;
+        document.getElementById('allow_free_question').checked = true;
+        document.getElementById('allow_subscription').checked = false;
+      }
+
+      function fillForm(theme) {
+        editingId = theme.id;
+        formTitle.textContent = `Modifier: ${theme.title}`;
+        document.getElementById('title').value = theme.title || '';
+        document.getElementById('intro_message').value = theme.intro_message || '';
+        document.getElementById('current_focus').value = theme.current_focus || '';
+        document.getElementById('active').checked = Boolean(theme.active);
+        document.getElementById('requires_auth').checked = Boolean(theme.requires_auth);
+        document.getElementById('allow_free_question').checked = Boolean(theme.allow_free_question);
+        document.getElementById('allow_subscription').checked = Boolean(theme.allow_subscription);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function renderThemes() {
+        if (!themesCache.length) {
+          themeList.innerHTML = '<div class="empty-state">Aucun theme disponible.</div>';
+          return;
+        }
+
+        themeList.innerHTML = themesCache
+          .map((theme) => {
+            const statusClass = theme.active ? 'status-active' : 'status-inactive';
+            const statusLabel = theme.active ? 'Actif' : 'Inactif';
+
+            return `
+              <article class="card">
+                <div class="card-row">
+                  <div>
+                    <h3>${escapeHtml(theme.title)}</h3>
+                    <p class="muted">${escapeHtml(theme.intro_message || 'Aucun message d introduction')}</p>
+                    <p class="muted">${escapeHtml(theme.current_focus || 'Aucun focus actuel')}</p>
+                  </div>
+                  <span class="status ${statusClass}">${statusLabel}</span>
+                </div>
+                <div class="meta-row">
+                  <span>Auth: ${theme.requires_auth ? 'Oui' : 'Non'}</span>
+                  <span>Question libre: ${theme.allow_free_question ? 'Oui' : 'Non'}</span>
+                  <span>Abonnement: ${theme.allow_subscription ? 'Oui' : 'Non'}</span>
+                  <span>ID: ${escapeHtml(theme.id)}</span>
+                </div>
+                <div class="actions">
+                  <button class="button" type="button" onclick="editTheme('${theme.id}')">Modifier</button>
+                  <a class="button" href="/admin/content?theme_id=${encodeURIComponent(theme.id)}">Base interne</a>
+                  <button class="button button-danger" type="button" onclick="deleteTheme('${theme.id}')">Supprimer</button>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      async function loadThemes() {
+        themeList.innerHTML = '<div class="empty-state">Chargement...</div>';
+
+        const response = await fetch('/admin/api/themes');
+        themesCache = await response.json();
+        renderThemes();
+      }
+
+      async function saveTheme(payload) {
+        const url = editingId ? `/admin/api/themes/${encodeURIComponent(editingId)}` : '/admin/api/themes';
+        const method = editingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(data.error || 'Request failed');
+        }
+      }
+
+      async function removeTheme(id) {
+        const response = await fetch(`/admin/api/themes/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(data.error || 'Request failed');
+        }
+      }
+
+      themeForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          title: document.getElementById('title').value.trim(),
+          intro_message: document.getElementById('intro_message').value.trim(),
+          current_focus: document.getElementById('current_focus').value.trim(),
+          active: document.getElementById('active').checked,
+          requires_auth: document.getElementById('requires_auth').checked,
+          allow_free_question: document.getElementById('allow_free_question').checked,
+          allow_subscription: document.getElementById('allow_subscription').checked,
+        };
+
+        try {
+          await saveTheme(payload);
+          resetForm();
+          await loadThemes();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      resetButton.addEventListener('click', resetForm);
+      refreshButton.addEventListener('click', loadThemes);
+
+      window.editTheme = (id) => {
+        const theme = themesCache.find((entry) => entry.id === id);
+
+        if (theme) {
+          fillForm(theme);
+        }
+      };
+
+      window.deleteTheme = async (id) => {
+        const theme = themesCache.find((entry) => entry.id === id);
+        const label = theme ? theme.title : id;
+
+        if (!window.confirm(`Supprimer le theme "${label}" ?`)) {
+          return;
+        }
+
+        try {
+          await removeTheme(id);
+          if (editingId === id) {
+            resetForm();
+          }
+          await loadThemes();
+        } catch (error) {
+          alert(error.message);
+        }
+      };
+
+      if (window.location.hash === '#new') {
+        resetForm();
+      }
+
+      resetForm();
+      loadThemes();
+    </script>
+  </body>
+</html>

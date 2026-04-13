@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin WhatsApp Pharmacie</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration locale</p>
+          <h1>Console WhatsApp Pharmacie</h1>
+          <p class="subtitle">
+            Supervisez Twilio, pilotez les modules WhatsApp et lancez vos envois tests depuis un
+            tableau de bord unique.
+          </p>
+        </div>
+        <div class="header-actions">
+          <a class="button button-primary" href="/admin/themes">Gerer les themes</a>
+          <a class="button" href="/admin/themes#new">Ajouter un theme</a>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab active" href="/admin">Accueil</a>
+        <a class="tab" href="/admin/themes">Themes</a>
+        <a class="tab" href="/admin/crm">CRM</a>
+        <a class="tab" href="/admin/templates">Templates</a>
+        <a class="tab" href="/admin/monitoring">Monitoring</a>
+      </nav>
+
+      <section class="hero-dashboard">
+        <article class="panel hero-panel">
+          <div class="hero-copy">
+            <p class="eyebrow">Page d'accueil</p>
+            <h2>Le poste de pilotage local de l'assistant</h2>
+            <p class="subtitle">
+              Retrouvez les themes actifs, l'etat du canal WhatsApp, les derniers logs et les
+              actions rapides pour continuer la configuration.
+            </p>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span class="metric-label">Themes actifs</span>
+              <strong class="metric-value" id="activeThemeCount">0</strong>
+              <span class="metric-meta"
+                >sur <span id="totalThemeCount">0</span> modules disponibles</span
+              >
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Modules securises</span>
+              <strong class="metric-value" id="authThemeCount">0</strong>
+              <span class="metric-meta">necessitent une authentification</span>
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Messages entrants</span>
+              <strong class="metric-value" id="inboundCount">0</strong>
+              <span class="metric-meta">recus par le bot</span>
+            </article>
+
+            <article class="metric-card">
+              <span class="metric-label">Messages sortants</span>
+              <strong class="metric-value" id="outboundCount">0</strong>
+              <span class="metric-meta">traces dans les logs</span>
+            </article>
+          </div>
+        </article>
+
+        <aside class="hero-aside">
+          <section class="panel signal-panel">
+            <div class="panel-header panel-header-compact">
+              <div>
+                <p class="eyebrow">Etat systeme</p>
+                <h2>Twilio et envoi local</h2>
+              </div>
+              <button class="button" id="refreshDashboardButton" type="button">Actualiser</button>
+            </div>
+
+            <div class="status-banner" id="twilioHeadlineBanner">
+              Verification de la configuration Twilio...
+            </div>
+            <p class="muted" id="twilioSummary">
+              Le tableau de bord recupere la configuration actuelle du canal WhatsApp.
+            </p>
+            <div class="meta-row" id="twilioPills"></div>
+          </section>
+
+          <section class="panel quick-actions-panel">
+            <div class="panel-header panel-header-compact">
+              <div>
+                <p class="eyebrow">Raccourcis</p>
+                <h2>Actions rapides</h2>
+              </div>
+            </div>
+
+            <div class="shortcut-list">
+              <a class="shortcut-card" href="/admin/themes">
+                <strong>Liste des themes</strong>
+                <span class="muted">Activer, modifier ou desactiver les modules visibles.</span>
+              </a>
+
+              <a class="shortcut-card" href="/admin/themes#new">
+                <strong>Nouveau theme</strong>
+                <span class="muted">Ajouter rapidement un nouveau module WhatsApp.</span>
+              </a>
+
+              <a class="shortcut-card" id="knowledgeShortcut" href="/admin/themes">
+                <strong id="knowledgeShortcutTitle">Base interne</strong>
+                <span class="muted" id="knowledgeShortcutText"
+                  >Selectionnez un theme pour editer sa base de connaissances.</span
+                >
+              </a>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <main class="dashboard-grid">
+        <section class="panel panel-emphasis">
+          <div class="panel-header">
+            <div>
+              <h2>Envoi WhatsApp</h2>
+              <p class="panel-description">
+                Envoyez un message manuel a un numero de test ou a un utilisateur deja connu.
+              </p>
+            </div>
+          </div>
+
+          <form id="sendForm" class="form-stack">
+            <label>
+              <span>Numero destinataire</span>
+              <input id="phone" name="phone" type="text" placeholder="+212600000000" required />
+            </label>
+
+            <label>
+              <span>Theme</span>
+              <select id="theme_id" name="theme_id" required></select>
+            </label>
+
+            <label>
+              <span>Message additionnel</span>
+              <textarea
+                id="custom_message"
+                name="custom_message"
+                rows="5"
+                placeholder="Optionnel. Ce texte sera ajoute apres l'introduction du theme."
+              ></textarea>
+            </label>
+
+            <p class="field-note">
+              Le message final reprend automatiquement le titre, l'introduction et le focus actuel
+              du theme choisi.
+            </p>
+
+            <div class="actions">
+              <button class="button button-primary" id="sendButton" type="submit">
+                Envoyer le message
+              </button>
+            </div>
+          </form>
+
+          <div id="sendResult" class="empty-state">Aucun envoi effectue pour le moment.</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Configuration Twilio</h2>
+              <p class="panel-description">
+                Resume complet de la configuration locale actuellement chargee.
+              </p>
+            </div>
+            <button class="button" id="refreshStatusButton" type="button">Verifier</button>
+          </div>
+
+          <div id="twilioStatus" class="empty-state">Chargement de la configuration Twilio...</div>
+        </section>
+
+        <section class="panel dashboard-span-full">
+          <div class="panel-header">
+            <div>
+              <h2>Vue d'ensemble des themes</h2>
+              <p class="panel-description" id="themeOverviewMeta">
+                Chargement des modules disponibles...
+              </p>
+            </div>
+            <button class="button" id="refreshThemesButton" type="button">Actualiser</button>
+          </div>
+          <div id="themeList" class="card-grid"></div>
+        </section>
+
+        <section class="panel dashboard-span-full">
+          <div class="panel-header">
+            <div>
+              <h2>Journaux WhatsApp</h2>
+              <p class="panel-description" id="logsSummary">
+                Les derniers echanges et statuts d'envoi apparaissent ici.
+              </p>
+            </div>
+            <button class="button" id="refreshLogsButton" type="button">Actualiser</button>
+          </div>
+          <div id="logsList" class="stack"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const sendForm = document.getElementById('sendForm');
+      const sendButton = document.getElementById('sendButton');
+      const themeSelect = document.getElementById('theme_id');
+      const themeList = document.getElementById('themeList');
+      const logsList = document.getElementById('logsList');
+      const twilioStatus = document.getElementById('twilioStatus');
+      const sendResult = document.getElementById('sendResult');
+      const refreshThemesButton = document.getElementById('refreshThemesButton');
+      const refreshLogsButton = document.getElementById('refreshLogsButton');
+      const refreshStatusButton = document.getElementById('refreshStatusButton');
+      const refreshDashboardButton = document.getElementById('refreshDashboardButton');
+      const twilioHeadlineBanner = document.getElementById('twilioHeadlineBanner');
+      const twilioSummary = document.getElementById('twilioSummary');
+      const twilioPills = document.getElementById('twilioPills');
+      const themeOverviewMeta = document.getElementById('themeOverviewMeta');
+      const logsSummary = document.getElementById('logsSummary');
+      const knowledgeShortcut = document.getElementById('knowledgeShortcut');
+      const knowledgeShortcutTitle = document.getElementById('knowledgeShortcutTitle');
+      const knowledgeShortcutText = document.getElementById('knowledgeShortcutText');
+
+      const activeThemeCount = document.getElementById('activeThemeCount');
+      const totalThemeCount = document.getElementById('totalThemeCount');
+      const authThemeCount = document.getElementById('authThemeCount');
+      const inboundCount = document.getElementById('inboundCount');
+      const outboundCount = document.getElementById('outboundCount');
+
+      let themesCache = [];
+      let logsCache = [];
+      let twilioStatusCache = null;
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return 'n/a';
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+          return String(value);
+        }
+
+        return new Intl.DateTimeFormat('fr-FR', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(date);
+      }
+
+      async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.details || data.error || 'Request failed');
+        }
+
+        return data;
+      }
+
+      function getLogStatusClass(status) {
+        if (['delivered', 'sent', 'queued', 'accepted'].includes(status)) {
+          return 'status-active';
+        }
+
+        if (['failed', 'undelivered'].includes(status)) {
+          return 'status-inactive';
+        }
+
+        return '';
+      }
+
+      function renderThemeSelect() {
+        const activeThemes = themesCache.filter((theme) => theme.active);
+
+        if (!activeThemes.length) {
+          themeSelect.innerHTML = '<option value="">Aucun theme actif</option>';
+          themeSelect.disabled = true;
+          sendButton.disabled = true;
+          return;
+        }
+
+        themeSelect.disabled = false;
+        sendButton.disabled = false;
+        themeSelect.innerHTML = activeThemes
+          .map(
+            (theme) =>
+              `<option value="${escapeHtml(theme.id)}">${escapeHtml(theme.title)}</option>`,
+          )
+          .join('');
+      }
+
+      function renderThemeShortcut() {
+        const preferredTheme = themesCache.find((theme) => theme.active) || themesCache[0];
+
+        if (!preferredTheme) {
+          knowledgeShortcut.href = '/admin/themes';
+          knowledgeShortcutTitle.textContent = 'Base interne';
+          knowledgeShortcutText.textContent =
+            'Selectionnez un theme pour editer sa base de connaissances.';
+          return;
+        }
+
+        knowledgeShortcut.href = `/admin/content?theme_id=${encodeURIComponent(preferredTheme.id)}`;
+        knowledgeShortcutTitle.textContent = `Base interne: ${preferredTheme.title}`;
+        knowledgeShortcutText.textContent =
+          'Ouvrir directement la base de reponses et les mots-cles de ce theme.';
+      }
+
+      function renderThemes(themes) {
+        if (!themes.length) {
+          themeList.innerHTML = '<div class="empty-state">Aucun theme disponible.</div>';
+          return;
+        }
+
+        themeList.innerHTML = themes
+          .map((theme) => {
+            const statusClass = theme.active ? 'status-active' : 'status-inactive';
+            const statusLabel = theme.active ? 'Actif' : 'Inactif';
+
+            return `
+              <article class="card theme-card">
+                <div class="card-row">
+                  <div>
+                    <h3>${escapeHtml(theme.title)}</h3>
+                    <p class="muted">${escapeHtml(theme.intro_message || 'Aucun message d introduction')}</p>
+                  </div>
+                  <span class="status ${statusClass}">${statusLabel}</span>
+                </div>
+                <p class="theme-focus">${escapeHtml(theme.current_focus || 'Aucun focus actuel')}</p>
+                <div class="chips">
+                  <span class="chip">${theme.requires_auth ? 'Acces protege' : 'Acces direct'}</span>
+                  <span class="chip">${theme.allow_free_question ? 'Question libre' : 'Question guidee'}</span>
+                  <span class="chip">${theme.allow_subscription ? 'Abonnement actif' : 'Sans abonnement'}</span>
+                </div>
+                <div class="meta-row">
+                  <span>ID: ${escapeHtml(theme.id)}</span>
+                </div>
+                <div class="actions">
+                  <a class="button" href="/admin/themes">Modifier</a>
+                  <a class="button" href="/admin/content?theme_id=${encodeURIComponent(theme.id)}">Base interne</a>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderTwilioHeadline(status) {
+        const configuredLabel = status.configured
+          ? 'Twilio pret pour les envois WhatsApp'
+          : 'Configuration Twilio incomplete';
+        const summary = status.configured
+          ? 'Le dashboard detecte une configuration exploitable pour les envois manuels.'
+          : 'Renseignez vos identifiants et un sender WhatsApp avant de lancer des tests.';
+
+        twilioHeadlineBanner.className = `status-banner ${
+          status.configured ? 'status-banner-ready' : 'status-banner-alert'
+        }`;
+        twilioHeadlineBanner.textContent = configuredLabel;
+        twilioSummary.textContent = summary;
+
+        const senderLabel = status.senderMode === 'messaging_service'
+          ? 'Messaging Service'
+          : status.senderMode === 'direct_sender'
+            ? 'Numero WhatsApp direct'
+            : 'Sender manquant';
+
+        twilioPills.innerHTML = [
+          `<span>Mode: ${escapeHtml(senderLabel)}</span>`,
+          `<span>Callback: ${status.statusCallbackUrl ? 'Oui' : 'Non'}</span>`,
+          `<span>Envoi sans consentement: ${status.allowManualSendWithoutConsent ? 'Oui' : 'Non'}</span>`,
+        ].join('');
+      }
+
+      function renderTwilioStatus(status) {
+        const configuredLabel = status.configured ? 'Twilio configure' : 'Twilio non configure';
+        const senderLabel = status.senderMode === 'messaging_service'
+          ? 'Messaging Service'
+          : status.senderMode === 'direct_sender'
+            ? 'Numero WhatsApp direct'
+            : 'Aucun sender defini';
+
+        renderTwilioHeadline(status);
+        twilioStatus.innerHTML = `
+          <div class="detail-list">
+            <div class="detail-row">
+              <span class="detail-label">Etat</span>
+              <strong>${escapeHtml(configuredLabel)}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Mode sender</span>
+              <strong>${escapeHtml(senderLabel)}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Sender WhatsApp</span>
+              <strong>${escapeHtml(status.whatsappFrom || 'Non defini')}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Messaging Service SID</span>
+              <strong>${escapeHtml(status.messagingServiceSid || 'Non defini')}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Status callback</span>
+              <strong>${escapeHtml(status.statusCallbackUrl || 'Non defini')}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Envoi manuel sans consentement</span>
+              <strong>${status.allowManualSendWithoutConsent ? 'Oui' : 'Non'}</strong>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderLogs(logs) {
+        if (!logs.length) {
+          logsList.innerHTML = '<div class="empty-state">Aucun log WhatsApp pour le moment.</div>';
+          return;
+        }
+
+        logsList.innerHTML = logs
+          .map((log) => {
+            const statusClass = getLogStatusClass(log.status);
+
+            return `
+              <article class="card">
+                <div class="card-row">
+                  <div>
+                    <h3>${escapeHtml(log.direction)} · ${escapeHtml(log.phone)}</h3>
+                    <p class="muted">${escapeHtml(log.body || 'Sans contenu')}</p>
+                  </div>
+                  <span class="status ${statusClass}">${escapeHtml(log.status)}</span>
+                </div>
+                <div class="meta-row">
+                  <span>Theme: ${escapeHtml(log.theme_id || 'n/a')}</span>
+                  <span>SID: ${escapeHtml(log.provider_message_sid || 'n/a')}</span>
+                  <span>Date: ${escapeHtml(formatDate(log.created_at))}</span>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderDashboardOverview() {
+        const activeThemes = themesCache.filter((theme) => theme.active);
+        const authThemes = themesCache.filter((theme) => theme.requires_auth);
+        const inboundLogs = logsCache.filter((log) => log.direction === 'inbound');
+        const outboundLogs = logsCache.filter((log) => log.direction === 'outbound');
+        const failedLogs = outboundLogs.filter((log) =>
+          ['failed', 'undelivered'].includes(log.status),
+        );
+        const deliveredLogs = outboundLogs.filter((log) =>
+          ['delivered', 'sent', 'queued', 'accepted'].includes(log.status),
+        );
+
+        activeThemeCount.textContent = String(activeThemes.length);
+        totalThemeCount.textContent = String(themesCache.length);
+        authThemeCount.textContent = String(authThemes.length);
+        inboundCount.textContent = String(inboundLogs.length);
+        outboundCount.textContent = String(outboundLogs.length);
+
+        if (!themesCache.length) {
+          themeOverviewMeta.textContent =
+            'Aucun theme configure pour le moment. Creez votre premier module pour demarrer.';
+        } else {
+          themeOverviewMeta.textContent =
+            `${activeThemes.length} theme(s) actif(s), ${authThemes.length} module(s) securise(s).`;
+        }
+
+        if (!logsCache.length) {
+          logsSummary.textContent =
+            'Aucun echange enregistre pour l instant. Les prochains messages apparaitront ici.';
+        } else {
+          logsSummary.textContent =
+            `${outboundLogs.length} message(s) sortant(s), ${inboundLogs.length} entrant(s), ${deliveredLogs.length} envoi(s) sains et ${failedLogs.length} en erreur.`;
+        }
+
+        if (!twilioStatusCache) {
+          twilioHeadlineBanner.className = 'status-banner';
+          twilioHeadlineBanner.textContent = 'Verification de la configuration Twilio...';
+          twilioSummary.textContent =
+            'Le tableau de bord recupere la configuration actuelle du canal WhatsApp.';
+          twilioPills.innerHTML = '';
+        }
+
+        renderThemeShortcut();
+      }
+
+      async function loadThemes() {
+        themeList.innerHTML = '<div class="empty-state">Chargement des themes...</div>';
+
+        try {
+          themesCache = await fetchJson('/admin/api/themes');
+          renderThemeSelect();
+          renderThemes(themesCache);
+          renderDashboardOverview();
+        } catch (error) {
+          themesCache = [];
+          renderThemeSelect();
+          renderDashboardOverview();
+          themeList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      async function loadTwilioStatus() {
+        twilioStatus.textContent = 'Chargement de la configuration Twilio...';
+
+        try {
+          twilioStatusCache = await fetchJson('/admin/api/twilio/status');
+          renderTwilioStatus(twilioStatusCache);
+          renderDashboardOverview();
+        } catch (error) {
+          twilioStatusCache = null;
+          renderDashboardOverview();
+          twilioStatus.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      async function loadLogs() {
+        logsList.innerHTML = '<div class="empty-state">Chargement des logs...</div>';
+
+        try {
+          logsCache = await fetchJson('/admin/api/messages/logs?limit=20');
+          renderLogs(logsCache);
+          renderDashboardOverview();
+        } catch (error) {
+          logsCache = [];
+          renderDashboardOverview();
+          logsList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      async function loadDashboard() {
+        await Promise.allSettled([loadThemes(), loadTwilioStatus(), loadLogs()]);
+      }
+
+      sendForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        sendResult.textContent = 'Envoi en cours...';
+
+        const payload = {
+          phone: document.getElementById('phone').value.trim(),
+          theme_id: document.getElementById('theme_id').value,
+          custom_message: document.getElementById('custom_message').value.trim(),
+        };
+
+        try {
+          const data = await fetchJson('/admin/api/messages/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          sendResult.innerHTML = `
+            <div class="detail-list">
+              <div class="detail-row">
+                <span class="detail-label">Resultat</span>
+                <strong>Message envoye</strong>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">SID</span>
+                <strong>${escapeHtml(data.messageSid || 'n/a')}</strong>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Statut</span>
+                <strong>${escapeHtml(data.status || 'n/a')}</strong>
+              </div>
+            </div>
+          `;
+
+          sendForm.reset();
+          renderThemeSelect();
+          await loadLogs();
+        } catch (error) {
+          sendResult.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+      });
+
+      refreshThemesButton.addEventListener('click', loadThemes);
+      refreshLogsButton.addEventListener('click', loadLogs);
+      refreshStatusButton.addEventListener('click', loadTwilioStatus);
+      refreshDashboardButton.addEventListener('click', loadDashboard);
+
+      renderThemeSelect();
+      renderDashboardOverview();
+      loadDashboard();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "fse",
+    "title": "Feuille de soins electronique",
+    "active": true,
+    "intro_message": "Bienvenue dans le module FSE. Posez votre question librement.",
+    "current_focus": "Comment va se passer l'implémentation de la FSE en pharmacie",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": true,
+    "module_type": "knowledge_base"
+  },
+  {
+    "id": "nouveautes-medicaments",
+    "title": "Nouveautes medicaments",
+    "active": true,
+    "intro_message": "Retrouvez les informations utiles sur les nouveautes, campagnes et produits recents.",
+    "current_focus": "Mises a jour mensuelles, campagnes et nouveaux produits.",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": true,
+    "module_type": "knowledge_base"
+  },
+  {
+    "id": "acces-stock",
+    "title": "Acces a mon stock",
+    "active": true,
+    "intro_message": "Consultez les sujets lies a votre stock et a la disponibilite des produits.",
+    "current_focus": "Disponibilite produit, ecarts de stock et reapprovisionnement.",
+    "requires_auth": true,
+    "allow_free_question": true,
+    "allow_subscription": false,
+    "module_type": "knowledge_base"
+  },
+  {
+    "id": "cnss",
+    "title": "Questions CNSS",
+    "active": true,
+    "intro_message": "Posez vos questions sur la CNSS : affiliations, cotisations, remboursements AMO, retraite...",
+    "current_focus": "Remboursements medicaments AMO, cotisations employeur, affiliation salaries.",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": false,
+    "module_type": "cnss"
+  }
+]
