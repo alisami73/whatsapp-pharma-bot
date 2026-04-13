@@ -40,14 +40,13 @@ const ONBOARDING_STATES = {
  */
 function buildRolePrompt() {
   return [
-    'Quel est votre role dans cette officine ?',
+    'Quel est votre role dans l\'officine ?',
     '',
     '1. Pharmacien titulaire',
     '2. Pharmacien adjoint / collaborateur',
-    '3. Autre',
-    '4. Ne pas renseigner (PASSER)',
+    '3. Autre role',
     '',
-    'Repondez avec un numero.',
+    'Tapez 1, 2, 3 ou PASSER.',
   ].join('\n');
 }
 

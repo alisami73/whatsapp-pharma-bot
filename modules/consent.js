@@ -85,17 +85,17 @@ function isRoleRestricted(role, theme) {
  */
 function buildConsentShort() {
   return [
-    'Pour utiliser Assistant Pharmacie, veuillez confirmer :',
+    'Pour utiliser ce service, vous confirmez que :',
     '',
-    '✔ Je suis pharmacien ou j\'utilise ce service sous ma responsabilite',
-    '✔ J\'accepte de recevoir des messages WhatsApp lies aux services actives',
-    '✔ Je comprends que les informations doivent etre validees par l\'utilisateur',
-    '✔ Je respecte les prerogatives et les limites de mon role si je ne suis pas le pharmacien titulaire de l\'officine',
+    '✅ Vous etes pharmacien ou utilisez ce service sous votre responsabilite',
+    '✅ Vous acceptez de recevoir des messages WhatsApp lies aux services actifs',
+    '✅ Vous validez les informations avant de les appliquer',
+    '✅ Vous respectez les limites de votre role',
     '',
-    'Repondez :',
-    'OUI - pour activer le service',
-    'NON - pour refuser',
-    'EN SAVOIR PLUS - pour plus d\'informations',
+    '1. J\'accepte',
+    '2. Je refuse',
+    '',
+    'Tapez 1 ou 2.',
   ].join('\n');
 }
 

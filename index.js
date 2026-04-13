@@ -559,6 +559,12 @@ async function handleOnboardingStep(response, user, context) {
 
   // ── Étape ROLE (première étape post-consentement) ─────────────────────────
   if (user.current_state === STATES.ONBOARDING_ROLE) {
+    const isValidRoleChoice = onboarding.isSkip(normalizedMessage) || Boolean(onboarding.parseRoleChoice(normalizedMessage));
+    if (!isValidRoleChoice) {
+      response.message(onboarding.buildRolePrompt());
+      return;
+    }
+
     const { updatedPharmacist, nextStep, role } = onboarding.handleRoleStep(normalizedMessage, currentPharmacist);
     await storage.savePharmacist(updatedPharmacist);
     // Mettre à jour le rôle dans l'audit trail du consentement
@@ -738,8 +744,19 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     const consented = await storage.hasConsent(context.phone);
 
     if (!consented) {
-      const isOui = context.normalizedMessage === 'oui' || controlValue === 'consent_yes';
-      const isNon = context.normalizedMessage === 'non' || controlValue === 'consent_no';
+      const isOui =
+        context.normalizedMessage === '1' ||
+        context.normalizedMessage === 'oui' ||
+        context.normalizedMessage === 'j accepte' ||
+        context.normalizedMessage === 'j\'accepte' ||
+        context.normalizedMessage === 'accepte' ||
+        controlValue === 'consent_yes';
+      const isNon =
+        context.normalizedMessage === '2' ||
+        context.normalizedMessage === 'non' ||
+        context.normalizedMessage === 'je refuse' ||
+        context.normalizedMessage === 'refuse' ||
+        controlValue === 'consent_no';
       const isEnSavoirPlus =
         context.normalizedMessage === 'en savoir plus' ||
         context.normalizedMessage === 'plus' ||
