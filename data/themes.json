@@ -8,7 +8,7 @@
     "requires_auth": false,
     "allow_free_question": true,
     "allow_subscription": true,
-    "module_type": "knowledge_base"
+    "module_type": "cnss"
   },
   {
     "id": "nouveautes-medicaments",

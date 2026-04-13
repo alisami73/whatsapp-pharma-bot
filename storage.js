@@ -132,7 +132,8 @@ function slugify(value) {
 //   'medindex'                 - Recherche API MedIndex
 //   'interactions'             - Vérificateur d'interactions médicamenteuses
 //   'monitoring'               - Monitoring Blink/Sobrus
-const VALID_MODULE_TYPES = ['knowledge_base', 'medindex', 'interactions', 'monitoring'];
+//   'cnss'                     - Base documentaire CNSS/FSE via Azure OpenAI
+const VALID_MODULE_TYPES = ['knowledge_base', 'medindex', 'interactions', 'monitoring', 'cnss'];
 
 function normalizeTheme(theme) {
   const rawModuleType = String(theme.module_type || 'knowledge_base').trim();

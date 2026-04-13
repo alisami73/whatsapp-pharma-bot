@@ -140,6 +140,10 @@ function buildThemeHeader(theme) {
   ].join('\n\n');
 }
 
+function usesDocumentKnowledge(theme) {
+  return Boolean(theme) && (theme.module_type === 'cnss' || theme.id === 'fse');
+}
+
 function buildThemeMenu(theme, user) {
   const lines = [buildThemeHeader(theme), ''];
 
@@ -155,7 +159,9 @@ function buildThemeMenu(theme, user) {
   }
 
   // Libellé de l'action principale selon le module_type
-  const mainActionLabel = {
+  const mainActionLabel = theme.id === 'fse'
+    ? '1. Poser ma question sur la FSE'
+    : {
     medindex: '1. Rechercher un medicament (MedIndex)',
     interactions: '1. Analyser des interactions medicamenteuses',
     monitoring: '1. Consulter mon monitoring (stock / ventes)',
@@ -452,7 +458,7 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
       response.message(monitoring.buildMonitoringMenu(software));
       return;
     }
-    if (theme.module_type === 'cnss') {
+    if (usesDocumentKnowledge(theme)) {
       await setCnssQuestionState(user, theme.id);
       response.message(cnss.buildCnssQuestionPrompt(theme));
       return;
@@ -513,6 +519,13 @@ async function handleFreeQuestion(response, user, theme, incomingMessage) {
     const pharmacist = await storage.getPharmacist(user.phone);
     const software = (pharmacist && pharmacist.software) || 'blink';
     response.message(monitoring.buildMonitoringMenu(software));
+    return;
+  }
+
+  if (usesDocumentKnowledge(theme)) {
+    const answer = await cnss.answerQuestion(incomingMessage, theme.id);
+    await setCnssQuestionState(user, theme.id);
+    response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
     return;
   }
 
@@ -902,7 +915,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
     // ── Module CNSS ───────────────────────────────────────────────────────
     if (user.current_state === STATES.AWAITING_CNSS_QUESTION && currentTheme) {
-      const answer = await cnss.answerQuestion(context.message);
+      const answer = await cnss.answerQuestion(context.message, currentTheme.id);
       response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
       res.type('text/xml').send(response.toString());
       return;

@@ -36,29 +36,75 @@ Ne génère jamais d'informations inventées sur les remboursements, délais ou 
 
 let _faqContextCache = null;
 
+function normalizeScope(scope) {
+    return String(scope || '').trim().toLowerCase();
+}
+
+function selectKnowledgeFiles(scope) {
+    if (!fs.existsSync(KNOWLEDGE_DIR)) {
+        return [];
+    }
+
+    const allFiles = fs.readdirSync(KNOWLEDGE_DIR)
+        .filter((f) => f.endsWith('.txt') || f.endsWith('.md'))
+        .sort();
+
+    const normalizedScope = normalizeScope(scope);
+
+    if (normalizedScope === 'fse') {
+        const scopedFiles = allFiles.filter((f) => /fse/i.test(f));
+        return scopedFiles.length ? scopedFiles : allFiles;
+    }
+
+    if (normalizedScope === 'cnss') {
+        const scopedFiles = allFiles.filter((f) => /cnss/i.test(f));
+        return scopedFiles.length ? scopedFiles : allFiles;
+    }
+
+    return allFiles;
+}
+
+function buildScopeLabel(scope) {
+    const normalizedScope = normalizeScope(scope);
+
+    if (normalizedScope === 'fse') {
+        return 'FSE';
+    }
+
+    if (normalizedScope === 'cnss') {
+        return 'CNSS';
+    }
+
+    return 'documentation';
+}
+
 /**
  * Charge tous les fichiers .txt et .md du dossier data/knowledge/
  * et les concatène en un seul contexte. Résultat mis en cache.
  */
-function loadFaqContext() {
+function loadFaqContext(scope) {
+    const normalizedScope = normalizeScope(scope);
+
     if (_faqContextCache !== null) {
-        return _faqContextCache;
+        if (_faqContextCache[normalizedScope] !== undefined) {
+            return _faqContextCache[normalizedScope];
+        }
+    } else {
+        _faqContextCache = {};
     }
 
     if (!fs.existsSync(KNOWLEDGE_DIR)) {
         console.warn('[CNSS] Dossier data/knowledge/ introuvable. Module en mode dégradé.');
-        _faqContextCache = '';
-        return _faqContextCache;
+        _faqContextCache[normalizedScope] = '';
+        return _faqContextCache[normalizedScope];
     }
 
-    const files = fs.readdirSync(KNOWLEDGE_DIR)
-        .filter((f) => f.endsWith('.txt') || f.endsWith('.md'))
-        .sort();
+    const files = selectKnowledgeFiles(scope);
 
     if (files.length === 0) {
         console.warn('[CNSS] Aucun fichier .txt/.md dans data/knowledge/. Module en mode dégradé.');
-        _faqContextCache = '';
-        return _faqContextCache;
+        _faqContextCache[normalizedScope] = '';
+        return _faqContextCache[normalizedScope];
     }
 
     const parts = files.map((f) => {
@@ -66,24 +112,25 @@ function loadFaqContext() {
         return `=== ${f} ===\n${content}`;
     });
 
-    _faqContextCache = parts.join('\n\n');
+    let context = parts.join('\n\n');
 
     // Tronquer si trop long
-    if (_faqContextCache.length > MAX_CONTEXT_CHARS) {
-        _faqContextCache = _faqContextCache.slice(0, MAX_CONTEXT_CHARS) + '\n\n[... contenu tronqué ...]';
+    if (context.length > MAX_CONTEXT_CHARS) {
+        context = context.slice(0, MAX_CONTEXT_CHARS) + '\n\n[... contenu tronqué ...]';
         console.warn(`[CNSS] Contexte FAQ tronqué à ${MAX_CONTEXT_CHARS} caractères.`);
     }
 
-    console.log(`[CNSS] FAQ chargée : ${files.length} fichier(s), ${_faqContextCache.length} caractères.`);
-    return _faqContextCache;
+    _faqContextCache[normalizedScope] = context;
+    console.log(`[CNSS] FAQ chargée (${normalizedScope || 'global'}) : ${files.length} fichier(s), ${context.length} caractères.`);
+    return _faqContextCache[normalizedScope];
 }
 
 /**
  * Invalide le cache (utile si les fichiers FAQ sont mis à jour à chaud).
  */
-function reloadFaqContext() {
+function reloadFaqContext(scope) {
     _faqContextCache = null;
-    return loadFaqContext();
+    return loadFaqContext(scope);
 }
 
 // ─── AZURE OPENAI ─────────────────────────────────────────────────────────────
@@ -116,12 +163,13 @@ function getDeployment() {
  * Recherche par mots-clés dans la FAQ quand Azure OpenAI n'est pas configuré.
  * Retourne la section la plus pertinente ou un message d'indisponibilité.
  */
-function fallbackKeywordSearch(question) {
-    const context = loadFaqContext();
+function fallbackKeywordSearch(question, scope) {
+    const context = loadFaqContext(scope);
+    const scopeLabel = buildScopeLabel(scope);
 
     if (!context) {
         return (
-            'Le service de questions-réponses CNSS n\'est pas disponible pour le moment.\n\n' +
+            `Le service de questions-réponses ${scopeLabel} n'est pas disponible pour le moment.\n\n` +
             'Pour toute information sur la CNSS :\n' +
             '• Site officiel : cnss.ma\n' +
             '• Téléphone : 0801 005 005'
@@ -149,13 +197,13 @@ function fallbackKeywordSearch(question) {
 
     if (bestScore > 0 && bestLine) {
         return (
-            `Voici ce que j'ai trouvé dans notre base CNSS :\n\n${bestLine}\n\n` +
+            `Voici ce que j'ai trouvé dans notre base ${scopeLabel} :\n\n${bestLine}\n\n` +
             'Pour plus de détails : cnss.ma ou 0801 005 005'
         );
     }
 
     return (
-        'Je n\'ai pas trouvé de réponse précise à votre question dans notre base CNSS.\n\n' +
+        `Je n'ai pas trouvé de réponse précise à votre question dans notre base ${scopeLabel}.\n\n` +
         'Pour toute information :\n' +
         '• Site officiel : cnss.ma\n' +
         '• Téléphone : 0801 005 005'
@@ -171,19 +219,20 @@ function fallbackKeywordSearch(question) {
  * @param {string} question — La question du pharmacien
  * @returns {Promise<string>} — La réponse à envoyer via WhatsApp
  */
-async function answerQuestion(question) {
+async function answerQuestion(question, scope) {
     const client = getAzureClient();
+    const scopeLabel = buildScopeLabel(scope);
 
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
-        return fallbackKeywordSearch(question);
+        return fallbackKeywordSearch(question, scope);
     }
 
-    const faqContext = loadFaqContext();
+    const faqContext = loadFaqContext(scope);
 
     const userContent = faqContext
-        ? `Base de connaissances CNSS :\n${faqContext}\n\nQuestion du pharmacien : ${question}`
-        : `Question du pharmacien : ${question}\n\n(Aucune base de connaissances chargée — réponds uniquement si tu connais la réponse avec certitude, sinon oriente vers cnss.ma)`;
+        ? `Base de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion du pharmacien : ${question}`
+        : `Question du pharmacien : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon oriente vers cnss.ma)`;
 
     try {
         console.log(`[CNSS] Appel Azure OpenAI pour : "${question.slice(0, 80)}..."`);
@@ -216,7 +265,7 @@ async function answerQuestion(question) {
         console.error('[CNSS] Erreur Azure OpenAI:', error.message || error);
 
         // Basculer en fallback si erreur LLM
-        const fallback = fallbackKeywordSearch(question);
+        const fallback = fallbackKeywordSearch(question, scope);
         return fallback;
     }
 }
@@ -224,10 +273,14 @@ async function answerQuestion(question) {
 // ─── PROMPT D'INVITATION ──────────────────────────────────────────────────────
 
 function buildCnssQuestionPrompt(theme) {
+    const isFseTheme = theme && theme.id === 'fse';
+
     return [
         `${theme.title} — Posez votre question`,
         '',
-        'Posez votre question sur la CNSS : remboursements, affiliations, cotisations, prestations...',
+        isFseTheme
+            ? 'Posez votre question sur la FSE : fonctionnement, phase pilote, deploiement, impact en pharmacie...'
+            : 'Posez votre question sur la CNSS : remboursements, affiliations, cotisations, prestations...',
         '',
         'Envoyez RETOUR pour revenir au menu.',
     ].join('\n');
