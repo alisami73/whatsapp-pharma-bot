@@ -180,6 +180,9 @@ function buildThemeMenu(theme, user) {
   lines.push(`${optionNumber}. Retour au menu`);
   lines.push('');
   lines.push('Repondez avec un numero.');
+  if (usesDocumentKnowledge(theme)) {
+    lines.push('Vous pouvez aussi envoyer directement votre question.');
+  }
   lines.push('Envoyez RETOUR pour revenir au menu principal.');
 
   return lines.join('\n');
@@ -934,6 +937,14 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         currentTheme,
         'Merci de choisir une option de connexion.',
       );
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    if (currentTheme && usesDocumentKnowledge(currentTheme)) {
+      await setCnssQuestionState(user, currentTheme.id);
+      const answer = await cnss.answerQuestion(context.message, currentTheme.id);
+      response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
       res.type('text/xml').send(response.toString());
       return;
     }
