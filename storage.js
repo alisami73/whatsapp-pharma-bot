@@ -676,7 +676,7 @@ async function updateConsentRole(phone, role) {
  * Version enrichie de grantConsent avec version, rôle, snapshot textuel.
  * Remplace grantConsent dans les nouveaux flux tout en restant compatible.
  * @param {string} phone
- * @param {{ version?: string, role?: string, textSnapshot?: string, source?: string }} options
+ * @param {{ version?: string, role?: string, textSnapshot?: string, source?: string, notes?: string }} options
  * @returns {Promise<object>}
  */
 async function grantConsentWithMeta(phone, options = {}) {
@@ -684,16 +684,17 @@ async function grantConsentWithMeta(phone, options = {}) {
   const consents = await getConsents();
   const existingIndex = consents.findIndex((entry) => phonesMatch(entry.phone, normalizedPhone));
   const now = new Date().toISOString();
-  const { version, role, textSnapshot } = options;
+  const { version, role, textSnapshot, source, notes } = options;
 
   const base = existingIndex !== -1 ? consents[existingIndex] : { phone: normalizedPhone };
   const nextConsent = normalizeConsent({
     ...base,
-    source: 'explicit_consent',
+    source: source || 'explicit_consent',
     consent_status: 'accepted',
     consent_version: version || null,
     consent_text_snapshot: textSnapshot || null,
     role_declared: role || base.role_declared || null,
+    notes: notes || base.notes || null,
     accepted_at: now,
     consented_at: now,
     refused_at: null,
@@ -886,6 +887,7 @@ async function listMessageLogs(limit = 50) {
 // ---------------------------------------------------------------------------
 
 const VALID_PHARMACIST_ROLES = ['titulaire', 'adjoint', 'autre'];
+const VALID_ENTRY_CHOICES = ['faq', 'medicaments', 'logiciel', 'services'];
 
 function normalizePharmacist(entry) {
   const rawRole = entry.role || null;
@@ -895,6 +897,10 @@ function normalizePharmacist(entry) {
     pharmacy_name: entry.pharmacy_name ? String(entry.pharmacy_name).trim().slice(0, 100) : null,
     city: entry.city ? String(entry.city).trim().slice(0, 80) : null,
     role: rawRole && VALID_PHARMACIST_ROLES.includes(rawRole) ? rawRole : null, // 'titulaire' | 'adjoint' | 'autre' | null
+    entry_choice:
+      entry.entry_choice && VALID_ENTRY_CHOICES.includes(String(entry.entry_choice).trim().toLowerCase())
+        ? String(entry.entry_choice).trim().toLowerCase()
+        : null,
     software: entry.software || null, // 'blink' | 'sobrus' | 'autre' | null
     software_pharmacy_id: entry.software_pharmacy_id ? String(entry.software_pharmacy_id).trim() : null,
     onboarding_completed: Boolean(entry.onboarding_completed),

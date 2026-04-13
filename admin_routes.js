@@ -6,6 +6,7 @@ const twilioService = require('./twilio_service');
 const medindex = require('./modules/medindex');
 const monitoring = require('./modules/monitoring');
 const consent = require('./modules/consent');
+const onboardingFlow = require('./modules/onboarding_flow');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
@@ -581,6 +582,18 @@ router.get(
       current_version: consent.CONSENT_CURRENT_VERSION,
       templates: consent.META_TEMPLATES,
       note: 'Ces templates sont a soumettre via Twilio Content Template Builder ou Meta Business Manager. Categorie UTILITY pour conformite Meta.',
+    });
+  }),
+);
+
+router.get(
+  '/api/onboarding-flow',
+  asyncHandler(async (req, res) => {
+    res.json({
+      configured: onboardingFlow.isOnboardingFlowConfigured(),
+      content_sid: onboardingFlow.getOnboardingFlowContentSid() || null,
+      spec: onboardingFlow.buildOnboardingFlowSpec(),
+      note: 'Le Flow 3 ecrans doit etre cree dans Twilio Content Template Builder, puis son Content SID doit etre renseigne dans TWILIO_ONBOARDING_FLOW_CONTENT_SID.',
     });
   }),
 );

@@ -14,6 +14,7 @@ const monitoring = require('./modules/monitoring');
 const onboarding = require('./modules/onboarding');
 const consent = require('./modules/consent');
 const cnss = require('./modules/cnss');
+const onboardingFlow = require('./modules/onboarding_flow');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -65,14 +66,20 @@ function getRequestContext(req) {
   const phone = twilioService.normalizeWhatsAppAddress(
     req.body.From || req.body.WaId || '',
   );
+  const interactiveData = onboardingFlow.parseInteractiveData(req.body.InteractiveData);
 
   return {
     phone,
     message,
     payload,
+    interactiveData,
     normalizedMessage: normalizeText(message),
     normalizedPayload: normalizeText(payload),
   };
+}
+
+function buildEmptyTwiml() {
+  return new MessagingResponse().toString();
 }
 
 // Les textes de consentement sont désormais gérés par modules/consent.js.
@@ -376,6 +383,82 @@ async function respondWithMainMenu(response, user, prefix = '') {
   await setMainMenuState(user);
   const message = buildMainMenu(activeThemes);
   response.message(prefix ? `${prefix}\n\n${message}` : message);
+}
+
+async function sendOnboardingFlowMessage(phone) {
+  const contentSid = onboardingFlow.getOnboardingFlowContentSid();
+
+  if (!contentSid) {
+    return null;
+  }
+
+  const outboundMessage = await twilioService.sendWhatsAppMessage({
+    to: phone,
+    contentSid,
+  });
+
+  await storage.appendMessageLog({
+    direction: 'outbound',
+    phone,
+    body: '[onboarding_flow]',
+    status: outboundMessage.status || 'queued',
+    provider_message_sid: outboundMessage.sid,
+    metadata: {
+      source: 'onboarding_flow',
+      content_sid: contentSid,
+    },
+  });
+
+  return outboundMessage;
+}
+
+async function handleOnboardingFlowSubmission(response, user, context) {
+  const submission = onboardingFlow.parseFlowSubmission(context.interactiveData);
+
+  if (!submission) {
+    return false;
+  }
+
+  if (submission.consent_choice === 'refuse') {
+    await storage.refuseConsent(context.phone);
+    await storage.resetUser(context.phone);
+    response.message(buildConsentDeclinedMessage());
+    return true;
+  }
+
+  if (submission.consent_choice !== 'accept') {
+    response.message('Soumission incomplete. Merci de relancer le parcours.');
+    return true;
+  }
+
+  await storage.grantConsentWithMeta(context.phone, {
+    version: consent.CONSENT_CURRENT_VERSION,
+    textSnapshot: consent.getConsentTextSnapshot(consent.CONSENT_CURRENT_VERSION),
+    source: 'template',
+    notes: 'consentement recueilli via WhatsApp Flow',
+  });
+
+  const storedRole = onboardingFlow.mapRoleChoiceToStoredRole(submission.role_choice);
+  if (storedRole) {
+    await storage.updateConsentRole(context.phone, storedRole);
+  }
+
+  const currentPharmacist = (await storage.getPharmacist(context.phone)) || { phone: context.phone };
+  await storage.savePharmacist({
+    ...currentPharmacist,
+    role: storedRole,
+    entry_choice: submission.entry_choice || null,
+    onboarding_completed: true,
+  });
+
+  await setMainMenuState({
+    ...user,
+    phone: context.phone,
+    authenticated: false,
+  });
+
+  response.message('Merci. Vos choix ont bien ete enregistres.');
+  return true;
 }
 
 async function respondWithThemeMenu(response, user, theme, prefix = '') {
@@ -727,10 +810,17 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       provider_message_sid: req.body.MessageSid || null,
       metadata: {
         payload: context.payload || null,
+        interactive_data: context.interactiveData || null,
         profile_name: req.body.ProfileName || null,
         current_state: user.current_state || null,
       },
     });
+
+    const handledFlowSubmission = await handleOnboardingFlowSubmission(response, user, context);
+    if (handledFlowSubmission) {
+      res.type('text/xml').send(response.toString());
+      return;
+    }
 
     if (controlValue === 'stop') {
       await storage.revokeConsent(context.phone);
@@ -787,8 +877,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         // L'utilisateur avait demandé plus d'info mais envoie autre chose → ré-afficher
         response.message(consent.buildConsentLong());
       } else {
-        // Premier contact ou message non reconnu → afficher le consentement court
+        // Premier contact ou message non reconnu → lancer le Flow si configuré, sinon afficher le consentement texte.
         await storage.resetUser(context.phone);
+        if (onboardingFlow.isOnboardingFlowConfigured()) {
+          await sendOnboardingFlowMessage(context.phone);
+          res.type('text/xml').send(buildEmptyTwiml());
+          return;
+        }
         response.message(buildConsentMessage());
       }
 
