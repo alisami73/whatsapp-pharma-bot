@@ -40,6 +40,16 @@ function normalizeScope(scope) {
     return String(scope || '').trim().toLowerCase();
 }
 
+function normalizeText(value) {
+    return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 function selectKnowledgeFiles(scope) {
     if (!fs.existsSync(KNOWLEDGE_DIR)) {
         return [];
@@ -76,6 +86,81 @@ function buildScopeLabel(scope) {
     }
 
     return 'documentation';
+}
+
+function extractMarkdownSections(context) {
+    const lines = String(context || '').split('\n');
+    const sections = [];
+    let current = null;
+
+    lines.forEach((line) => {
+        const trimmed = line.trim();
+
+        if (!trimmed || trimmed.startsWith('===')) {
+            return;
+        }
+
+        if (trimmed.startsWith('### ')) {
+            if (current && current.content.length) {
+                sections.push(current);
+            }
+
+            current = {
+                title: trimmed.replace(/^###\s+/, '').trim(),
+                content: [],
+            };
+            return;
+        }
+
+        if (!current) {
+            current = {
+                title: '',
+                content: [],
+            };
+        }
+
+        current.content.push(trimmed);
+    });
+
+    if (current && current.content.length) {
+        sections.push(current);
+    }
+
+    return sections;
+}
+
+function looksLikeGeneralFseQuestion(normalizedQuestion, normalizedScope) {
+    if (normalizedScope !== 'fse') {
+        return false;
+    }
+
+    const mentionsFse = normalizedQuestion.includes('fse') ||
+        normalizedQuestion.includes('feuille de soins') ||
+        normalizedQuestion.includes('feuille soins');
+
+    const asksExplanation = normalizedQuestion.includes('explique') ||
+        normalizedQuestion.includes('c est quoi') ||
+        normalizedQuestion.includes('comment') ||
+        normalizedQuestion.includes('fonctionne') ||
+        normalizedQuestion.includes('fonctionnement');
+
+    return mentionsFse && asksExplanation;
+}
+
+function buildGeneralFseSummary(context) {
+    const normalizedContext = normalizeText(context);
+
+    if (!normalizedContext) {
+        return null;
+    }
+
+    return [
+        'La FSE vise a remplacer une gestion papier longue et administrative des feuilles de soins.',
+        'Concretement, le medecin cree une feuille de soins electronique, un QR code ou code unique est genere, puis le patient se presente a la pharmacie avec ce code.',
+        'La pharmacie scanne ce code et les medicaments remontent automatiquement dans le logiciel officinal.',
+        'Le pharmacien garde le meme role : verifier l ordonnance, delivrer les medicaments et conseiller le patient, avec moins de papier.',
+        'Apres la delivrance, les informations sont transmises automatiquement a la CNSS et la delivrance est tracee numeriquement.',
+    ].join(' ');
 }
 
 /**
@@ -176,30 +261,58 @@ function fallbackKeywordSearch(question, scope) {
         );
     }
 
-    const normalized = question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const keywords = normalized.split(/\s+/).filter((w) => w.length > 3);
+    const normalizedQuestion = normalizeText(question);
 
-    const lines = context.split('\n');
-    let bestLine = null;
-    let bestScore = 0;
+    if (looksLikeGeneralFseQuestion(normalizedQuestion, normalizeScope(scope))) {
+        return buildGeneralFseSummary(context);
+    }
 
-    lines.forEach((line) => {
-        const normalizedLine = line.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        let score = 0;
-        keywords.forEach((kw) => {
-            if (normalizedLine.includes(kw)) score++;
-        });
-        if (score > bestScore) {
-            bestScore = score;
-            bestLine = line;
+    const rawKeywords = normalizedQuestion.split(/\s+/).filter((w) => w.length > 2);
+    const expandedKeywords = new Set(rawKeywords);
+
+    rawKeywords.forEach((keyword) => {
+        if (keyword === 'fse') {
+            ['feuille', 'soins', 'electronique', 'pharmacie', 'qr', 'code'].forEach((value) => expandedKeywords.add(value));
+        }
+        if (keyword === 'cnss') {
+            ['affiliation', 'cotisation', 'amo', 'remboursement'].forEach((value) => expandedKeywords.add(value));
         }
     });
 
-    if (bestScore > 0 && bestLine) {
-        return (
-            `Voici ce que j'ai trouvé dans notre base ${scopeLabel} :\n\n${bestLine}\n\n` +
-            'Pour plus de détails : cnss.ma ou 0801 005 005'
-        );
+    const sections = extractMarkdownSections(context);
+    let bestSection = null;
+    let bestScore = 0;
+
+    sections.forEach((section) => {
+        const haystack = normalizeText([section.title, ...section.content].join(' '));
+        let score = 0;
+
+        expandedKeywords.forEach((kw) => {
+            if (haystack.includes(kw)) {
+                score += 2;
+            }
+        });
+
+        if (section.title && normalizedQuestion.includes(normalizeText(section.title))) {
+            score += 4;
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestSection = section;
+        }
+    });
+
+    if (bestScore > 0 && bestSection) {
+        const preview = bestSection.content
+            .filter((line) => !line.startsWith('---'))
+            .slice(0, 5)
+            .join(' ')
+            .trim();
+
+        if (preview) {
+            return `${bestSection.title}\n\n${preview}`;
+        }
     }
 
     return (
