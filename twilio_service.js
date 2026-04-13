@@ -113,13 +113,14 @@ async function sendWhatsAppMessage(options) {
 
   if (options.contentSid) {
     payload.contentSid = options.contentSid;
+    const contentVariables = options.contentVariables === undefined
+      ? {}
+      : options.contentVariables;
 
-    if (options.contentVariables) {
-      payload.contentVariables =
-        typeof options.contentVariables === 'string'
-          ? options.contentVariables
-          : JSON.stringify(options.contentVariables);
-    }
+    payload.contentVariables =
+      typeof contentVariables === 'string'
+        ? contentVariables
+        : JSON.stringify(contentVariables);
   } else {
     payload.body = String(options.body || '').trim();
 

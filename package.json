@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
+    "twilio:create-onboarding-flow": "node scripts/create_onboarding_flow_template.js",
+    "twilio:print-onboarding-flow": "node scripts/create_onboarding_flow_template.js --print",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
