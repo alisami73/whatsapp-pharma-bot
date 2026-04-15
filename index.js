@@ -213,8 +213,18 @@ function buildConnectionLinkMessage(theme) {
 }
 
 function buildActivationMessage() {
-  // Après consentement → démarrer l'onboarding par la demande de rôle
-  return onboarding.buildRolePrompt();
+  // Après consentement → welcome Blink Premium + choix de rôle
+  return [
+    'Bienvenue dans le Chatbot Blink Premium.',
+    '',
+    'Nous mettons notre service assiste par Intelligence Artificielle',
+    'pour repondre a vos questions sur la Feuille de Soins Electronique.',
+    '',
+    'Vous etes :',
+    '1. Pharmacien d\'officine titulaire',
+    '2. Pharmacien adjoint / collaborateur',
+    '3. Autre role',
+  ].join('\n');
 }
 
 function buildDisabledMessage() {
@@ -640,22 +650,35 @@ async function handleOnboardingStep(response, user, context) {
   const { message, normalizedMessage } = context;
   const currentPharmacist = (await storage.getPharmacist(user.phone)) || { phone: user.phone };
 
-  // ── Étape ROLE (première étape post-consentement) ─────────────────────────
+  // ── Étape ROLE (première et dernière étape post-consentement) ────────────
   if (user.current_state === STATES.ONBOARDING_ROLE) {
     const isValidRoleChoice = onboarding.isSkip(normalizedMessage) || Boolean(onboarding.parseRoleChoice(normalizedMessage));
     if (!isValidRoleChoice) {
-      response.message(onboarding.buildRolePrompt());
+      response.message(buildActivationMessage());
       return;
     }
 
-    const { updatedPharmacist, nextStep, role } = onboarding.handleRoleStep(normalizedMessage, currentPharmacist);
-    await storage.savePharmacist(updatedPharmacist);
-    // Mettre à jour le rôle dans l'audit trail du consentement
+    const { updatedPharmacist, role } = onboarding.handleRoleStep(normalizedMessage, currentPharmacist);
+    await storage.savePharmacist({ ...updatedPharmacist, onboarding_completed: true });
     if (role) {
       await storage.updateConsentRole(user.phone, role);
     }
-    await setOnboardingState(user, nextStep);
-    response.message(onboarding.buildNamePrompt());
+
+    // Aller directement au chat FSE (skip nom / pharmacie / ville / logiciel)
+    await storage.saveUser({
+      ...user,
+      current_theme: 'fse',
+      current_state: STATES.AWAITING_CNSS_QUESTION,
+    });
+
+    response.message([
+      'Posez votre question sur la FSE en arabe ou en francais.',
+      'Nous vous repondrons dans la limite des informations disponibles.',
+      '',
+      'Exemple : explique-moi la FSE',
+      '',
+      'Tapez RETOUR pour revenir au menu principal.',
+    ].join('\n'));
     return;
   }
 
