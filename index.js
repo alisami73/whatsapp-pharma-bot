@@ -880,9 +880,14 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         // Premier contact ou message non reconnu → lancer le Flow si configuré, sinon afficher le consentement texte.
         await storage.resetUser(context.phone);
         if (onboardingFlow.isOnboardingFlowConfigured()) {
-          await sendOnboardingFlowMessage(context.phone);
-          res.type('text/xml').send(buildEmptyTwiml());
-          return;
+          try {
+            await sendOnboardingFlowMessage(context.phone);
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          } catch (flowError) {
+            console.error('[onboarding_flow] Envoi Flow echoue, basculement sur consentement texte:', flowError.message || flowError);
+            // Basculement automatique sur le consentement texte si le Flow échoue
+          }
         }
         response.message(buildConsentMessage());
       }

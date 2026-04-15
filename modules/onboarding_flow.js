@@ -9,6 +9,12 @@ function getOnboardingFlowContentSid() {
 }
 
 function isOnboardingFlowConfigured() {
+  // Permet de désactiver le Flow via env var sans supprimer le SID
+  // (utile quand le Flow est en attente d'approbation Meta)
+  const enabledFlag = String(process.env.TWILIO_ONBOARDING_FLOW_ENABLED || '').trim().toLowerCase();
+  if (enabledFlag === 'false') {
+    return false;
+  }
   return Boolean(getOnboardingFlowContentSid());
 }
 
