@@ -381,8 +381,8 @@ async function answerQuestion(question, scope) {
     const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
 
     const userContent = faqContext
-        ? `${langInstruction}\n\nBase de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion : ${question}`
-        : `${langInstruction}\n\nQuestion : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon oriente vers cnss.ma)`;
+        ? `${langInstruction}\n\nThème actuel : ${scopeLabel} — tu dois répondre UNIQUEMENT aux questions relevant de ce thème en utilisant la base ci-dessous. Ne redirige PAS vers ce thème si tu y es déjà.\n\nBase de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion : ${question}`
+        : `${langInstruction}\n\nThème actuel : ${scopeLabel}\n\nQuestion : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon indique que l'information n'est pas disponible.)`;
 
     try {
         console.log(`[CNSS] Appel Azure OpenAI pour : "${question.slice(0, 80)}..."`);

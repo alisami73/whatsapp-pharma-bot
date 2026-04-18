@@ -166,15 +166,18 @@ function buildThemeMenu(theme, user) {
   }
 
   // Libellé de l'action principale selon le module_type
-  const mainActionLabel = theme.id === 'fse'
-    ? '1. Poser ma question sur la FSE'
-    : {
+  const labelByThemeId = {
+    fse: '1. Poser ma question sur la FSE',
+    cnss: '1. Poser ma question sur la CNSS',
+    cndp: '1. Poser ma question sur la conformite CNDP (Loi 09-08)',
+  };
+  const labelByModuleType = {
     medindex: '1. Rechercher un medicament (MedIndex)',
     interactions: '1. Analyser des interactions medicamenteuses',
     monitoring: '1. Consulter mon monitoring (stock / ventes)',
     knowledge_base: '1. Poser ma question',
-    cnss: '1. Poser ma question sur la CNSS',
-  }[theme.module_type] || '1. Poser ma question';
+  };
+  const mainActionLabel = labelByThemeId[theme.id] || labelByModuleType[theme.module_type] || '1. Poser ma question';
   lines.push(mainActionLabel);
 
   let optionNumber = 2;
