@@ -672,10 +672,18 @@ async function handleOnboardingStep(response, user, context) {
     });
 
     response.message([
-      'Posez votre question sur la FSE en arabe ou en francais.',
-      'Nous vous repondrons dans la limite des informations disponibles.',
+      'اطرح سؤالك حول FSE بالعربية 🇲🇦',
+      'Posez votre question sur la FSE en français 🇫🇷',
+      'Haga su pregunta sobre la FSE en español 🇪🇸',
+      'Задайте ваш вопрос о FSE на русском языке 🇷🇺',
       '',
-      'Exemple : explique-moi la FSE',
+      'Nous vous répondrons dans la limite des informations disponibles.',
+      '',
+      'Exemples :',
+      '🇲🇦 العربية : اشرح لي FSE',
+      '🇫🇷 Français : explique-moi la FSE',
+      '🇪🇸 Español : explíqueme la FSE',
+      '🇷🇺 Русский : объясните мне FSE',
       '',
       'Tapez RETOUR pour revenir au menu principal.',
     ].join('\n'));
