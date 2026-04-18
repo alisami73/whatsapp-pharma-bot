@@ -150,5 +150,6 @@ module.exports = {
   getPublicTwilioStatus,
   buildStatusCallbackUrl,
   isTwilioConfigured,
+  getTwilioClient,
   sendWhatsAppMessage,
 };

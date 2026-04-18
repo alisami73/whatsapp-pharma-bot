@@ -15,6 +15,7 @@ const onboarding = require('./modules/onboarding');
 const consent = require('./modules/consent');
 const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
+const interactive = require('./modules/interactive');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -101,7 +102,6 @@ function buildMainMenu(themes) {
       'Aucun theme actif pour le moment.',
       'Envoyez MENU pour actualiser la liste plus tard.',
       '',
-      'Tapez PROFIL pour voir votre profil.',
       'Tapez STOP pour vous desinscrire.',
     ].join('\n');
   }
@@ -115,8 +115,6 @@ function buildMainMenu(themes) {
   lines.push('');
   lines.push('Repondez avec un numero pour ouvrir un theme.');
   lines.push('Tapez MENU pour revoir ce menu.');
-  lines.push('Tapez PROFIL pour voir votre profil.');
-  lines.push('Tapez AIDE pour l\'aide.');
   lines.push('Tapez STOP pour vous desinscrire.');
 
   return lines.join('\n');
@@ -425,6 +423,36 @@ async function setCnssQuestionState(user, themeId) {
   return storage.saveUser({ ...user, current_theme: themeId, current_state: STATES.AWAITING_CNSS_QUESTION });
 }
 
+// Tente d'envoyer le menu principal en interactif (list-picker).
+// Retourne true si le message a été envoyé via l'API Twilio, false sinon.
+// Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
+async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
+  try {
+    const activeThemes = (await storage.getThemes()).filter((t) => t.active);
+    await setMainMenuState(user);
+    const result = await interactive.sendMenuScreen(phone, activeThemes);
+    if (result) {
+      await storage.appendMessageLog({
+        direction: 'outbound',
+        phone,
+        body: '[interactive:main_menu]',
+        status: result.status || 'queued',
+        provider_message_sid: result.sid,
+        metadata: { source: 'interactive_main_menu' },
+      });
+      if (prefix) {
+        // Send the prefix as a separate text message before the interactive menu
+        await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
+      }
+      res.type('text/xml').send(buildEmptyTwiml());
+      return true;
+    }
+  } catch (err) {
+    console.error('[interactive] sendMenuScreen failed:', err.message || err);
+  }
+  return false;
+}
+
 async function respondWithMainMenu(response, user, prefix = '') {
   const activeThemes = (await storage.getThemes()).filter((theme) => theme.active);
   await setMainMenuState(user);
@@ -685,17 +713,19 @@ async function handleFreeQuestion(response, user, theme, incomingMessage) {
 
 async function handleOnboardingStep(response, user, context) {
   const { message, normalizedMessage } = context;
+  // Pour l'étape rôle, on priorise le payload (bouton list-picker) sur le texte
+  const roleControlValue = context.normalizedPayload || normalizedMessage;
   const currentPharmacist = (await storage.getPharmacist(user.phone)) || { phone: user.phone };
 
   // ── Étape ROLE (première et dernière étape post-consentement) ────────────
   if (user.current_state === STATES.ONBOARDING_ROLE) {
-    const isValidRoleChoice = onboarding.isSkip(normalizedMessage) || Boolean(onboarding.parseRoleChoice(normalizedMessage));
+    const isValidRoleChoice = onboarding.isSkip(roleControlValue) || Boolean(onboarding.parseRoleChoice(roleControlValue));
     if (!isValidRoleChoice) {
       response.message(buildActivationMessage());
       return;
     }
 
-    const { updatedPharmacist, role } = onboarding.handleRoleStep(normalizedMessage, currentPharmacist);
+    const { updatedPharmacist, role } = onboarding.handleRoleStep(roleControlValue, currentPharmacist);
     await storage.savePharmacist({ ...updatedPharmacist, onboarding_completed: true });
     if (role) {
       await storage.updateConsentRole(user.phone, role);
@@ -931,6 +961,24 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
           { ...user, authenticated: false },
           STATES.ONBOARDING_ROLE,
         );
+        // Tier 1 : sélection de rôle interactive (list-picker)
+        try {
+          const roleResult = await interactive.sendRoleScreen(context.phone);
+          if (roleResult) {
+            await storage.appendMessageLog({
+              direction: 'outbound', phone: context.phone,
+              body: '[interactive:role_list_picker]',
+              status: roleResult.status || 'queued',
+              provider_message_sid: roleResult.sid,
+              metadata: { source: 'interactive_role' },
+            });
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          }
+        } catch (interactiveErr) {
+          console.error('[interactive] sendRoleScreen failed, fallback texte:', interactiveErr.message || interactiveErr);
+        }
+        // Tier 2 : fallback texte
         response.message(buildActivationMessage());
       } else if (isNon) {
         // Enregistrer le refus (conserve l'entrée pour l'audit trail)
@@ -945,18 +993,36 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         // L'utilisateur avait demandé plus d'info mais envoie autre chose → ré-afficher
         response.message(consent.buildConsentLong());
       } else {
-        // Premier contact ou message non reconnu → lancer le Flow si configuré, sinon afficher le consentement texte.
+        // Premier contact ou message non reconnu
         await storage.resetUser(context.phone);
+        // Tier 1 : WhatsApp Flow (si configuré et activé)
         if (onboardingFlow.isOnboardingFlowConfigured()) {
           try {
             await sendOnboardingFlowMessage(context.phone);
             res.type('text/xml').send(buildEmptyTwiml());
             return;
           } catch (flowError) {
-            console.error('[onboarding_flow] Envoi Flow echoue, basculement sur consentement texte:', flowError.message || flowError);
-            // Basculement automatique sur le consentement texte si le Flow échoue
+            console.error('[onboarding_flow] Flow échoué, essai interactif:', flowError.message || flowError);
           }
         }
+        // Tier 2 : consentement interactif (quick-reply buttons)
+        try {
+          const consentResult = await interactive.sendConsentScreen(context.phone);
+          if (consentResult) {
+            await storage.appendMessageLog({
+              direction: 'outbound', phone: context.phone,
+              body: '[interactive:consent_quick_reply]',
+              status: consentResult.status || 'queued',
+              provider_message_sid: consentResult.sid,
+              metadata: { source: 'interactive_consent' },
+            });
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          }
+        } catch (interactiveErr) {
+          console.error('[interactive] sendConsentScreen failed, fallback texte:', interactiveErr.message || interactiveErr);
+        }
+        // Tier 3 : fallback texte
         response.message(buildConsentMessage());
       }
 
@@ -1002,8 +1068,11 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     if (controlValue === 'menu') {
-      await respondWithMainMenu(response, user);
-      res.type('text/xml').send(response.toString());
+      const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+      if (!sentInteractive) {
+        await respondWithMainMenu(response, user);
+        res.type('text/xml').send(response.toString());
+      }
       return;
     }
 

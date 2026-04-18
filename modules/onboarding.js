@@ -126,9 +126,9 @@ function parseSoftwareChoice(normalizedInput) {
  * @returns {string|null} - 'titulaire' | 'adjoint' | 'autre' | null
  */
 function parseRoleChoice(normalizedInput) {
-  if (normalizedInput === '1' || normalizedInput.includes('titulaire')) return ROLES.TITULAIRE;
-  if (normalizedInput === '2' || normalizedInput.includes('adjoint') || normalizedInput.includes('collaborateur')) return ROLES.ADJOINT;
-  if (normalizedInput === '3' || normalizedInput.includes('autre')) return ROLES.AUTRE;
+  if (normalizedInput === '1' || normalizedInput === 'role_titulaire' || normalizedInput.includes('titulaire')) return ROLES.TITULAIRE;
+  if (normalizedInput === '2' || normalizedInput === 'role_adjoint' || normalizedInput.includes('adjoint') || normalizedInput.includes('collaborateur')) return ROLES.ADJOINT;
+  if (normalizedInput === '3' || normalizedInput === 'role_autre' || normalizedInput.includes('autre')) return ROLES.AUTRE;
   return null; // passer ou non reconnu → null
 }
 
