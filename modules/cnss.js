@@ -343,6 +343,13 @@ function fallbackKeywordSearch(question, scope) {
  * @param {string} question — La question du pharmacien
  * @returns {Promise<string>} — La réponse à envoyer via WhatsApp
  */
+function detectLanguage(text) {
+    if (/[\u0600-\u06FF]/.test(text)) return { code: 'ar', label: 'arabe (العربية)' };
+    if (/[\u0400-\u04FF]/.test(text)) return { code: 'ru', label: 'russe (русский)' };
+    if (/[¿¡ñÑ]/.test(text) || /\b(el|la|los|las|qué|cómo|explíc|explica|dígame|dime|cuál)\b/i.test(text)) return { code: 'es', label: 'espagnol' };
+    return { code: 'fr', label: 'français' };
+}
+
 async function answerQuestion(question, scope) {
     const client = getAzureClient();
     const scopeLabel = buildScopeLabel(scope);
@@ -353,10 +360,13 @@ async function answerQuestion(question, scope) {
     }
 
     const faqContext = loadFaqContext(scope);
+    const lang = detectLanguage(question);
+
+    const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
 
     const userContent = faqContext
-        ? `Base de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion du pharmacien : ${question}`
-        : `Question du pharmacien : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon oriente vers cnss.ma)`;
+        ? `${langInstruction}\n\nBase de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion : ${question}`
+        : `${langInstruction}\n\nQuestion : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon oriente vers cnss.ma)`;
 
     try {
         console.log(`[CNSS] Appel Azure OpenAI pour : "${question.slice(0, 80)}..."`);
