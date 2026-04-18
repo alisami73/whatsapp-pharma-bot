@@ -28,9 +28,31 @@
   "theme_body": "اختر موضوعاً للبدء",
   "theme_button": "عرض المواضيع",
   "theme_section": "الفئات",
-  "theme_fse": "ورقة العلاجات الإلكترونية",
+  "theme_fse": "ورقة العلاجات الإلكترونية (FSE)",
   "theme_nouveautes-medicaments": "مستجدات المنتجات",
   "theme_compliance": "الامتثال CNDP / CNSS",
+  "theme_software": "برنامج Blink Premium",
+  "theme_regulations": "النصوص والأنظمة الصيدلانية",
+  "theme_medindex": "Medindex",
+
+  "footer_back_themes": "اختر موضوعاً",
+  "footer_back_language": "تغيير اللغة",
+
+  "coming_soon": "🔜 هذا الموضوع سيكون متاحاً قريباً.\nتابعونا !",
+
+  "sw_carousel_body": "ماذا تريدون معرفته عن برنامج Blink Premium؟",
+  "sw_carousel_button": "اختر",
+  "sw_call_me": "📞 اتصلوا بي",
+  "sw_benefits": "✅ مزايا Blink Premium",
+  "sw_data_protection": "🔒 كيف تُحمى بياناتي؟",
+  "sw_callback_confirm": "سيتصل بكم فريقنا التجاري على هذا الرقم. شكراً لاهتمامكم ببرنامج Blink Premium!",
+  "sw_callback_notification": "📲 هذا الرقم يرغب في الاتصال بشأن Blink Premium : {phone}",
+  "sw_benefits_body": "مزايا Blink Premium :\n\n• إدارة متقدمة للمخزون\n• فوترة CNSS متكاملة\n• وحدة امتثال CNDP\n• FSE متكاملة\n• لوحة تحكم تحليلية\n• دعم عملاء 24/7\n• تحديثات تلقائية",
+  "sw_data_protection_body": "🔒 حماية بياناتكم مع Blink Premium :\n\nبياناتكم مستضافة على خوادم آمنة في المغرب وفق القانون 09-08 (CNDP).\n\n• تشفير AES-256\n• وصول مقيد بمصادقة قوية\n• لا بيع للبيانات لأطراف ثالثة\n• نسخ احتياطي يومي تلقائي",
+
+  "conv_intro_fse": "🇲🇦 اطرح سؤالك حول FSE بالعربية.\n\nمثال : اشرح لي FSE\n\nأرسل RETOUR للعودة إلى القائمة.",
+  "conv_intro_compliance": "🇲🇦 اطرح سؤالك حول الامتثال CNDP / CNSS.\n\nمثال : كيف أُعلن عن كاميرات صيدليتي؟\n\nأرسل RETOUR للعودة.",
+  "conv_intro_regulations": "🇲🇦 اطرح سؤالك حول النصوص والأنظمة الصيدلانية.\n\nمثال : ما الذي تنص عليه القانون 17-04؟\n\nأرسل RETOUR للعودة.",
 
   "stop_message": "تم إلغاء الاشتراك.\nتم حذف وصولكم واشتراكاتكم.\nلن يتم إرسال أي رسائل إليكم.\n\nلإعادة تفعيل الخدمة، أرسلوا OUI.",
   "unknown_command": "لم أفهم. اكتب MENU لعرض الخدمات المتاحة.",

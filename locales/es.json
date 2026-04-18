@@ -16,7 +16,7 @@
   "cgu_link": "Consulte nuestras Condiciones Generales de Uso:\n{url}\n\nUna vez leídas, vuelva aquí para aceptar o rechazar.",
 
   "role_body": "¿Cuál es su función en la farmacia?",
-  "role_button": "Elegir mi función",
+  "role_button": "Elegir función",
   "role_section": "Su función",
   "role_titulaire": "Farmacéutico titular",
   "role_adjoint": "Farmacéutico adjunto",
@@ -28,9 +28,31 @@
   "theme_body": "Elija un tema para comenzar",
   "theme_button": "Ver temas",
   "theme_section": "Categorías",
-  "theme_fse": "Hoja de Cuidados Electrónica",
+  "theme_fse": "Hoja de Cuidados Electrónica (FSE)",
   "theme_nouveautes-medicaments": "Novedades de Productos",
   "theme_compliance": "Cumplimiento CNDP / CNSS",
+  "theme_software": "Software Blink Premium",
+  "theme_regulations": "Textos y reglamentos",
+  "theme_medindex": "Medindex",
+
+  "footer_back_themes": "Elegir tema",
+  "footer_back_language": "Cambiar idioma",
+
+  "coming_soon": "🔜 Este tema estará disponible próximamente.\n¡Vuelva pronto!",
+
+  "sw_carousel_body": "¿Qué desea saber sobre el Software Blink Premium?",
+  "sw_carousel_button": "Elegir",
+  "sw_call_me": "📞 Llámeme",
+  "sw_benefits": "✅ Ventajas Blink Premium",
+  "sw_data_protection": "🔒 ¿Cómo se protegen mis datos?",
+  "sw_callback_confirm": "Nuestro servicio comercial le llamará a este número. ¡Gracias por su interés en Blink Premium!",
+  "sw_callback_notification": "📲 Este número desea ser llamado para Blink Premium : {phone}",
+  "sw_benefits_body": "Ventajas de Blink Premium :\n\n• Gestión avanzada de stock\n• Facturación CNSS integrada\n• Módulo de cumplimiento CNDP\n• FSE integrada\n• Panel de análisis\n• Soporte al cliente 24/7\n• Actualizaciones automáticas",
+  "sw_data_protection_body": "🔒 Protección de sus datos con Blink Premium :\n\nSus datos están alojados en servidores seguros en Marruecos, conforme a la Ley 09-08 (CNDP).\n\n• Cifrado AES-256\n• Acceso restringido con autenticación fuerte\n• Sin venta de datos a terceros\n• Copia de seguridad diaria automática",
+
+  "conv_intro_fse": "🇪🇸 Haga su pregunta sobre la FSE en español.\n\nEjemplo : explíqueme la FSE\n\nEnvíe RETOUR para volver al menú.",
+  "conv_intro_compliance": "🇪🇸 Haga su pregunta sobre el cumplimiento CNDP / CNSS.\n\nEjemplo : ¿cómo declaro las cámaras de mi farmacia?\n\nEnvíe RETOUR para volver.",
+  "conv_intro_regulations": "🇪🇸 Haga su pregunta sobre los textos y reglamentos farmacéuticos.\n\nEjemplo : ¿qué dice la ley 17-04?\n\nEnvíe RETOUR para volver.",
 
   "stop_message": "Baja confirmada.\nSus accesos y suscripciones han sido eliminados.\nNo recibirá más mensajes.\n\nPara reactivar el servicio, responda OUI.",
   "unknown_command": "No entendí. Escriba MENU para ver los servicios disponibles.",

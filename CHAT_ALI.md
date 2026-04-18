@@ -91,3 +91,52 @@ Session de debug complète. Problème identifié et isolé à chaque couche.
 - Quand le nouveau numéro est prêt : le configurer dans TWILIO_WHATSAPP_FROM ou TWILIO_MESSAGING_SERVICE_SID
 - Mettre à jour le webhook URL sur le nouveau sender dans Twilio Console
 - Tester avec +212661095271 : Bonjour → consentement texte → "1" → role → FSE chat
+
+## [2026-04-18] — Onboarding multilingue + Footer + Thèmes (Spec 1 & 2)
+
+### Résumé
+Deux grandes sessions de travail qui ont complètement refactorisé l'onboarding et les thèmes.
+
+**Bug corrigé (sessions précédentes) :**
+- Messages interactifs WhatsApp ne s'affichaient pas (boutons absents → fallback texte)
+- Causes : champ `language` manquant dans les specs Content API Twilio + mauvais sender (sandbox US au lieu de +212768782598)
+- Fix : ajout `language` dans toutes les specs + bypass `messagingServiceSid` → utiliser `whatsappFrom` directement
+
+**Spec 1 — Onboarding multilingue (terminé) :**
+- Écran 1 : sélection langue (AR/FR/ES/RU) via `twilio/list-picker` — état `AWAITING_LANGUAGE`
+- Écran 2 : CGU dans la langue choisie avec 3 boutons (cgu_accept / cgu_decline / cgu_full)
+- Écran 3 : menu des thèmes dans la langue choisie
+- Système i18n : `modules/i18n.js` + `locales/{fr,ar,es,ru}.json`
+- Commandes globales : `/LANGUE` (reset langue), `/START` (reset total)
+- Footer global : `back_to_themes` + `back_to_language` depuis n'importe quel état authentifié
+- Reset complet : users.json, consents.json, pharmacists.json, subscriptions.json, interactive_templates.json
+
+**Spec 2 — Thèmes et footer (terminé) :**
+- 6 thèmes finaux : software, nouveautes-medicaments, fse, compliance, regulations, medindex
+- Fusion CNDP + CNSS → thème `compliance` (module_type: 'cnss', scopes: ['cndp', 'cnss'])
+- Footer systématique : chaque réponse IA envoyée via `modules/shared/footer.js` (sendAIResponseWithFooter)
+  - Template `blink_footer_v1_{lang}` avec body `{{1}}` + 2 boutons statiques
+  - Réponse IA injectée via contentVariables `{"1": text}`
+- Software : carrousel `twilio/list-picker` 3 sous-actions (sw_call_me, sw_benefits, sw_data_protection)
+  - sw_call_me → envoie WhatsApp à +212661095271 + confirm à l'utilisateur
+- Medindex + Regulations → "Bientôt disponible" avec footer
+- Regulations KB à fournir (Ali dit "demain")
+
+**Fichiers créés :**
+- `modules/i18n.js`
+- `locales/fr.json`, `locales/ar.json`, `locales/es.json`, `locales/ru.json`
+- `modules/shared/footer.js`
+- `modules/themes/software.js`
+- `modules/themes/coming-soon.js`
+
+### Décisions / Priorités
+- Sender : `TWILIO_WHATSAPP_FROM=+212768782598` sur Railway (jamais `messagingServiceSid` pour les outbound interactifs)
+- Template caching : `data/interactive_templates.json` avec TTL 30 jours
+- Architecture footer : un seul template par langue, réponse injectée dynamiquement via `{{1}}`
+- `INTERACTIVE_MESSAGES_ENABLED=true` sur Railway pour activer les boutons
+
+### À retenir pour la prochaine session
+- Tester le flux complet : STOP → Bonjour → sélection langue → CGU → rôle → menu → software carrousel → "Appelez-moi"
+- KB Regulations à intégrer dès réception (Ali le fournit) : l'ajouter dans `data/knowledge/` et activer `allow_free_question: true` dans themes.json
+- Thème `nouveautes-medicaments` : spec prévoit un tableau dynamique — non implémenté, reporté
+- Commit et push à faire

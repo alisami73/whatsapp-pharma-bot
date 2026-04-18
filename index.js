@@ -17,6 +17,9 @@ const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
 const { t, parseLang } = require('./modules/i18n');
+const { sendAIResponseWithFooter } = require('./modules/shared/footer');
+const software = require('./modules/themes/software');
+const comingSoon = require('./modules/themes/coming-soon');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -25,6 +28,7 @@ const { MessagingResponse } = twilio.twiml;
 const STATES = {
   AWAITING_LANGUAGE: 'awaiting_language',              // Écran 1 — sélection langue
   AWAITING_CONSENT: 'awaiting_consent',
+  BROWSING_SOFTWARE_CAROUSEL: 'browsing_software_carousel', // Carrousel Blink Premium
   AWAITING_CONSENT_DETAILS: 'awaiting_consent_details', // après "EN SAVOIR PLUS"
   MAIN_MENU: 'main_menu',
   THEME_MENU: 'theme_menu',
@@ -949,6 +953,42 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    // ── Footer : back_to_themes (retour Écran 3 sans reset CGU/langue) ──────────
+    if (controlValue === 'back_to_themes') {
+      const consented2 = await storage.hasConsent(context.phone);
+      if (consented2) {
+        const sentMenu = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+        if (!sentMenu) {
+          const activeThemes2 = (await storage.getThemes()).filter((th) => th.active);
+          await respondWithMainMenu(response, user);
+          res.type('text/xml').send(response.toString());
+        }
+      } else {
+        // Pas de consentement → retour Écran 2
+        const lang2 = getUserLang(user);
+        try {
+          const cr = await interactive.sendConsentScreen(context.phone, lang2);
+          if (cr) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        } catch (_) {}
+        response.message(t('cgu_body', getUserLang(user)));
+        res.type('text/xml').send(response.toString());
+      }
+      return;
+    }
+
+    // ── Footer : back_to_language (retour Écran 1 sans reset CGU) ───────────────
+    if (controlValue === 'back_to_language') {
+      user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_LANGUAGE, user_language: null });
+      console.log(`[state] ${context.phone} → AWAITING_LANGUAGE (back_to_language)`);
+      try {
+        const lr = await interactive.sendLanguageScreen(context.phone);
+        if (lr) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      } catch (_) {}
+      response.message(t('language_body', 'fr'));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
     // ── Commande /LANGUE (globale — reprend depuis la sélection de langue) ──────
     const isLanguageCmd =
       controlValue === 'langue' ||
@@ -1224,6 +1264,23 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     if (payloadTheme) {
+      // Routing Software → carrousel Blink Premium
+      if (payloadTheme.id === 'software') {
+        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL, current_theme: 'software' });
+        const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
+        if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(software.buildSoftwareCarouselText(lang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+      // Routing Medindex / Regulations → Bientôt disponible
+      if (payloadTheme.id === 'medindex' || payloadTheme.id === 'regulations') {
+        const { sent, text } = await comingSoon.handleComingSoon(context.phone, lang);
+        if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(text);
+        res.type('text/xml').send(response.toString());
+        return;
+      }
       await handleThemeSelection(response, user, payloadTheme);
       res.type('text/xml').send(response.toString());
       return;
@@ -1273,10 +1330,37 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    // ── Module CNSS ───────────────────────────────────────────────────────
+    // ── Module CNSS (conversationnel avec footer) ─────────────────────────
     if (user.current_state === STATES.AWAITING_CNSS_QUESTION && currentTheme) {
       const answer = await cnss.answerQuestion(context.message, currentTheme.id);
-      response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
+      const footerResult = await sendAIResponseWithFooter(context.phone, lang, answer);
+      if (footerResult) {
+        res.type('text/xml').send(buildEmptyTwiml());
+      } else {
+        response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
+        res.type('text/xml').send(response.toString());
+      }
+      return;
+    }
+
+    // ── Carrousel Software Blink Premium ──────────────────────────────────
+    if (user.current_state === STATES.BROWSING_SOFTWARE_CAROUSEL) {
+      const action = controlValue;
+      const actionResult = await software.handleSoftwareAction(action, context.phone, lang);
+      if (actionResult) {
+        const footerResult = await sendAIResponseWithFooter(context.phone, lang, actionResult.text);
+        if (footerResult) {
+          res.type('text/xml').send(buildEmptyTwiml());
+        } else {
+          response.message(actionResult.text);
+          res.type('text/xml').send(response.toString());
+        }
+        return;
+      }
+      // Action non reconnue → renvoyer le carrousel
+      const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
+      if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      response.message(software.buildSoftwareCarouselText(lang));
       res.type('text/xml').send(response.toString());
       return;
     }

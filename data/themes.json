@@ -1,14 +1,14 @@
 [
   {
-    "id": "fse",
-    "title": "Feuille de soins electronique",
+    "id": "software",
+    "title": "Logiciel Blink Premium",
     "active": true,
-    "intro_message": "Bienvenue dans le module FSE. Posez votre question librement.",
-    "current_focus": "Comment va se passer l'implementation de la FSE en pharmacie",
+    "intro_message": "Découvrez les fonctionnalités et avantages du logiciel Blink Premium.",
+    "current_focus": "Gestion officine, conformité CNDP, FSE intégrée.",
     "requires_auth": false,
-    "allow_free_question": true,
-    "allow_subscription": true,
-    "module_type": "cnss"
+    "allow_free_question": false,
+    "allow_subscription": false,
+    "module_type": "software"
   },
   {
     "id": "nouveautes-medicaments",
@@ -22,15 +22,48 @@
     "module_type": "knowledge_base"
   },
   {
+    "id": "fse",
+    "title": "Feuille de soins electronique",
+    "active": true,
+    "intro_message": "Posez votre question sur la FSE.",
+    "current_focus": "Implementation FSE en pharmacie, procedures, formulaires.",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": true,
+    "module_type": "cnss"
+  },
+  {
     "id": "compliance",
     "title": "Conformite CNDP / CNSS",
     "active": true,
-    "intro_message": "Posez vos questions sur la conformite CNDP (Loi 09-08) et la CNSS : affiliations, cotisations, protection des donnees...",
-    "current_focus": "Mise en conformite pharmacies, protection donnees personnelles, remboursements AMO, cotisations.",
+    "intro_message": "Posez vos questions sur la conformite CNDP (Loi 09-08) et la CNSS.",
+    "current_focus": "Mise en conformite pharmacies, protection donnees personnelles, remboursements AMO.",
     "requires_auth": false,
     "allow_free_question": true,
     "allow_subscription": false,
     "module_type": "cnss",
     "scopes": ["cndp", "cnss"]
+  },
+  {
+    "id": "regulations",
+    "title": "Textes et reglements pharmacie",
+    "active": true,
+    "intro_message": "Posez vos questions sur les textes legislatifs et reglements applicables en pharmacie.",
+    "current_focus": "Loi 17-04, decrets d'application, reglementation officinale.",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": false,
+    "module_type": "cnss"
+  },
+  {
+    "id": "medindex",
+    "title": "Medindex",
+    "active": true,
+    "intro_message": "Recherche de medicaments par nom commercial ou DCI.",
+    "current_focus": "Base de donnees medicaments marocains.",
+    "requires_auth": false,
+    "allow_free_question": false,
+    "allow_subscription": false,
+    "module_type": "medindex"
   }
 ]

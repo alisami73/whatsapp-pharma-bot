@@ -31,6 +31,28 @@
   "theme_fse": "Feuille de soins électronique",
   "theme_nouveautes-medicaments": "Nouveautés Produits",
   "theme_compliance": "Conformité CNDP / CNSS",
+  "theme_software": "Logiciel Blink Premium",
+  "theme_regulations": "Textes et règlements",
+  "theme_medindex": "Medindex",
+
+  "footer_back_themes": "Choisir un thème",
+  "footer_back_language": "Changer de langue",
+
+  "coming_soon": "🔜 Ce thème sera bientôt disponible.\nRevenez prochainement !",
+
+  "sw_carousel_body": "Que souhaitez-vous savoir sur Logiciel Blink Premium ?",
+  "sw_carousel_button": "Choisir",
+  "sw_call_me": "📞 Appelez-moi",
+  "sw_benefits": "✅ Avantages Blink Premium",
+  "sw_data_protection": "🔒 Mes données sont-elles protégées ?",
+  "sw_callback_confirm": "Notre service commercial vous appellera sur ce numéro. Merci de votre intérêt pour Blink Premium !",
+  "sw_callback_notification": "📲 Ce numéro souhaite être appelé pour Blink Premium : {phone}",
+  "sw_benefits_body": "Les avantages de Blink Premium :\n\n• Gestion de stock avancée\n• Facturation CNSS intégrée\n• Module de conformité CNDP\n• FSE intégrée\n• Tableau de bord analytique\n• Support client 24/7\n• Mises à jour automatiques",
+  "sw_data_protection_body": "🔒 Protection de vos données avec Blink Premium :\n\nVos données sont hébergées sur des serveurs sécurisés au Maroc, conformément à la Loi 09-08 (CNDP).\n\n• Chiffrement AES-256 en transit et au repos\n• Accès restreint par authentification forte\n• Pas de revente de données à des tiers\n• Audit de conformité CNDP disponible\n• Sauvegarde quotidienne automatique\n\nPour toute question : dpo@blink.ma",
+
+  "conv_intro_fse": "🇫🇷 Posez votre question sur la FSE en français.\n\nExemple : explique-moi la FSE\n\nEnvoyez RETOUR pour revenir au menu.",
+  "conv_intro_compliance": "🇫🇷 Posez votre question sur la conformité CNDP / CNSS.\n\nExemple : comment déclarer les caméras de ma pharmacie ?\n\nEnvoyez RETOUR pour revenir au menu.",
+  "conv_intro_regulations": "🇫🇷 Posez votre question sur les textes et règlements pharmacie.\n\nExemple : que dit la loi 17-04 ?\n\nEnvoyez RETOUR pour revenir au menu.",
 
   "stop_message": "Désinscription confirmée.\nVos accès et vos abonnements ont été supprimés.\nAucun message ne vous sera envoyé.\n\nPour réactiver le service, répondez OUI.",
   "unknown_command": "Je n'ai pas compris. Tapez MENU pour voir les services disponibles.",
