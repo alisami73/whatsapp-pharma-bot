@@ -19,6 +19,14 @@ const twilioService = require('../twilio_service');
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 
+/**
+ * Les messages interactifs sont désactivés par défaut.
+ * Activer en mettant INTERACTIVE_MESSAGES_ENABLED=true dans les variables d'environnement Railway.
+ */
+function isInteractiveEnabled() {
+  return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
+}
+
 // ─── Cache I/O ────────────────────────────────────────────────────────────────
 
 function readCache() {
@@ -164,6 +172,7 @@ async function sendInteractive(to, contentSid) {
  * Retourne null si l'envoi est impossible → le caller bascule en texte.
  */
 async function sendConsentScreen(to) {
+  if (!isInteractiveEnabled()) return null;
   const sid = await resolveTemplate('consent_v1', buildConsentSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
@@ -174,6 +183,7 @@ async function sendConsentScreen(to) {
  * Retourne null si l'envoi est impossible → le caller bascule en texte.
  */
 async function sendRoleScreen(to) {
+  if (!isInteractiveEnabled()) return null;
   const sid = await resolveTemplate('role_v1', buildRoleSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
@@ -185,6 +195,7 @@ async function sendRoleScreen(to) {
  * Retourne null si l'envoi est impossible → le caller bascule en texte.
  */
 async function sendMenuScreen(to, activeThemes) {
+  if (!isInteractiveEnabled()) return null;
   if (!activeThemes || !activeThemes.length) return null;
   const key = `menu_v1_${themeHash(activeThemes)}`;
   const sid = await resolveTemplate(key, () => buildMenuSpec(activeThemes));
