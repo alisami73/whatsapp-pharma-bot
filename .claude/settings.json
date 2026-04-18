@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(TWILIO_WHATSAPP_FROM=whatsapp:+212768782598 node test_listpicker.js)",
+      "Bash(node -e \"const s = require\\('./storage'\\); console.log\\(JSON.stringify\\(Object.keys\\(s\\), null, 2\\)\\);\")",
+      "Bash(node -e \"const s = require\\('./storage'\\); const u = s.getUser; console.log\\(u.toString\\(\\).slice\\(0, 500\\)\\);\")",
+      "Bash(node -e \"const s = require\\('./storage'\\); s.getUsers\\(\\).then\\(u => console.log\\(JSON.stringify\\(u[0] || {}, null, 2\\)\\)\\);\")",
+      "Bash(node -e \"const i = require\\('./modules/i18n'\\); console.log\\(i.t\\('cgu_accept','fr'\\)\\); console.log\\(i.t\\('cgu_accept','ar'\\)\\); console.log\\(i.t\\('cgu_accept','ru'\\)\\); console.log\\(i.parseLang\\('lang_ar'\\)\\);\")",
+      "Bash(node --check /Users/Lenovo/whatsapp-pharma-bot/index.js)",
+      "Bash(node --check /Users/Lenovo/whatsapp-pharma-bot/modules/interactive.js)",
+      "Bash(node --check /Users/Lenovo/whatsapp-pharma-bot/modules/i18n.js)",
+      "Bash(node -e ':*)",
+      "Bash(git commit -m ':*)"
+    ]
+  }
+}

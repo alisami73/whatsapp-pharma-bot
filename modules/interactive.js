@@ -3,26 +3,28 @@
 /**
  * modules/interactive.js
  *
- * Gère les messages WhatsApp interactifs (boutons quick-reply, listes, carousel)
- * via l'API Twilio Content. Chaque template est créé une fois puis mis en cache
- * dans data/interactive_templates.json.
+ * Gère les messages WhatsApp interactifs via l'API Twilio Content.
+ * Chaque template est créé une fois puis mis en cache dans data/interactive_templates.json.
  *
- * Toutes les fonctions publiques retournent null si l'interactif n'est pas
- * disponible (Twilio non configuré, création échouée) — le caller doit alors
- * basculer sur le fallback texte.
+ * Screens :
+ *   1. sendLanguageScreen(to)          — list-picker 4 langues (même pour tous)
+ *   2. sendConsentScreen(to, lang)     — quick-reply CGU (1 template par langue)
+ *   3. sendRoleScreen(to, lang)        — list-picker rôle (1 template par langue)
+ *   4. sendMenuScreen(to, themes, lang) — list-picker thèmes actifs
+ *
+ * Toutes les fonctions retournent null si l'interactif est indisponible → fallback texte.
+ *
+ * Activer avec : INTERACTIVE_MESSAGES_ENABLED=true (variable Railway).
  */
 
 const fs = require('fs');
 const path = require('path');
 const twilioService = require('../twilio_service');
+const { t } = require('./i18n');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 
-/**
- * Les messages interactifs sont désactivés par défaut.
- * Activer en mettant INTERACTIVE_MESSAGES_ENABLED=true dans les variables d'environnement Railway.
- */
 function isInteractiveEnabled() {
   return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
 }
@@ -31,9 +33,7 @@ function isInteractiveEnabled() {
 
 function readCache() {
   try {
-    if (fs.existsSync(CACHE_PATH)) {
-      return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-    }
+    if (fs.existsSync(CACHE_PATH)) return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
   } catch (_) {}
   return {};
 }
@@ -53,53 +53,54 @@ function isFresh(entry) {
 
 // ─── Template specs ───────────────────────────────────────────────────────────
 
-function buildConsentSpec() {
+function buildLanguageSpec() {
   return {
-    friendlyName: 'blink_consent_v1',
+    friendlyName: 'blink_language_v1',
     language: 'fr',
     types: {
-      'twilio/quick-reply': {
-        body: [
-          'Pour utiliser ce service, vous confirmez que :',
-          '',
-          '✅ Vous êtes pharmacien ou utilisez ce service sous votre responsabilité',
-          '✅ Vous acceptez de recevoir des messages WhatsApp liés aux services actifs',
-          '✅ Vous validez les informations avant de les appliquer',
-          '✅ Vous respectez les limites de votre rôle',
-        ].join('\n'),
-        actions: [
-          { id: 'consent_yes', title: "J'accepte" },
-          { id: 'consent_no', title: 'Je refuse' },
+      'twilio/list-picker': {
+        body: t('language_body', 'fr'),
+        button: t('language_button', 'fr'),
+        items: [
+          { id: 'lang_ar', item: t('lang_ar', 'fr') },
+          { id: 'lang_fr', item: t('lang_fr', 'fr') },
+          { id: 'lang_es', item: t('lang_es', 'fr') },
+          { id: 'lang_ru', item: t('lang_ru', 'fr') },
         ],
       },
     },
   };
 }
 
-function buildRoleSpec() {
+function buildConsentSpec(lang) {
   return {
-    friendlyName: 'blink_role_v1',
-    language: 'fr',
+    friendlyName: `blink_consent_v2_${lang}`,
+    language: lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr',
+    types: {
+      'twilio/quick-reply': {
+        body: t('cgu_body', lang),
+        actions: [
+          { id: 'cgu_accept', title: t('cgu_accept', lang).slice(0, 20) },
+          { id: 'cgu_decline', title: t('cgu_decline', lang).slice(0, 20) },
+          { id: 'cgu_full', title: t('cgu_full', lang).slice(0, 20) },
+        ],
+      },
+    },
+  };
+}
+
+function buildRoleSpec(lang) {
+  return {
+    friendlyName: `blink_role_v2_${lang}`,
+    language: lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr',
     types: {
       'twilio/list-picker': {
-        body: [
-          '🇲🇦 مرحبًا بكم في Blink Premium.',
-          'نضع خدمتنا المدعومة بالذكاء الاصطناعي لأسئلتكم حول ورقة العلاجات الإلكترونية.',
-          '',
-          '🇫🇷 Bienvenue dans le Chatbot Blink Premium.',
-          'Nous mettons notre service IA pour répondre à vos questions sur la FSE.',
-          '',
-          '🇪🇸 Bienvenido al Chatbot Blink Premium.',
-          'Nuestro servicio IA responde sus preguntas sobre la Hoja Electrónica.',
-          '',
-          '🇷🇺 Добро пожаловать в Blink Premium.',
-          'Наш сервис ИИ отвечает на ваши вопросы об Электронном листе.',
-        ].join('\n'),
-        button: 'Choisir mon rôle',
+        body: t('role_body', lang),
+        button: t('role_button', lang).slice(0, 20),
         items: [
-          { id: 'role_titulaire', item: 'Pharmacien titulaire' },
-          { id: 'role_adjoint', item: 'Pharmacien adjoint / collaborateur' },
-          { id: 'role_autre', item: 'Autre rôle' },
+          { id: 'role_titulaire', item: t('role_titulaire', lang).slice(0, 24) },
+          { id: 'role_adjoint', item: t('role_adjoint', lang).slice(0, 24) },
+          { id: 'role_autre', item: t('role_autre', lang).slice(0, 24) },
         ],
       },
     },
@@ -107,48 +108,48 @@ function buildRoleSpec() {
 }
 
 function themeHash(themes) {
-  const str = themes.map((t) => `${t.id}:${t.title}`).join('|');
+  const str = themes.map((th) => `${th.id}:${th.title}`).join('|');
   let h = 5381;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) + h) ^ str.charCodeAt(i);
-  }
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
   return (h >>> 0).toString(16);
 }
 
-function buildMenuSpec(activeThemes) {
-  const items = activeThemes.slice(0, 10).map((theme) => ({
-    id: `theme_${theme.id}`,
-    item: theme.title.length > 24 ? theme.title.slice(0, 22) + '…' : theme.title,
-    description: (theme.intro_message || '').slice(0, 72),
-  }));
+function buildMenuSpec(activeThemes, lang) {
+  const items = activeThemes.slice(0, 10).map((theme) => {
+    const localizedTitle = t(`theme_${theme.id}`, lang);
+    const title = (localizedTitle !== `theme_${theme.id}` ? localizedTitle : theme.title);
+    return {
+      id: `theme_${theme.id}`,
+      item: title.length > 24 ? title.slice(0, 22) + '…' : title,
+      description: (theme.intro_message || '').slice(0, 72),
+    };
+  });
 
   return {
-    friendlyName: `blink_menu_v1_${themeHash(activeThemes)}`,
-    language: 'fr',
+    friendlyName: `blink_menu_v2_${lang}_${themeHash(activeThemes)}`,
+    language: lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr',
     types: {
       'twilio/list-picker': {
-        body: 'Blink Premium — Choisissez un service :',
-        button: 'Voir les services',
+        body: t('theme_body', lang),
+        button: t('theme_button', lang).slice(0, 20),
         items,
       },
     },
   };
 }
 
-// ─── Core: create template + cache SID ───────────────────────────────────────
+// ─── Core: resolve template SID (create or reuse) ────────────────────────────
 
 async function resolveTemplate(cacheKey, buildSpec) {
   if (!twilioService.isTwilioConfigured()) return null;
 
   const cache = readCache();
-  if (isFresh(cache[cacheKey])) {
-    return cache[cacheKey].sid;
-  }
+  if (isFresh(cache[cacheKey])) return cache[cacheKey].sid;
 
   const client = twilioService.getTwilioClient();
   const spec = buildSpec();
 
-  // Tentative 1 : créer le template
+  // Tentative 1 : créer
   try {
     const created = await client.content.v1.contents.create(spec);
     cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
@@ -156,13 +157,13 @@ async function resolveTemplate(cacheKey, buildSpec) {
     console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
     return created.sid;
   } catch (createErr) {
-    console.warn(`[interactive] Création échouée pour "${cacheKey}": ${createErr.message} — recherche du template existant...`);
+    console.warn(`[interactive] Création échouée "${cacheKey}": ${createErr.message} — recherche existant...`);
   }
 
-  // Tentative 2 : retrouver un template existant portant le même friendlyName
+  // Tentative 2 : retrouver par friendlyName
   try {
     const all = await client.content.v1.contents.list({ limit: 100 });
-    const match = all.find((t) => t.friendlyName === spec.friendlyName);
+    const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
     if (match) {
       cache[cacheKey] = { sid: match.sid, created_at: new Date().toISOString() };
       writeCache(cache);
@@ -177,14 +178,14 @@ async function resolveTemplate(cacheKey, buildSpec) {
   return null;
 }
 
-// ─── Send helpers ─────────────────────────────────────────────────────────────
+// ─── Send helper ──────────────────────────────────────────────────────────────
 
 async function sendInteractive(to, contentSid) {
   const config = twilioService.getTwilioConfig();
   const client = twilioService.getTwilioClient();
 
-  // Les messages interactifs (contentSid) doivent utiliser le numéro WhatsApp direct.
-  // Le Messaging Service peut router vers un numéro non-marocain et provoquer une erreur 63112.
+  // Toujours utiliser le numéro direct (TWILIO_WHATSAPP_FROM) pour éviter
+  // que le Messaging Service route vers un numéro sandbox US (erreur 63015/63112).
   const payload = {
     to: twilioService.normalizeWhatsAppAddress(to),
     contentSid,
@@ -196,7 +197,7 @@ async function sendInteractive(to, contentSid) {
   } else if (config.messagingServiceSid) {
     payload.messagingServiceSid = config.messagingServiceSid;
   } else {
-    throw new Error('No WhatsApp sender configured (TWILIO_WHATSAPP_FROM or TWILIO_MESSAGING_SERVICE_SID required).');
+    throw new Error('No WhatsApp sender configured.');
   }
 
   const statusCallback = twilioService.buildStatusCallbackUrl();
@@ -205,46 +206,58 @@ async function sendInteractive(to, contentSid) {
   return client.messages.create(payload);
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Envoie l'écran de consentement (quick-reply 2 boutons).
- * Retourne null si l'envoi est impossible → le caller bascule en texte.
+ * Écran 1 — Sélection de la langue (identique pour tous).
  */
-async function sendConsentScreen(to) {
+async function sendLanguageScreen(to) {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('consent_v1', buildConsentSpec);
+  const sid = await resolveTemplate('language_v1', buildLanguageSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
 
 /**
- * Envoie l'écran de sélection de rôle (list-picker 3 items).
- * Retourne null si l'envoi est impossible → le caller bascule en texte.
+ * Écran 2 — CGU dans la langue de l'utilisateur (3 boutons).
+ * @param {string} to
+ * @param {string} lang  — 'fr'|'ar'|'es'|'ru'
  */
-async function sendRoleScreen(to) {
+async function sendConsentScreen(to, lang = 'fr') {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('role_v1', buildRoleSpec);
+  const cacheKey = `consent_v2_${lang}`;
+  const sid = await resolveTemplate(cacheKey, () => buildConsentSpec(lang));
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
 
 /**
- * Envoie le menu principal (list-picker, un item par thème actif).
- * Le template est re-créé si la liste des thèmes change.
- * Retourne null si l'envoi est impossible → le caller bascule en texte.
+ * Écran onboarding — Sélection du rôle dans la langue de l'utilisateur.
  */
-async function sendMenuScreen(to, activeThemes) {
+async function sendRoleScreen(to, lang = 'fr') {
+  if (!isInteractiveEnabled()) return null;
+  const cacheKey = `role_v2_${lang}`;
+  const sid = await resolveTemplate(cacheKey, () => buildRoleSpec(lang));
+  if (!sid) return null;
+  return sendInteractive(to, sid);
+}
+
+/**
+ * Écran 3 — Menu thèmes dans la langue de l'utilisateur.
+ */
+async function sendMenuScreen(to, activeThemes, lang = 'fr') {
   if (!isInteractiveEnabled()) return null;
   if (!activeThemes || !activeThemes.length) return null;
-  const key = `menu_v1_${themeHash(activeThemes)}`;
-  const sid = await resolveTemplate(key, () => buildMenuSpec(activeThemes));
+  const key = `menu_v2_${lang}_${themeHash(activeThemes)}`;
+  const sid = await resolveTemplate(key, () => buildMenuSpec(activeThemes, lang));
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
 
 module.exports = {
+  sendLanguageScreen,
   sendConsentScreen,
   sendRoleScreen,
   sendMenuScreen,
+  isInteractiveEnabled,
 };

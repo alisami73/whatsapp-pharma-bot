@@ -1,0 +1,43 @@
+{
+  "language_header": "Blink Premium",
+  "language_body": "Bienvenue dans le Chatbot Blink Premium.\nChoisissez votre langue / اختر لغتك / Elija su idioma / Выберите язык",
+  "language_button": "Idiomas",
+  "language_section": "Seleccione su idioma",
+  "lang_ar": "🇲🇦 العربية",
+  "lang_fr": "🇫🇷 Français",
+  "lang_es": "🇪🇸 Español",
+  "lang_ru": "🇷🇺 Русский",
+
+  "cgu_body": "Ponemos nuestro servicio asistido por Inteligencia Artificial para responder sus preguntas sobre diferentes temas de actualidad.\n\nPara utilizar este servicio, usted confirma que:\n✅ Es farmacéutico o utiliza este servicio bajo su responsabilidad\n✅ Acepta recibir mensajes de WhatsApp relacionados con los servicios activos\n✅ Valida la información antes de aplicarla\n✅ Respeta los límites de su función\n✅ Entiendo que esta IA puede cometer errores",
+  "cgu_accept": "Acepto",
+  "cgu_decline": "Rechazo",
+  "cgu_full": "Ver CGU completas",
+  "cgu_declined": "Ha rechazado las condiciones de uso. El servicio está cerrado.\nPara reiniciar, envíe OUI.",
+  "cgu_link": "Consulte nuestras Condiciones Generales de Uso:\n{url}\n\nUna vez leídas, vuelva aquí para aceptar o rechazar.",
+
+  "role_body": "¿Cuál es su función en la farmacia?",
+  "role_button": "Elegir mi función",
+  "role_section": "Su función",
+  "role_titulaire": "Farmacéutico titular",
+  "role_adjoint": "Farmacéutico adjunto",
+  "role_autre": "Otra función",
+
+  "onboarding_complete": "✅ Perfil registrado. ¡Bienvenido a Blink Premium!",
+
+  "theme_header": "Temas disponibles",
+  "theme_body": "Elija un tema para comenzar",
+  "theme_button": "Ver temas",
+  "theme_section": "Categorías",
+  "theme_fse": "Hoja de Cuidados Electrónica",
+  "theme_nouveautes-medicaments": "Novedades de Productos",
+  "theme_compliance": "Cumplimiento CNDP / CNSS",
+
+  "stop_message": "Baja confirmada.\nSus accesos y suscripciones han sido eliminados.\nNo recibirá más mensajes.\n\nPara reactivar el servicio, responda OUI.",
+  "unknown_command": "No entendí. Escriba MENU para ver los servicios disponibles.",
+
+  "back": "RETOUR",
+  "menu": "MENU",
+  "stop": "STOP",
+  "start": "DÉMARRER",
+  "language_cmd": "LANGUE"
+}

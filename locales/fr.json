@@ -1,0 +1,43 @@
+{
+  "language_header": "Blink Premium",
+  "language_body": "Bienvenue dans le Chatbot Blink Premium.\nChoisissez votre langue / اختر لغتك / Elija su idioma / Выберите язык",
+  "language_button": "Langues",
+  "language_section": "Sélectionnez votre langue",
+  "lang_ar": "🇲🇦 العربية",
+  "lang_fr": "🇫🇷 Français",
+  "lang_es": "🇪🇸 Español",
+  "lang_ru": "🇷🇺 Русский",
+
+  "cgu_body": "Nous mettons notre service assisté par Intelligence Artificielle pour répondre à vos questions sur différents sujets d'actualité.\n\nPour utiliser ce service, vous confirmez que :\n✅ Vous êtes pharmacien ou utilisez ce service sous votre responsabilité\n✅ Vous acceptez de recevoir des messages WhatsApp liés aux services actifs\n✅ Vous validez les informations avant de les appliquer\n✅ Vous respectez les limites de votre rôle\n✅ Je comprends que cette IA peut se tromper",
+  "cgu_accept": "J'accepte",
+  "cgu_decline": "Je refuse",
+  "cgu_full": "Voir CGU complètes",
+  "cgu_declined": "Vous avez refusé les conditions d'utilisation. Le service est fermé.\nPour relancer, envoyez OUI.",
+  "cgu_link": "Consultez nos Conditions Générales d'Utilisation :\n{url}\n\nUne fois lues, revenez ici pour accepter ou refuser.",
+
+  "role_body": "Quel est votre rôle dans l'officine ?",
+  "role_button": "Choisir mon rôle",
+  "role_section": "Votre rôle",
+  "role_titulaire": "Pharmacien titulaire",
+  "role_adjoint": "Pharmacien adjoint",
+  "role_autre": "Autre rôle",
+
+  "onboarding_complete": "✅ Profil enregistré. Bienvenue dans Blink Premium !",
+
+  "theme_header": "Thèmes disponibles",
+  "theme_body": "Choisissez un thème pour commencer",
+  "theme_button": "Voir les thèmes",
+  "theme_section": "Catégories",
+  "theme_fse": "Feuille de soins électronique",
+  "theme_nouveautes-medicaments": "Nouveautés Produits",
+  "theme_compliance": "Conformité CNDP / CNSS",
+
+  "stop_message": "Désinscription confirmée.\nVos accès et vos abonnements ont été supprimés.\nAucun message ne vous sera envoyé.\n\nPour réactiver le service, répondez OUI.",
+  "unknown_command": "Je n'ai pas compris. Tapez MENU pour voir les services disponibles.",
+
+  "back": "RETOUR",
+  "menu": "MENU",
+  "stop": "STOP",
+  "start": "DÉMARRER",
+  "language_cmd": "LANGUE"
+}

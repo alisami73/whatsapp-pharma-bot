@@ -16,12 +16,14 @@ const consent = require('./modules/consent');
 const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
+const { t, parseLang } = require('./modules/i18n');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const { MessagingResponse } = twilio.twiml;
 
 const STATES = {
+  AWAITING_LANGUAGE: 'awaiting_language',              // Écran 1 — sélection langue
   AWAITING_CONSENT: 'awaiting_consent',
   AWAITING_CONSENT_DETAILS: 'awaiting_consent_details', // après "EN SAVOIR PLUS"
   MAIN_MENU: 'main_menu',
@@ -146,7 +148,7 @@ function buildThemeHeader(theme) {
 }
 
 function usesDocumentKnowledge(theme) {
-  return Boolean(theme) && (theme.module_type === 'cnss' || theme.id === 'fse');
+  return Boolean(theme) && (theme.module_type === 'cnss' || theme.id === 'fse' || theme.id === 'compliance');
 }
 
 function buildThemeMenu(theme, user) {
@@ -356,17 +358,21 @@ function findThemeFromPayload(payload, themes) {
   return themes.find((theme) => normalizeText(theme.id) === themeId) || null;
 }
 
+/** Retourne la langue de l'utilisateur, 'fr' par défaut. */
+function getUserLang(user) {
+  return user && user.user_language ? user.user_language : 'fr';
+}
+
 async function ensureUser(phone) {
   const existingUser = await storage.getUser(phone);
+  if (existingUser) return existingUser;
 
-  if (existingUser) {
-    return existingUser;
-  }
-
+  // Nouvel utilisateur → commencer par la sélection de langue
   return storage.saveUser({
     phone,
     current_theme: null,
-    current_state: STATES.AWAITING_CONSENT,
+    current_state: STATES.AWAITING_LANGUAGE,
+    user_language: null,
     authenticated: false,
   });
 }
@@ -428,9 +434,10 @@ async function setCnssQuestionState(user, themeId) {
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
 async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
   try {
-    const activeThemes = (await storage.getThemes()).filter((t) => t.active);
+    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
     await setMainMenuState(user);
-    const result = await interactive.sendMenuScreen(phone, activeThemes);
+    const lang = getUserLang(user);
+    const result = await interactive.sendMenuScreen(phone, activeThemes, lang);
     if (result) {
       await storage.appendMessageLog({
         direction: 'outbound',
@@ -711,7 +718,12 @@ async function handleFreeQuestion(response, user, theme, incomingMessage) {
 // Handlers onboarding progressif
 // ---------------------------------------------------------------------------
 
-async function handleOnboardingStep(response, user, context) {
+/**
+ * Gère les étapes d'onboarding progressif.
+ * Retourne true si la réponse HTTP a déjà été envoyée (TwiML vide + message outbound),
+ * false si le caller doit envoyer response.toString().
+ */
+async function handleOnboardingStep(response, res, user, context) {
   const { message, normalizedMessage } = context;
   // Pour l'étape rôle, on priorise le payload (bouton list-picker) sur le texte
   const roleControlValue = context.normalizedPayload || normalizedMessage;
@@ -719,42 +731,48 @@ async function handleOnboardingStep(response, user, context) {
 
   // ── Étape ROLE (première et dernière étape post-consentement) ────────────
   if (user.current_state === STATES.ONBOARDING_ROLE) {
+    const lang = getUserLang(user);
     const isValidRoleChoice = onboarding.isSkip(roleControlValue) || Boolean(onboarding.parseRoleChoice(roleControlValue));
+
     if (!isValidRoleChoice) {
-      response.message(buildActivationMessage());
+      // Renvoyer l'écran de sélection de rôle
+      try {
+        const roleResult = await interactive.sendRoleScreen(user.phone, lang);
+        if (roleResult) { return; } // empty TwiML déjà envoyé plus haut
+      } catch (_) {}
+      response.message(t('role_body', lang));
       return;
     }
 
     const { updatedPharmacist, role } = onboarding.handleRoleStep(roleControlValue, currentPharmacist);
     await storage.savePharmacist({ ...updatedPharmacist, onboarding_completed: true });
-    if (role) {
-      await storage.updateConsentRole(user.phone, role);
+    if (role) await storage.updateConsentRole(user.phone, role);
+
+    // Onboarding terminé → Écran 3 (menu des thèmes)
+    console.log(`[state] ${user.phone} → MAIN_MENU (onboarding rôle terminé, lang: ${lang})`);
+    await setMainMenuState(user);
+
+    // Tentative interactive
+    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
+    try {
+      const menuResult = await interactive.sendMenuScreen(user.phone, activeThemes, lang);
+      if (menuResult) {
+        await storage.appendMessageLog({
+          direction: 'outbound', phone: user.phone,
+          body: '[interactive:main_menu]',
+          status: menuResult.status || 'queued',
+          provider_message_sid: menuResult.sid,
+          metadata: { source: 'onboarding_complete', lang },
+        });
+        res.type('text/xml').send(buildEmptyTwiml());
+        return true;
+      }
+    } catch (err) {
+      console.error('[interactive] sendMenuScreen after role failed:', err.message);
     }
-
-    // Aller directement au chat FSE (skip nom / pharmacie / ville / logiciel)
-    await storage.saveUser({
-      ...user,
-      current_theme: 'fse',
-      current_state: STATES.AWAITING_CNSS_QUESTION,
-    });
-
-    response.message([
-      'اطرح سؤالك حول FSE بالعربية 🇲🇦',
-      'Posez votre question sur la FSE en français 🇫🇷',
-      'Haga su pregunta sobre la FSE en español 🇪🇸',
-      'Задайте ваш вопрос о FSE на русском языке 🇷🇺',
-      '',
-      'Nous vous répondrons dans la limite des informations disponibles.',
-      '',
-      'Exemples :',
-      '🇲🇦 العربية : اشرح لي FSE',
-      '🇫🇷 Français : explique-moi la FSE',
-      '🇪🇸 Español : explíqueme la FSE',
-      '🇷🇺 Русский : объясните мне FSE',
-      '',
-      'Tapez RETOUR pour revenir au menu principal.',
-    ].join('\n'));
-    return;
+    // Fallback texte
+    response.message(`${t('onboarding_complete', lang)}\n\n${buildMainMenu(activeThemes)}`);
+    return false;
   }
 
   if (user.current_state === STATES.ONBOARDING_NAME) {
@@ -920,110 +938,195 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    // ── Commande STOP (globale — tous états) ────────────────────────────────────
     if (controlValue === 'stop') {
+      const lang = getUserLang(user);
       await storage.revokeConsent(context.phone);
       await storage.removeUserSubscriptions(context.phone);
       await storage.resetUser(context.phone);
-      response.message(buildDisabledMessage());
+      response.message(t('stop_message', lang));
       res.type('text/xml').send(response.toString());
       return;
     }
 
+    // ── Commande /LANGUE (globale — reprend depuis la sélection de langue) ──────
+    const isLanguageCmd =
+      controlValue === 'langue' ||
+      controlValue === 'language' ||
+      controlValue === '/langue' ||
+      controlValue === '/language';
+
+    if (isLanguageCmd) {
+      user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_LANGUAGE, user_language: null });
+      console.log(`[state] ${context.phone} → AWAITING_LANGUAGE (commande /LANGUE)`);
+      try {
+        const langResult = await interactive.sendLanguageScreen(context.phone);
+        if (langResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      } catch (_) {}
+      response.message(t('language_body', 'fr'));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── Commande /START (réinitialisation complète) ──────────────────────────────
+    const isStartCmd =
+      controlValue === 'demarrer' ||
+      controlValue === '/demarrer' ||
+      controlValue === 'start' ||
+      controlValue === '/start';
+
+    if (isStartCmd) {
+      await storage.revokeConsent(context.phone);
+      await storage.removeUserSubscriptions(context.phone);
+      user = await storage.saveUser({
+        phone: context.phone,
+        current_theme: null,
+        current_state: STATES.AWAITING_LANGUAGE,
+        user_language: null,
+        authenticated: false,
+      });
+      console.log(`[state] ${context.phone} → AWAITING_LANGUAGE (commande /START)`);
+      try {
+        const langResult = await interactive.sendLanguageScreen(context.phone);
+        if (langResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      } catch (_) {}
+      response.message(t('language_body', 'fr'));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── ÉCRAN 1 : Sélection de langue ───────────────────────────────────────────
+    // Déclenché si l'utilisateur n'a pas encore de langue enregistrée.
+    if (!user.user_language || user.current_state === STATES.AWAITING_LANGUAGE) {
+      const chosenLang = parseLang(controlValue);
+
+      if (chosenLang) {
+        // Langue choisie → sauvegarder et passer à l'Écran 2 (CGU)
+        user = await storage.saveUser({
+          ...user,
+          user_language: chosenLang,
+          current_state: STATES.AWAITING_CONSENT,
+        });
+        console.log(`[state] ${context.phone} → AWAITING_CONSENT (langue: ${chosenLang})`);
+
+        // Envoyer le consentement dans la langue choisie
+        try {
+          const consentResult = await interactive.sendConsentScreen(context.phone, chosenLang);
+          if (consentResult) {
+            await storage.appendMessageLog({
+              direction: 'outbound', phone: context.phone,
+              body: `[interactive:consent_${chosenLang}]`,
+              status: consentResult.status || 'queued',
+              provider_message_sid: consentResult.sid,
+              metadata: { source: 'interactive_consent', lang: chosenLang },
+            });
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          }
+        } catch (err) {
+          console.error('[interactive] sendConsentScreen failed:', err.message);
+        }
+        // Fallback texte
+        response.message(t('cgu_body', chosenLang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      // Pas de langue reconnue → afficher l'écran de sélection
+      console.log(`[state] ${context.phone} → sendLanguageScreen`);
+      try {
+        const langResult = await interactive.sendLanguageScreen(context.phone);
+        if (langResult) {
+          await storage.appendMessageLog({
+            direction: 'outbound', phone: context.phone,
+            body: '[interactive:language_picker]',
+            status: langResult.status || 'queued',
+            provider_message_sid: langResult.sid,
+            metadata: { source: 'interactive_language' },
+          });
+          res.type('text/xml').send(buildEmptyTwiml());
+          return;
+        }
+      } catch (err) {
+        console.error('[interactive] sendLanguageScreen failed:', err.message);
+      }
+      // Fallback texte multilingue
+      response.message(t('language_body', 'fr'));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── ÉCRAN 2 : Consentement CGU ───────────────────────────────────────────────
     const consented = await storage.hasConsent(context.phone);
+    const lang = getUserLang(user);
 
     if (!consented) {
-      const isOui =
-        context.normalizedMessage === '1' ||
-        context.normalizedMessage === 'oui' ||
-        context.normalizedMessage === 'j accepte' ||
-        context.normalizedMessage === 'j\'accepte' ||
-        context.normalizedMessage === 'accepte' ||
-        controlValue === 'consent_yes';
-      const isNon =
-        context.normalizedMessage === '2' ||
-        context.normalizedMessage === 'non' ||
-        context.normalizedMessage === 'je refuse' ||
-        context.normalizedMessage === 'refuse' ||
-        controlValue === 'consent_no';
-      const isEnSavoirPlus =
-        context.normalizedMessage === 'en savoir plus' ||
-        context.normalizedMessage === 'plus' ||
-        controlValue === 'consent_more';
+      const isCguAccept = controlValue === 'cgu_accept' ||
+        controlValue === 'oui' || controlValue === '1' ||
+        ['j accepte', 'j\'accepte', 'accepte', 'اوافق', 'acepto', 'принимаю'].includes(controlValue);
+      const isCguDecline = controlValue === 'cgu_decline' ||
+        controlValue === 'non' || controlValue === '2' ||
+        ['je refuse', 'refuse', 'ارفض', 'rechazo', 'отказываюсь'].includes(controlValue);
+      const isCguFull = controlValue === 'cgu_full';
 
-      if (isOui) {
-        // Enregistrer le consentement avec version et snapshot textuel
+      if (isCguAccept) {
+        // Enregistrer le consentement
         await storage.grantConsentWithMeta(context.phone, {
           version: consent.CONSENT_CURRENT_VERSION,
           textSnapshot: consent.getConsentTextSnapshot(consent.CONSENT_CURRENT_VERSION),
+          source: 'interactive_button',
+          lang,
         });
-        // Démarrer l'onboarding par la demande de rôle
-        user = await setOnboardingState(
-          { ...user, authenticated: false },
-          STATES.ONBOARDING_ROLE,
-        );
-        // Tier 1 : sélection de rôle interactive (list-picker)
+        // Démarrer l'onboarding par le rôle
+        user = await setOnboardingState({ ...user, authenticated: false }, STATES.ONBOARDING_ROLE);
+        console.log(`[state] ${context.phone} → ONBOARDING_ROLE`);
+        // Écran rôle interactif
         try {
-          const roleResult = await interactive.sendRoleScreen(context.phone);
+          const roleResult = await interactive.sendRoleScreen(context.phone, lang);
           if (roleResult) {
             await storage.appendMessageLog({
               direction: 'outbound', phone: context.phone,
               body: '[interactive:role_list_picker]',
               status: roleResult.status || 'queued',
               provider_message_sid: roleResult.sid,
-              metadata: { source: 'interactive_role' },
+              metadata: { source: 'interactive_role', lang },
             });
             res.type('text/xml').send(buildEmptyTwiml());
             return;
           }
-        } catch (interactiveErr) {
-          console.error('[interactive] sendRoleScreen failed, fallback texte:', interactiveErr.message || interactiveErr);
+        } catch (err) {
+          console.error('[interactive] sendRoleScreen failed:', err.message);
         }
-        // Tier 2 : fallback texte
+        // Fallback texte
         response.message(buildActivationMessage());
-      } else if (isNon) {
-        // Enregistrer le refus (conserve l'entrée pour l'audit trail)
+
+      } else if (isCguDecline) {
         await storage.refuseConsent(context.phone);
         await storage.resetUser(context.phone);
-        response.message(buildConsentDeclinedMessage());
-      } else if (isEnSavoirPlus) {
-        // Envoyer la version longue et mémoriser l'état pour la réponse suivante
-        await storage.saveUser({ ...user, current_state: STATES.AWAITING_CONSENT_DETAILS });
-        response.message(consent.buildConsentLong());
-      } else if (user.current_state === STATES.AWAITING_CONSENT_DETAILS) {
-        // L'utilisateur avait demandé plus d'info mais envoie autre chose → ré-afficher
-        response.message(consent.buildConsentLong());
-      } else {
-        // Premier contact ou message non reconnu
-        await storage.resetUser(context.phone);
-        // Tier 1 : WhatsApp Flow (si configuré et activé)
-        if (onboardingFlow.isOnboardingFlowConfigured()) {
-          try {
-            await sendOnboardingFlowMessage(context.phone);
-            res.type('text/xml').send(buildEmptyTwiml());
-            return;
-          } catch (flowError) {
-            console.error('[onboarding_flow] Flow échoué, essai interactif:', flowError.message || flowError);
-          }
-        }
-        // Tier 2 : consentement interactif (quick-reply buttons)
+        console.log(`[state] ${context.phone} → CGU refusée`);
+        response.message(t('cgu_declined', lang));
+
+      } else if (isCguFull) {
+        // Envoyer le lien CGU puis renvoyer l'écran CGU
+        const cguUrl = String(process.env.CGU_URL || 'https://blink.ma/cgu');
+        response.message(t('cgu_link', lang, { url: cguUrl }));
+        // Re-envoyer l'écran CGU en message séparé (outbound asynchrone)
         try {
-          const consentResult = await interactive.sendConsentScreen(context.phone);
+          await interactive.sendConsentScreen(context.phone, lang);
+        } catch (_) {}
+
+      } else {
+        // Message non reconnu → ré-afficher l'écran CGU
+        try {
+          const consentResult = await interactive.sendConsentScreen(context.phone, lang);
           if (consentResult) {
-            await storage.appendMessageLog({
-              direction: 'outbound', phone: context.phone,
-              body: '[interactive:consent_quick_reply]',
-              status: consentResult.status || 'queued',
-              provider_message_sid: consentResult.sid,
-              metadata: { source: 'interactive_consent' },
-            });
             res.type('text/xml').send(buildEmptyTwiml());
             return;
           }
-        } catch (interactiveErr) {
-          console.error('[interactive] sendConsentScreen failed, fallback texte:', interactiveErr.message || interactiveErr);
+        } catch (err) {
+          console.error('[interactive] sendConsentScreen failed:', err.message);
         }
-        // Tier 3 : fallback texte
-        response.message(buildConsentMessage());
+        response.message(t('cgu_body', lang));
       }
 
       res.type('text/xml').send(response.toString());
@@ -1131,8 +1234,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     // (ex: choix du rôle par "1"/"2"/"3") utiliseraient sinon le handler de menu.
     const onboardingStates = Object.values(onboarding.ONBOARDING_STATES);
     if (onboardingStates.includes(user.current_state)) {
-      await handleOnboardingStep(response, user, context);
-      res.type('text/xml').send(response.toString());
+      const handledDirectly = await handleOnboardingStep(response, res, user, context);
+      if (!handledDirectly) res.type('text/xml').send(response.toString());
       return;
     }
 

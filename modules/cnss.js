@@ -91,6 +91,12 @@ function selectKnowledgeFiles(scope) {
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
+    // Thème fusionné compliance = CNDP + CNSS
+    if (normalizedScope === 'compliance') {
+        const scopedFiles = allFiles.filter((f) => /cndp|cnss/i.test(f));
+        return scopedFiles.length ? scopedFiles : allFiles;
+    }
+
     return allFiles;
 }
 
@@ -107,6 +113,10 @@ function buildScopeLabel(scope) {
 
     if (normalizedScope === 'cndp') {
         return 'CNDP (Loi 09-08)';
+    }
+
+    if (normalizedScope === 'compliance') {
+        return 'Conformité CNDP / CNSS';
     }
 
     return 'documentation';

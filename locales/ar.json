@@ -1,0 +1,43 @@
+{
+  "language_header": "Blink Premium",
+  "language_body": "Bienvenue dans le Chatbot Blink Premium.\nChoisissez votre langue / اختر لغتك / Elija su idioma / Выберите язык",
+  "language_button": "اختر لغتك",
+  "language_section": "اختر لغتك",
+  "lang_ar": "🇲🇦 العربية",
+  "lang_fr": "🇫🇷 Français",
+  "lang_es": "🇪🇸 Español",
+  "lang_ru": "🇷🇺 Русский",
+
+  "cgu_body": "نقدم خدمتنا المدعومة بالذكاء الاصطناعي للإجابة على أسئلتكم حول مواضيع راهنية متعددة.\n\nلاستخدام هذه الخدمة، تؤكدون ما يلي:\n✅ أنتم صيادلة أو تستخدمون هذه الخدمة تحت مسؤوليتكم\n✅ توافقون على تلقي رسائل WhatsApp المرتبطة بالخدمات النشطة\n✅ تتحققون من المعلومات قبل تطبيقها\n✅ تحترمون حدود دوركم المهني\n✅ أفهم أن هذا الذكاء الاصطناعي قد يخطئ",
+  "cgu_accept": "أوافق",
+  "cgu_decline": "أرفض",
+  "cgu_full": "قراءة الشروط",
+  "cgu_declined": "لقد رفضتم شروط الاستخدام. الخدمة مغلقة.\nللبدء من جديد، أرسلوا OUI.",
+  "cgu_link": "اطلعوا على شروط الاستخدام الكاملة:\n{url}\n\nبعد القراءة، عودوا للقبول أو الرفض.",
+
+  "role_body": "ما هو دوركم في الصيدلية؟",
+  "role_button": "اختر دورك",
+  "role_section": "دوركم",
+  "role_titulaire": "صيدلاني رئيسي",
+  "role_adjoint": "صيدلاني مساعد",
+  "role_autre": "دور آخر",
+
+  "onboarding_complete": "✅ تم تسجيل ملفكم. مرحباً بكم في Blink Premium!",
+
+  "theme_header": "المواضيع المتاحة",
+  "theme_body": "اختر موضوعاً للبدء",
+  "theme_button": "عرض المواضيع",
+  "theme_section": "الفئات",
+  "theme_fse": "ورقة العلاجات الإلكترونية",
+  "theme_nouveautes-medicaments": "مستجدات المنتجات",
+  "theme_compliance": "الامتثال CNDP / CNSS",
+
+  "stop_message": "تم إلغاء الاشتراك.\nتم حذف وصولكم واشتراكاتكم.\nلن يتم إرسال أي رسائل إليكم.\n\nلإعادة تفعيل الخدمة، أرسلوا OUI.",
+  "unknown_command": "لم أفهم. اكتب MENU لعرض الخدمات المتاحة.",
+
+  "back": "RETOUR",
+  "menu": "MENU",
+  "stop": "STOP",
+  "start": "DÉMARRER",
+  "language_cmd": "LANGUE"
+}
