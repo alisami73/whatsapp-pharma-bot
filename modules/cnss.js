@@ -82,6 +82,11 @@ function selectKnowledgeFiles(scope) {
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
+    if (normalizedScope === 'cndp') {
+        const scopedFiles = allFiles.filter((f) => /cndp/i.test(f));
+        return scopedFiles.length ? scopedFiles : allFiles;
+    }
+
     return allFiles;
 }
 
@@ -94,6 +99,10 @@ function buildScopeLabel(scope) {
 
     if (normalizedScope === 'cnss') {
         return 'CNSS';
+    }
+
+    if (normalizedScope === 'cndp') {
+        return 'CNDP (Loi 09-08)';
     }
 
     return 'documentation';

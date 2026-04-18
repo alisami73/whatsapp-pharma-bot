@@ -42,5 +42,16 @@
     "allow_free_question": true,
     "allow_subscription": false,
     "module_type": "cnss"
+  },
+  {
+    "id": "cndp",
+    "title": "Conformite CNDP (Loi 09-08)",
+    "active": true,
+    "intro_message": "Posez vos questions sur la mise en conformite CNDP : declaration des donnees, portail sante.cndp.ma, etapes de conformite...",
+    "current_focus": "Mise en conformite des pharmacies avec la Loi 09-08 protection des donnees personnelles.",
+    "requires_auth": false,
+    "allow_free_question": true,
+    "allow_subscription": false,
+    "module_type": "cnss"
   }
 ]
