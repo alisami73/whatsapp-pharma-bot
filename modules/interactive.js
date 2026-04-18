@@ -162,7 +162,29 @@ async function resolveTemplate(cacheKey, buildSpec) {
 // ─── Send helpers ─────────────────────────────────────────────────────────────
 
 async function sendInteractive(to, contentSid) {
-  return twilioService.sendWhatsAppMessage({ to, contentSid, contentVariables: {} });
+  const config = twilioService.getTwilioConfig();
+  const client = twilioService.getTwilioClient();
+
+  // Les messages interactifs (contentSid) doivent utiliser le numéro WhatsApp direct.
+  // Le Messaging Service peut router vers un numéro non-marocain et provoquer une erreur 63112.
+  const payload = {
+    to: twilioService.normalizeWhatsAppAddress(to),
+    contentSid,
+    contentVariables: '{}',
+  };
+
+  if (config.whatsappFrom) {
+    payload.from = config.whatsappFrom;
+  } else if (config.messagingServiceSid) {
+    payload.messagingServiceSid = config.messagingServiceSid;
+  } else {
+    throw new Error('No WhatsApp sender configured (TWILIO_WHATSAPP_FROM or TWILIO_MESSAGING_SERVICE_SID required).');
+  }
+
+  const statusCallback = twilioService.buildStatusCallbackUrl();
+  if (statusCallback) payload.statusCallback = statusCallback;
+
+  return client.messages.create(payload);
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
