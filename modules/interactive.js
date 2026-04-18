@@ -48,6 +48,7 @@ function isFresh(entry) {
 function buildConsentSpec() {
   return {
     friendlyName: 'blink_consent_v1',
+    language: 'fr',
     types: {
       'twilio/quick-reply': {
         body: [
@@ -70,6 +71,7 @@ function buildConsentSpec() {
 function buildRoleSpec() {
   return {
     friendlyName: 'blink_role_v1',
+    language: 'fr',
     types: {
       'twilio/list-picker': {
         body: [
@@ -114,6 +116,7 @@ function buildMenuSpec(activeThemes) {
 
   return {
     friendlyName: `blink_menu_v1_${themeHash(activeThemes)}`,
+    language: 'fr',
     types: {
       'twilio/list-picker': {
         body: 'Blink Premium — Choisissez un service :',
