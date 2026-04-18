@@ -145,18 +145,36 @@ async function resolveTemplate(cacheKey, buildSpec) {
     return cache[cacheKey].sid;
   }
 
+  const client = twilioService.getTwilioClient();
+  const spec = buildSpec();
+
+  // Tentative 1 : créer le template
   try {
-    const client = twilioService.getTwilioClient();
-    const spec = buildSpec();
     const created = await client.content.v1.contents.create(spec);
     cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
     writeCache(cache);
     console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
     return created.sid;
-  } catch (err) {
-    console.error(`[interactive] Création template échouée pour "${cacheKey}":`, err.message || err);
-    return null;
+  } catch (createErr) {
+    console.warn(`[interactive] Création échouée pour "${cacheKey}": ${createErr.message} — recherche du template existant...`);
   }
+
+  // Tentative 2 : retrouver un template existant portant le même friendlyName
+  try {
+    const all = await client.content.v1.contents.list({ limit: 100 });
+    const match = all.find((t) => t.friendlyName === spec.friendlyName);
+    if (match) {
+      cache[cacheKey] = { sid: match.sid, created_at: new Date().toISOString() };
+      writeCache(cache);
+      console.log(`[interactive] Template existant réutilisé : ${cacheKey} → ${match.sid}`);
+      return match.sid;
+    }
+  } catch (listErr) {
+    console.error(`[interactive] Impossible de lister les templates: ${listErr.message}`);
+  }
+
+  console.error(`[interactive] Template introuvable pour "${cacheKey}" — fallback texte.`);
+  return null;
 }
 
 // ─── Send helpers ─────────────────────────────────────────────────────────────
