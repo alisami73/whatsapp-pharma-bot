@@ -148,9 +148,11 @@ function parseQueryFeatures(question) {
     ...documentRefs.flatMap((value) => tokenize(value)),
     ...dateRefs.flatMap((value) => tokenize(value)),
   ]));
+  // Use normalized (accent-stripped) for pattern matching
   const tokens = expandQueryTokens(baseTokens, text);
+  const nq = normalizedQuestion;
 
-  const asksAboutPractical = /\b(que faire|quoi faire|comment|je dois|je fais|a faire|quels documents|preparer|se preparer|faut.il|كيف|ماذا)\b/i.test(text);
+  const asksAboutPractical = /\b(que faire|quoi faire|comment|je dois|dois je|je fais|fais je|a faire|quels? documents?|preparer|se preparer|faut.il|كيف|ماذا|je dois|que doit|que faut|que prevoi|prevo)\b/.test(nq);
 
   return {
     text,
@@ -159,9 +161,9 @@ function parseQueryFeatures(question) {
     articleRefs,
     documentRefs,
     dateRefs,
-    asksAboutSanctions: /\b(sanction|sanctions|amende|penalite|penalites|peine|punie|punissable)\b/i.test(text),
-    asksAboutDeadlines: /\b(delai|delais|jours|jour|mois|date limite|avant le|quand)\b/i.test(text),
-    asksAboutObligations: /\b(obligation|obligatoire|doit|doivent|faut il|faut-il|est il obligatoire|est-il obligatoire)\b/i.test(text),
+    asksAboutSanctions: /\b(sanction|amende|penalite|peine|punie|punissable)\b/.test(nq),
+    asksAboutDeadlines: /\b(delai|jours|mois|date limite|avant le|quand)\b/.test(nq),
+    asksAboutObligations: /\b(obligation|obligatoire|doit|doivent|faut il|est il obligatoire)\b/.test(nq),
     asksAboutPractical,
   };
 }
@@ -426,9 +428,16 @@ function topicalBoost(chunk, queryFeatures) {
     score += 2;
   }
 
-  // Boost practical guides when user asks "que faire / comment"
+  // Boost practical guides when user asks "que faire / comment / preparer"
   if (queryFeatures.asksAboutPractical && chunk.document_type === 'guide_pratique') {
-    score += 3;
+    score += 6;
+  }
+
+  // Boost chunks whose doc_id tokens overlap strongly with query tokens
+  const docIdTokens = tokenize(normalizeText(chunk.doc_id || chunk.chunk_id || ''));
+  const docIdOverlap = docIdTokens.filter((t) => queryFeatures.tokens.includes(t)).length;
+  if (docIdOverlap >= 2) {
+    score += docIdOverlap * 1.5;
   }
 
   if (chunk.language === 'ar' && /[\u0600-\u06FF]/.test(queryFeatures.text)) {
