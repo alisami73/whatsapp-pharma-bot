@@ -79,6 +79,35 @@ function parseInteractiveData(rawValue) {
   }
 }
 
+function extractInteractiveData(body = {}) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return null;
+  }
+
+  const candidates = [
+    body.InteractiveData,
+    body.interactiveData,
+    body.FlowData,
+    body.flowData,
+    body.FlowActionPayload,
+    body.flow_action_payload,
+    body.SubmissionData,
+    body.submission_data,
+    body.ButtonPayload,
+    body.Payload,
+    body.Body,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = parseInteractiveData(candidate);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 function flattenInteractiveData(value, target = {}) {
   if (!value || typeof value !== 'object') {
     return target;
@@ -153,6 +182,7 @@ module.exports = {
   getOnboardingFlowContentSid,
   isOnboardingFlowConfigured,
   buildOnboardingFlowSpec,
+  extractInteractiveData,
   parseInteractiveData,
   parseFlowSubmission,
   mapRoleChoiceToStoredRole,

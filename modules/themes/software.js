@@ -13,7 +13,7 @@
  *               with product images (https://blink.ma/assets/software/{card}.jpg)
  */
 
-const twilioService = require('../twilio_service');
+const twilioService = require('../../twilio_service');
 const { t } = require('../i18n');
 const { sendAIResponseWithFooter } = require('../shared/footer');
 

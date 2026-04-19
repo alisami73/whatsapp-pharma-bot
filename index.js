@@ -73,7 +73,7 @@ function getRequestContext(req) {
   const phone = twilioService.normalizeWhatsAppAddress(
     req.body.From || req.body.WaId || '',
   );
-  const interactiveData = onboardingFlow.parseInteractiveData(req.body.InteractiveData);
+  const interactiveData = onboardingFlow.extractInteractiveData(req.body);
 
   return {
     phone,
@@ -1458,7 +1458,11 @@ app.post('/webhook/twilio/status', async (req, res, next) => {
 app.use((error, req, res, next) => {
   console.error(error);
 
-  if (req.path === '/webhook/whatsapp') {
+  if (
+    req.path === '/webhook/whatsapp' ||
+    req.path === '/webhooks/twilio/whatsapp' ||
+    req.path === '/webhooks/twilio/whatsapp/fallback'
+  ) {
     const response = new MessagingResponse();
     response.message("Une erreur est survenue. Merci de reessayer dans quelques instants.");
     res.type('text/xml').status(200).send(response.toString());

@@ -220,11 +220,16 @@ function normalizeConsent(consent) {
 }
 
 function normalizeUser(user) {
+  const rawUserLanguage = String(user.user_language || '').trim().toLowerCase();
+  const userLanguage = rawUserLanguage || null;
+
   return {
+    ...user,
     phone: normalizePhone(user.phone),
     current_theme: user.current_theme || null,
     current_state: user.current_state || 'main_menu',
     authenticated: Boolean(user.authenticated),
+    user_language: userLanguage,
     updated_at: new Date().toISOString(),
   };
 }

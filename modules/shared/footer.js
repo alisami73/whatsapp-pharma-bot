@@ -17,7 +17,7 @@
  * La réponse IA est injectée via contentVariable {{1}}.
  */
 
-const twilioService = require('../twilio_service');
+const twilioService = require('../../twilio_service');
 const { t } = require('../i18n');
 
 // Importé en mode lazy pour éviter la dépendance circulaire
