@@ -1273,8 +1273,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         res.type('text/xml').send(response.toString());
         return;
       }
-      // Routing Medindex / Regulations → Bientôt disponible
-      if (payloadTheme.id === 'medindex' || payloadTheme.id === 'regulations') {
+      // Routing Medindex → Bientôt disponible
+      if (payloadTheme.id === 'medindex') {
         const { sent, text } = await comingSoon.handleComingSoon(context.phone, lang);
         if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
         response.message(text);

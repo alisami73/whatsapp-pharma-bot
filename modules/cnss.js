@@ -22,34 +22,93 @@ const path = require('path');
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
 const KNOWLEDGE_DIR = path.join(__dirname, '..', 'data', 'knowledge');
+const LEGAL_CHUNKS_DIR = path.join(__dirname, '..', 'data', 'legal_kb', 'chunks');
+const LEGAL_PROMPT_PATH = path.join(__dirname, '..', 'data', 'prompts', 'legal_rag_system_prompt.md');
 const MAX_RESPONSE_CHARS = 1400; // Limite WhatsApp confortable
 const MAX_CONTEXT_CHARS = 12000; // Limite contexte envoyé au LLM
+const MAX_LEGAL_CONTEXT_CHARS = 14000;
+const MAX_LEGAL_CHUNKS = 6;
+const DEFAULT_SYSTEM_PROMPT = `Tu es un assistant conversationnel spécialisé dans la réglementation pharmaceutique marocaine, destiné à répondre à des questions libres sur l’exercice de la pharmacie, les officines, l’Ordre des pharmaciens, la déontologie, l’inspection, l’autorisation d’exercice, la pharmacie hospitalière et les textes apparentés.
 
-const SYSTEM_PROMPT = `Tu es un assistant spécialisé dédié aux pharmaciens marocains, intégré dans le Chatbot Blink Premium.
+Ta mission :
+- répondre uniquement à partir des informations présentes dans la base de connaissances fournie dans le contexte,
+- fournir des réponses claires, prudentes et structurées,
+- distinguer les faits explicitement fondés sur les sources des explications simplifiées,
+- signaler toute incertitude, contradiction ou insuffisance documentaire.
 
-LANGUE DE RÉPONSE — règle absolue :
-- La langue de réponse est indiquée explicitement dans chaque message utilisateur par "INSTRUCTION IMPÉRATIVE".
-- Respecte-la TOUJOURS, même si la base de connaissances est dans une autre langue.
+Règles impératives :
+1. N’invente jamais une règle juridique, un article, une sanction ou une procédure.
+2. N’affirme jamais qu’un texte dit quelque chose si cela n’apparaît pas dans les extraits fournis.
+3. Si les extraits sont insuffisants, dis-le explicitement.
+4. Si les documents semblent mal OCRisés, incomplets ou ambigus, indique que la réponse doit être vérifiée.
+5. Ne donne pas un avis juridique définitif ; donne une information réglementaire fondée sur la base disponible.
+6. Si plusieurs sources existent, privilégie la réponse la plus prudente et mentionne les éventuelles différences.
+7. Si la question est hors périmètre de la base, indique-le clairement.
+8. Si la question est en arabe, réponds en arabe. Si elle est en français, réponds en français. Si la question mélange les deux, réponds dans la langue dominante de l’utilisateur.
+9. Ne mentionne pas de connaissances extérieures non fournies dans le contexte.
+10. Quand une réponse repose sur une source, cite le titre du texte, l’article ou la page si disponible.
 
-TERMES TECHNIQUES — règle absolue :
-- Les sigles et concepts suivants restent toujours en français, entre guillemets : "FSE", "CNSS", "CNDP", "QR code", "AMO", "Damancom".
-- Exemple en arabe : استخدم "QR code" للحصول على الدواء
-- Exemple en espagnol : El médico genera la "FSE" electrónica
+Format de réponse attendu :
+- Réponse courte
+- Fondement
+- Limites / points à vérifier
+- Sources
 
-THÈMES DISPONIBLES dans le chatbot :
-- "FSE" : Feuille de Soins Électronique (fonctionnement, phase pilote, QR code, impact en pharmacie)
-- "CNSS" : affiliations, cotisations, remboursements AMO, retraite
-- "CNDP" : mise en conformité des pharmacies avec la Loi 09-08, protection des données personnelles
+Style :
+- professionnel
+- simple
+- précis
+- sans jargon inutile
+- sans ton alarmiste`;
 
-CONTENU :
-- Réponds de façon concise et claire (3-5 phrases maximum).
-- Utilise UNIQUEMENT les informations contenues dans la base de connaissances fournie.
-- Si la question porte sur un AUTRE THÈME que celui de la base courante, dis-le clairement et invite l'utilisateur à taper RETOUR pour choisir le thème approprié dans le menu. Exemple : "Cette question concerne la 'CNDP'. Tapez RETOUR pour revenir au menu et choisir le thème 'Conformité CNDP'."
-- Ne génère jamais d'informations inventées.`;
+const STRUCTURED_LABELS = {
+    fr: {
+        short: 'Réponse courte',
+        foundation: 'Fondement',
+        limits: 'Limites / points à vérifier',
+        sources: 'Sources',
+        noSource: "Aucun fondement exploitable n'a été retrouvé dans la base actuelle pour cette question.",
+        verify: 'Une vérification humaine est recommandée.',
+        faqNotice: "Le contexte disponible est de nature opérationnelle / documentaire interne et non nécessairement un texte réglementaire officiel.",
+        insufficient: "Les extraits disponibles ne permettent pas d'apporter une réponse suffisamment fondée.",
+    },
+    ar: {
+        short: 'الجواب المختصر',
+        foundation: 'الأساس',
+        limits: 'الحدود / ما يجب التحقق منه',
+        sources: 'المصادر',
+        noSource: 'لم يتم العثور على أساس قابل للاستغلال في القاعدة الحالية لهذا السؤال.',
+        verify: 'يوصى بالتحقق البشري.',
+        faqNotice: 'السياق المتاح ذو طبيعة تشغيلية / توثيقية داخلية وليس بالضرورة نصا تنظيميا رسميا.',
+        insufficient: 'المقتطفات المتاحة لا تسمح بتقديم جواب مؤسس بشكل كاف.',
+    },
+    es: {
+        short: 'Respuesta corta',
+        foundation: 'Fundamento',
+        limits: 'Límites / puntos a verificar',
+        sources: 'Fuentes',
+        noSource: 'No se encontró fundamento utilizable en la base actual para esta pregunta.',
+        verify: 'Se recomienda verificación humana.',
+        faqNotice: 'El contexto disponible es operativo / documental interno y no necesariamente un texto reglamentario oficial.',
+        insufficient: 'Los extractos disponibles no permiten dar una respuesta suficientemente fundamentada.',
+    },
+    ru: {
+        short: 'Краткий ответ',
+        foundation: 'Основание',
+        limits: 'Ограничения / что нужно проверить',
+        sources: 'Источники',
+        noSource: 'В текущей базе не найдено пригодного основания для этого вопроса.',
+        verify: 'Рекомендуется человеческая проверка.',
+        faqNotice: 'Доступный контекст носит операционный / внутренний документальный характер и не обязательно является официальным нормативным текстом.',
+        insufficient: 'Доступных фрагментов недостаточно для достаточно обоснованного ответа.',
+    },
+};
 
 // ─── CACHE FAQ ────────────────────────────────────────────────────────────────
 
 let _faqContextCache = null;
+let _legalChunksCache = null;
+let _systemPromptCache = null;
 
 function normalizeScope(scope) {
     return String(scope || '').trim().toLowerCase();
@@ -119,6 +178,10 @@ function buildScopeLabel(scope) {
         return 'Conformité CNDP / CNSS';
     }
 
+    if (normalizedScope === 'regulations') {
+        return 'Textes et règlements pharmacie';
+    }
+
     return 'documentation';
 }
 
@@ -126,11 +189,21 @@ function extractMarkdownSections(context) {
     const lines = String(context || '').split('\n');
     const sections = [];
     let current = null;
+    let currentSource = null;
 
     lines.forEach((line) => {
         const trimmed = line.trim();
 
-        if (!trimmed || trimmed.startsWith('===')) {
+        if (!trimmed) {
+            return;
+        }
+
+        if (trimmed.startsWith('===')) {
+            currentSource = trimmed
+                .replace(/^===\s*/, '')
+                .replace(/\s*===\s*$/, '')
+                .replace(/^Source:\s*/i, '')
+                .trim() || null;
             return;
         }
 
@@ -142,6 +215,7 @@ function extractMarkdownSections(context) {
             current = {
                 title: trimmed.replace(/^###\s+/, '').trim(),
                 content: [],
+                sourceFile: currentSource,
             };
             return;
         }
@@ -150,6 +224,7 @@ function extractMarkdownSections(context) {
             current = {
                 title: '',
                 content: [],
+                sourceFile: currentSource,
             };
         }
 
@@ -228,7 +303,7 @@ function loadFaqContext(scope) {
 
     const parts = files.map((f) => {
         const content = fs.readFileSync(path.join(KNOWLEDGE_DIR, f), 'utf-8').trim();
-        return `=== ${f} ===\n${content}`;
+        return `=== Source: ${f} ===\n${content}`;
     });
 
     let context = parts.join('\n\n');
@@ -250,6 +325,361 @@ function loadFaqContext(scope) {
 function reloadFaqContext(scope) {
     _faqContextCache = null;
     return loadFaqContext(scope);
+}
+
+function loadSystemPrompt() {
+    if (_systemPromptCache !== null) {
+        return _systemPromptCache;
+    }
+
+    try {
+        if (fs.existsSync(LEGAL_PROMPT_PATH)) {
+            const content = fs.readFileSync(LEGAL_PROMPT_PATH, 'utf-8').trim();
+            if (content) {
+                _systemPromptCache = content;
+                return _systemPromptCache;
+            }
+        }
+    } catch (error) {
+        console.warn('[CNSS] Impossible de charger le prompt juridique personnalisé:', error.message);
+    }
+
+    _systemPromptCache = DEFAULT_SYSTEM_PROMPT;
+    return _systemPromptCache;
+}
+
+function buildSystemPrompt(scope) {
+    const scopeLabel = buildScopeLabel(scope);
+    return `${loadSystemPrompt()}
+
+Contexte d'exécution :
+- Thème actif du chatbot : ${scopeLabel}.
+- Réponds uniquement à partir du contexte fourni dans ce tour.
+- Si le contexte provient d'une FAQ ou d'un guide opérationnel interne, ne le présente pas comme un texte réglementaire officiel.
+- Si une source contient un avertissement de qualité, mentionne-le dans "Limites / points à vérifier".
+- Si aucun fondement n'est trouvé dans le contexte, dis-le explicitement.
+- Respecte strictement le format demandé avec les quatre rubriques.`;
+}
+
+function getStructuredLabels(langCode) {
+    return STRUCTURED_LABELS[langCode] || STRUCTURED_LABELS.fr;
+}
+
+function uniqueNonEmpty(items) {
+    const seen = new Set();
+    return items
+        .map((item) => String(item || '').trim())
+        .filter(Boolean)
+        .filter((item) => {
+            if (seen.has(item)) {
+                return false;
+            }
+            seen.add(item);
+            return true;
+        });
+}
+
+function formatStructuredAnswer(langCode, payload) {
+    const labels = getStructuredLabels(langCode);
+    const sections = [
+        { title: labels.short, lines: [payload.shortAnswer || labels.noSource] },
+        { title: labels.foundation, lines: payload.foundationLines?.length ? payload.foundationLines : [labels.insufficient] },
+        { title: labels.limits, lines: payload.limitLines?.length ? payload.limitLines : [labels.verify] },
+        { title: labels.sources, lines: payload.sourceLines?.length ? uniqueNonEmpty(payload.sourceLines) : ['-'] },
+    ];
+
+    return sections
+        .map((section) => {
+            const lines = section.lines.map((line) => (line.startsWith('-') ? line : `- ${line}`));
+            return `${section.title}\n${lines.join('\n')}`;
+        })
+        .join('\n\n');
+}
+
+function tokenizeSearch(value) {
+    const normalized = normalizeText(value);
+    const tokens = normalized
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter((token) => token.length > 2);
+
+    const expansions = [];
+    const raw = String(value || '');
+
+    const expansionRules = [
+        { pattern: /صيدلية|الصيدلية/u, values: ['pharmacie', 'officine'] },
+        { pattern: /صيدلي|الصيدلي/u, values: ['pharmacien'] },
+        { pattern: /فتح|افتتاح/u, values: ['ouverture'] },
+        { pattern: /شروط/u, values: ['conditions'] },
+        { pattern: /مزاولة|ممارسة/u, values: ['exercice'] },
+        { pattern: /ترخيص|رخصة|اذن/u, values: ['autorisation'] },
+        { pattern: /تفتيش|مراقبة/u, values: ['inspection', 'controle'] },
+        { pattern: /غياب/u, values: ['absence'] },
+        { pattern: /تعويض|استخلاف/u, values: ['remplacement'] },
+        { pattern: /اخلاقيات|آداب|ديونتولوجيا/u, values: ['deontologie'] },
+        { pattern: /مستشفى|استشفائي/u, values: ['hospitaliere'] },
+        { pattern: /معادلة|تكافؤ/u, values: ['equivalence'] },
+        { pattern: /هيئة|النظام|الامر/u, values: ['ordre'] },
+    ];
+
+    expansionRules.forEach((rule) => {
+        if (rule.pattern.test(raw)) {
+            expansions.push(...rule.values);
+        }
+    });
+
+    return Array.from(new Set([...tokens, ...expansions]));
+}
+
+function loadLegalChunks() {
+    if (_legalChunksCache !== null) {
+        return _legalChunksCache;
+    }
+
+    if (!fs.existsSync(LEGAL_CHUNKS_DIR)) {
+        console.warn('[CNSS] Dossier data/legal_kb/chunks/ introuvable.');
+        _legalChunksCache = [];
+        return _legalChunksCache;
+    }
+
+    const files = fs.readdirSync(LEGAL_CHUNKS_DIR)
+        .filter((file) => file.endsWith('.json'))
+        .sort();
+
+    const chunks = [];
+
+    files.forEach((file) => {
+        try {
+            const raw = JSON.parse(fs.readFileSync(path.join(LEGAL_CHUNKS_DIR, file), 'utf-8'));
+            const chunkList = Array.isArray(raw)
+                ? raw
+                : Array.isArray(raw?.chunks)
+                ? raw.chunks
+                : [];
+
+            chunkList.forEach((chunk) => {
+                chunks.push({
+                    ...chunk,
+                    _searchTitle: normalizeText([chunk.official_title, chunk.short_title, chunk.structure_path, chunk.article_number].join(' ')),
+                    _searchTags: normalizeText([
+                        ...(chunk.topic_tags || []),
+                        ...(chunk.retrieval_keywords || []),
+                    ].join(' ')),
+                    _searchBody: normalizeText([
+                        chunk.legal_summary,
+                        ...(chunk.key_rules || []),
+                        ...(chunk.definitions || []),
+                        chunk.clean_text,
+                        chunk.text,
+                        chunk.citation_label,
+                    ].join(' ')),
+                });
+            });
+        } catch (error) {
+            console.warn(`[CNSS] Impossible de charger le fichier juridique ${file}: ${error.message}`);
+        }
+    });
+
+    _legalChunksCache = chunks;
+    console.log(`[CNSS] Chunks juridiques chargés : ${chunks.length}`);
+    return _legalChunksCache;
+}
+
+function scoreLegalChunk(chunk, tokens, normalizedQuestion, langCode) {
+    let score = 0;
+
+    tokens.forEach((token) => {
+        if (chunk._searchTitle.includes(token)) {
+            score += 6;
+        }
+        if (chunk._searchTags.includes(token)) {
+            score += 4;
+        }
+        if (chunk._searchBody.includes(token)) {
+            score += 1;
+        }
+    });
+
+    const normalizedArticleRef = chunk.article_number
+        ? normalizeText(`article ${chunk.article_number}`)
+        : '';
+    if (normalizedArticleRef && normalizedQuestion.includes(normalizedArticleRef)) {
+        score += 6;
+    }
+
+    if (langCode === 'ar' && (chunk.language === 'ar' || chunk.language === 'mixed')) {
+        score += 2;
+    }
+    if (langCode === 'fr' && (chunk.language === 'fr' || chunk.language === 'mixed' || chunk.language === 'unknown')) {
+        score += 2;
+    }
+
+    if (chunk.confidence === 'high') {
+        score += 1;
+    } else if (chunk.confidence === 'medium') {
+        score += 0.5;
+    }
+
+    if (chunk.manual_review_required) {
+        score -= 1;
+    }
+
+    const hasToken = (value) => tokens.includes(value);
+    const searchCorpus = [chunk._searchTitle, chunk._searchTags, chunk._searchBody].join(' ');
+    const intentBoosts = [
+        {
+            active: hasToken('ouverture') && (hasToken('officine') || hasToken('pharmacie')),
+            patterns: ['ouverture d officine', 'ouverture officine', 'normes techniques', 'installation de salubrite et de surface'],
+            boost: 12,
+        },
+        {
+            active: hasToken('inspection') || hasToken('controle'),
+            patterns: ['inspection', 'controle', 'pharmaciens inspecteurs'],
+            boost: 10,
+        },
+        {
+            active: hasToken('ordre'),
+            patterns: ['ordre des pharmaciens', 'conseils regionaux', 'conseil national'],
+            boost: 10,
+        },
+        {
+            active: hasToken('deontologie'),
+            patterns: ['deontologie', 'code de deontologie'],
+            boost: 10,
+        },
+        {
+            active: hasToken('hospitaliere'),
+            patterns: ['pharmacie hospitaliere', 'services de pharmacie'],
+            boost: 10,
+        },
+        {
+            active: hasToken('autorisation') || hasToken('exercice'),
+            patterns: ['autorisation', 'exercice de la pharmacie', 'equivalence'],
+            boost: 8,
+        },
+        {
+            active: hasToken('absence') || hasToken('remplacement'),
+            patterns: ['absence du pharmacien', 'remplacement'],
+            boost: 8,
+        },
+    ];
+
+    intentBoosts.forEach((rule) => {
+        if (rule.active && rule.patterns.some((pattern) => searchCorpus.includes(pattern))) {
+            score += rule.boost;
+        }
+    });
+
+    return score;
+}
+
+function detectLegalIntent(tokens) {
+    const has = (value) => tokens.includes(value);
+
+    if (has('ouverture') && (has('officine') || has('pharmacie'))) {
+        return 'opening_officine';
+    }
+    if (has('inspection') || has('controle')) {
+        return 'inspection';
+    }
+    if (has('ordre')) {
+        return 'ordre';
+    }
+    if (has('deontologie')) {
+        return 'deontologie';
+    }
+    if (has('hospitaliere')) {
+        return 'hospitaliere';
+    }
+    if (has('autorisation') || has('exercice') || has('equivalence')) {
+        return 'exercice';
+    }
+    if (has('absence') || has('remplacement')) {
+        return 'absence';
+    }
+
+    return null;
+}
+
+function matchesLegalIntent(chunk, intent) {
+    const corpus = [chunk._searchTitle, chunk._searchBody].join(' ');
+    const byIntent = {
+        opening_officine: ['ouverture d officine', 'ouverture officine', 'normes techniques', 'local devant abriter une officine', 'installation de salubrite'],
+        inspection: ['inspection', 'controle', 'pharmaciens inspecteurs'],
+        ordre: ['ordre des pharmaciens', 'conseils regionaux', 'conseil national'],
+        deontologie: ['deontologie', 'code de deontologie'],
+        hospitaliere: ['pharmacie hospitaliere', 'services de pharmacie'],
+        exercice: ['autorisation', 'exercice de la pharmacie', 'equivalence'],
+        absence: ['absence du pharmacien', 'remplacement'],
+    };
+
+    const patterns = byIntent[intent] || [];
+    return patterns.some((pattern) => corpus.includes(pattern));
+}
+
+function retrieveLegalChunks(question, langCode) {
+    const chunks = loadLegalChunks();
+    if (!chunks.length) {
+        return [];
+    }
+
+    const normalizedQuestion = normalizeText(question);
+    const tokens = tokenizeSearch(question);
+    const intent = detectLegalIntent(tokens);
+    const intentFilteredChunks = intent
+        ? chunks.filter((chunk) => matchesLegalIntent(chunk, intent))
+        : [];
+    const candidateChunks = intentFilteredChunks.length ? intentFilteredChunks : chunks;
+
+    return candidateChunks
+        .map((chunk) => ({ chunk, score: scoreLegalChunk(chunk, tokens, normalizedQuestion, langCode) }))
+        .filter((entry) => entry.score > 0)
+        .sort((left, right) => right.score - left.score)
+        .slice(0, MAX_LEGAL_CHUNKS)
+        .map((entry) => entry.chunk);
+}
+
+function buildLegalContext(question, langCode) {
+    const chunks = retrieveLegalChunks(question, langCode);
+    if (!chunks.length) {
+        return { context: '', chunks: [] };
+    }
+
+    const parts = [];
+    let currentLength = 0;
+
+    chunks.forEach((chunk, index) => {
+        const warnings = [];
+        if (chunk.confidence) {
+            warnings.push(`confidence=${chunk.confidence}`);
+        }
+        if (chunk.manual_review_required) {
+            warnings.push('manual_review_required=true');
+        }
+
+        const block = [
+            `[${index + 1}] ${chunk.citation_label || chunk.chunk_id}`,
+            `Titre: ${chunk.official_title || chunk.short_title || chunk.doc_id}`,
+            `Type: ${chunk.document_type || 'inconnu'}`,
+            `Langue: ${chunk.language || 'unknown'}`,
+            `Structure: ${chunk.structure_path || 'unnamed_section'}`,
+            `Pages: ${chunk.page_start || '?'}-${chunk.page_end || '?'}`,
+            warnings.length ? `Avertissements: ${warnings.join(', ')}` : null,
+            chunk.legal_summary ? `Résumé: ${chunk.legal_summary}` : null,
+            chunk.key_rules?.length ? `Règles clés: ${chunk.key_rules.slice(0, 3).join(' | ')}` : null,
+            `Texte source: ${(chunk.clean_text || chunk.text || '').slice(0, 1400)}`,
+        ].filter(Boolean).join('\n');
+
+        if (currentLength + block.length <= MAX_LEGAL_CONTEXT_CHARS) {
+            parts.push(block);
+            currentLength += block.length + 2;
+        }
+    });
+
+    return {
+        context: parts.join('\n\n'),
+        chunks,
+    };
 }
 
 // ─── AZURE OPENAI ─────────────────────────────────────────────────────────────
@@ -284,21 +714,28 @@ function getDeployment() {
  */
 function fallbackKeywordSearch(question, scope) {
     const context = loadFaqContext(scope);
+    const lang = detectLanguage(question);
+    const labels = getStructuredLabels(lang.code);
     const scopeLabel = buildScopeLabel(scope);
 
     if (!context) {
-        return (
-            `Le service de questions-réponses ${scopeLabel} n'est pas disponible pour le moment.\n\n` +
-            'Pour toute information sur la CNSS :\n' +
-            '• Site officiel : cnss.ma\n' +
-            '• Téléphone : 0801 005 005'
-        );
+        return formatStructuredAnswer(lang.code, {
+            shortAnswer: labels.noSource,
+            foundationLines: [`Aucun extrait n'est actuellement chargé pour le thème ${scopeLabel}.`],
+            limitLines: [labels.verify],
+            sourceLines: [],
+        });
     }
 
     const normalizedQuestion = normalizeText(question);
 
     if (looksLikeGeneralFseQuestion(normalizedQuestion, normalizeScope(scope))) {
-        return buildGeneralFseSummary(context);
+        return formatStructuredAnswer(lang.code, {
+            shortAnswer: buildGeneralFseSummary(context),
+            foundationLines: ['Résumé opérationnel extrait de la FAQ FSE disponible dans la base.'],
+            limitLines: [labels.faqNotice, labels.verify],
+            sourceLines: ['fse_faq.md'],
+        });
     }
 
     const rawKeywords = normalizedQuestion.split(/\s+/).filter((w) => w.length > 2);
@@ -345,16 +782,71 @@ function fallbackKeywordSearch(question, scope) {
             .trim();
 
         if (preview) {
-            return `${bestSection.title}\n\n${preview}`;
+            return formatStructuredAnswer(lang.code, {
+                shortAnswer: preview,
+                foundationLines: [
+                    bestSection.title
+                        ? `Extrait retenu : ${bestSection.title}`
+                        : `Extrait retenu dans la base ${scopeLabel}.`,
+                    preview,
+                ],
+                limitLines: [labels.faqNotice, labels.verify],
+                sourceLines: [
+                    [bestSection.sourceFile, bestSection.title].filter(Boolean).join(' — '),
+                ],
+            });
         }
     }
 
-    return (
-        `Je n'ai pas trouvé de réponse précise à votre question dans notre base ${scopeLabel}.\n\n` +
-        'Pour toute information :\n' +
-        '• Site officiel : cnss.ma\n' +
-        '• Téléphone : 0801 005 005'
-    );
+    return formatStructuredAnswer(lang.code, {
+        shortAnswer: labels.noSource,
+        foundationLines: [`Aucun extrait suffisamment pertinent n'a été retrouvé dans la base ${scopeLabel}.`],
+        limitLines: [labels.verify],
+        sourceLines: [],
+    });
+}
+
+function fallbackLegalSearch(question) {
+    const lang = detectLanguage(question);
+    const labels = getStructuredLabels(lang.code);
+    const chunks = retrieveLegalChunks(question, lang.code);
+
+    if (!chunks.length) {
+        return formatStructuredAnswer(lang.code, {
+            shortAnswer: labels.noSource,
+            foundationLines: ["Aucun chunk juridique suffisamment pertinent n'a été retrouvé dans la base actuelle."],
+            limitLines: [labels.verify],
+            sourceLines: [],
+        });
+    }
+
+    const topChunk = chunks[0];
+    const shortAnswer = topChunk.legal_summary || (topChunk.clean_text || topChunk.text || '').slice(0, 400);
+    const foundationLines = chunks.slice(0, 3).map((chunk) => {
+        const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+        return `${excerpt} (${chunk.citation_label || chunk.chunk_id})`;
+    });
+
+    const limitLines = [];
+    if (chunks.some((chunk) => chunk.manual_review_required)) {
+        limitLines.push('Au moins une source pertinente nécessite une relecture humaine prioritaire.');
+    }
+    if (chunks.some((chunk) => chunk.confidence && chunk.confidence !== 'high')) {
+        limitLines.push('Certaines sources pertinentes ne sont pas au niveau de confiance le plus élevé.');
+    }
+    if (chunks.some((chunk) => chunk.document_type === 'autre')) {
+        limitLines.push('Au moins une source pertinente est un document opérationnel / manuel et non un texte normatif officiel.');
+    }
+    if (!limitLines.length) {
+        limitLines.push(labels.verify);
+    }
+
+    return formatStructuredAnswer(lang.code, {
+        shortAnswer,
+        foundationLines,
+        limitLines,
+        sourceLines: chunks.slice(0, 4).map((chunk) => chunk.citation_label || chunk.chunk_id),
+    });
 }
 
 // ─── RÉPONSE PRINCIPALE ───────────────────────────────────────────────────────
@@ -379,20 +871,38 @@ function detectLanguage(text) {
 async function answerQuestion(question, scope) {
     const client = getAzureClient();
     const scopeLabel = buildScopeLabel(scope);
+    const normalizedScope = normalizeScope(scope);
+    const lang = detectLanguage(question);
+    const useLegalKb = normalizedScope === 'regulations';
 
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
+        return useLegalKb ? fallbackLegalSearch(question) : fallbackKeywordSearch(question, scope);
+    }
+
+    const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
+    const legalContext = useLegalKb ? buildLegalContext(question, lang.code) : null;
+    const faqContext = useLegalKb ? '' : loadFaqContext(scope);
+    const contextBlock = useLegalKb ? legalContext.context : faqContext;
+
+    if (useLegalKb && !contextBlock) {
+        return fallbackLegalSearch(question);
+    }
+
+    if (!useLegalKb && !contextBlock) {
         return fallbackKeywordSearch(question, scope);
     }
 
-    const faqContext = loadFaqContext(scope);
-    const lang = detectLanguage(question);
+    const userContent = `${langInstruction}
 
-    const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
+Thème actuel : ${scopeLabel}.
+Tu dois répondre UNIQUEMENT aux questions relevant de ce thème en utilisant le contexte ci-dessous.
+Ne redirige pas vers ce thème si l'utilisateur s'y trouve déjà.
 
-    const userContent = faqContext
-        ? `${langInstruction}\n\nThème actuel : ${scopeLabel} — tu dois répondre UNIQUEMENT aux questions relevant de ce thème en utilisant la base ci-dessous. Ne redirige PAS vers ce thème si tu y es déjà.\n\nBase de connaissances ${scopeLabel} :\n${faqContext}\n\nQuestion : ${question}`
-        : `${langInstruction}\n\nThème actuel : ${scopeLabel}\n\nQuestion : ${question}\n\n(Aucune base de connaissances ${scopeLabel} chargée — réponds uniquement si tu connais la réponse avec certitude, sinon indique que l'information n'est pas disponible.)`;
+${useLegalKb ? 'Base juridique indexée :' : 'Base documentaire disponible :'}
+${contextBlock}
+
+Question : ${question}`;
 
     try {
         console.log(`[CNSS] Appel Azure OpenAI pour : "${question.slice(0, 80)}..."`);
@@ -400,7 +910,7 @@ async function answerQuestion(question, scope) {
         const completion = await client.chat.completions.create({
             model: getDeployment(),
             messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
+                { role: 'system', content: buildSystemPrompt(scope) },
                 { role: 'user', content: userContent },
             ],
             max_tokens: 400,
@@ -425,7 +935,7 @@ async function answerQuestion(question, scope) {
         console.error('[CNSS] Erreur Azure OpenAI:', error.message || error);
 
         // Basculer en fallback si erreur LLM
-        const fallback = fallbackKeywordSearch(question, scope);
+        const fallback = useLegalKb ? fallbackLegalSearch(question) : fallbackKeywordSearch(question, scope);
         return fallback;
     }
 }
@@ -433,13 +943,17 @@ async function answerQuestion(question, scope) {
 // ─── PROMPT D'INVITATION ──────────────────────────────────────────────────────
 
 function buildCnssQuestionPrompt(theme) {
-    const isFseTheme = theme && theme.id === 'fse';
+    const themeId = theme && theme.id;
 
     return [
         `${theme.title} — Posez votre question`,
         '',
-        isFseTheme
-            ? 'Posez votre question sur la FSE : fonctionnement, phase pilote, deploiement, impact en pharmacie...'
+        themeId === 'fse'
+            ? 'Posez votre question sur la FSE : fonctionnement, phase pilote, déploiement, impact en pharmacie...'
+            : themeId === 'compliance'
+            ? 'Posez votre question sur la conformité CNDP / CNSS : données personnelles, obligations, remboursements, procédures...'
+            : themeId === 'regulations'
+            ? "Posez votre question sur les textes et règlements pharmacie : officines, ordre, déontologie, inspection, autorisation d'exercice..."
             : 'Posez votre question sur la CNSS : remboursements, affiliations, cotisations, prestations...',
         '',
         'Envoyez RETOUR pour revenir au menu.',
