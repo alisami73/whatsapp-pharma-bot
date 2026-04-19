@@ -66,6 +66,14 @@ function isNumberSelection(value) {
   return /^\d+$/.test(String(value || '').trim());
 }
 
+function matchesLocalizedControl(controlValue, lang, translationKey, extraAliases = []) {
+  const candidates = [translationKey, t(translationKey, lang), ...extraAliases]
+    .map((value) => normalizeText(value))
+    .filter(Boolean);
+
+  return candidates.includes(controlValue);
+}
+
 function getRequestContext(req) {
   const message = String(req.body.Body || '').trim();
   const payload = String(req.body.ButtonPayload || req.body.Payload || '').trim();
@@ -1151,11 +1159,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (!consented) {
       const isCguAccept = controlValue === 'cgu_accept' ||
         controlValue === 'oui' || controlValue === '1' ||
-        ['j accepte', 'j\'accepte', 'accepte', 'اوافق', 'acepto', 'принимаю'].includes(controlValue);
+        matchesLocalizedControl(controlValue, lang, 'cgu_accept', ['j accepte', 'j\'accepte', 'accepte', 'اوافق', 'acepto', 'принимаю']);
       const isCguDecline = controlValue === 'cgu_decline' ||
         controlValue === 'non' || controlValue === '2' ||
-        ['je refuse', 'refuse', 'ارفض', 'rechazo', 'отказываюсь'].includes(controlValue);
-      const isCguFull = controlValue === 'cgu_full';
+        matchesLocalizedControl(controlValue, lang, 'cgu_decline', ['je refuse', 'refuse', 'ارفض', 'rechazo', 'отказываюсь']);
+      const isCguFull =
+        controlValue === 'cgu_full' ||
+        matchesLocalizedControl(controlValue, lang, 'cgu_full', ['voir cgu completes', 'ver cgu completas', 'قراءة الشروط', 'читать условия']);
 
       if (isCguAccept) {
         // Enregistrer le consentement
@@ -1219,12 +1229,17 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
       } else if (isCguFull) {
         // Envoyer le lien CGU puis renvoyer l'écran CGU
-        const cguUrl = String(process.env.CGU_URL || 'https://blink.ma/cgu');
+        const cguUrl = String(process.env.CGU_URL || 'https://blinkpharma.ma/cgu.html');
         response.message(t('cgu_link', lang, { url: cguUrl }));
         // Re-envoyer l'écran CGU en message séparé (outbound asynchrone)
+        let consentScreenSent = false;
         try {
-          await interactive.sendConsentScreen(context.phone, lang);
+          const consentResult = await interactive.sendConsentScreen(context.phone, lang);
+          consentScreenSent = Boolean(consentResult);
         } catch (_) {}
+        if (!consentScreenSent) {
+          response.message(t('cgu_body', lang));
+        }
 
       } else {
         // Message non reconnu → ré-afficher l'écran CGU
