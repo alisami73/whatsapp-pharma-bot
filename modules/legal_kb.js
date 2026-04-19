@@ -110,18 +110,47 @@ function extractDateRefs(value) {
   return refs;
 }
 
+// Expand query tokens for known domain topics to improve recall
+function expandQueryTokens(tokens, text) {
+  const expanded = [...tokens];
+  const normalized = normalizeText(text);
+
+  const expansions = [
+    { pattern: /inspect/, add: ['inspection', 'locaux', 'affichage', 'registre', 'armoire', 'materiel', 'diplome'] },
+    { pattern: /stupefiant|narcot|morphin/, add: ['stupefiants', 'registre', 'armoire', 'carnet', 'ordonnance'] },
+    { pattern: /autoris|exerc|cnop|inscription/, add: ['autorisation', 'cnop', 'inscription', 'pharmacien', 'diplome'] },
+    { pattern: /absence|conge|remplac/, add: ['absence', 'remplacement', 'pharmacien', 'officine'] },
+    { pattern: /fse|tiers.?payant|amm|assurance/, add: ['fse', 'assurance', 'tiers', 'payant'] },
+    { pattern: /cndp|donnees.?personnelles|protection/, add: ['cndp', 'protection', 'donnees', 'personnelles'] },
+    { pattern: /cnss|cotis|salaire|smig|travail/, add: ['cnss', 'cotisations', 'salaire', 'travail'] },
+  ];
+
+  for (const { pattern, add } of expansions) {
+    if (pattern.test(normalized)) {
+      for (const token of add) {
+        if (!expanded.includes(token)) expanded.push(token);
+      }
+    }
+  }
+
+  return expanded;
+}
+
 function parseQueryFeatures(question) {
   const text = String(question || '');
   const normalizedQuestion = normalizeText(text);
   const articleRefs = extractArticleRefs(text).map((value) => normalizeText(value));
   const documentRefs = extractDocumentRefs(text);
   const dateRefs = extractDateRefs(text);
-  const tokens = Array.from(new Set([
+  const baseTokens = Array.from(new Set([
     ...tokenize(text),
     ...articleRefs.flatMap((value) => tokenize(value)),
     ...documentRefs.flatMap((value) => tokenize(value)),
     ...dateRefs.flatMap((value) => tokenize(value)),
   ]));
+  const tokens = expandQueryTokens(baseTokens, text);
+
+  const asksAboutPractical = /\b(que faire|quoi faire|comment|je dois|je fais|a faire|quels documents|preparer|se preparer|faut.il|كيف|ماذا)\b/i.test(text);
 
   return {
     text,
@@ -133,6 +162,7 @@ function parseQueryFeatures(question) {
     asksAboutSanctions: /\b(sanction|sanctions|amende|penalite|penalites|peine|punie|punissable)\b/i.test(text),
     asksAboutDeadlines: /\b(delai|delais|jours|jour|mois|date limite|avant le|quand)\b/i.test(text),
     asksAboutObligations: /\b(obligation|obligatoire|doit|doivent|faut il|faut-il|est il obligatoire|est-il obligatoire)\b/i.test(text),
+    asksAboutPractical,
   };
 }
 
@@ -396,6 +426,11 @@ function topicalBoost(chunk, queryFeatures) {
     score += 2;
   }
 
+  // Boost practical guides when user asks "que faire / comment"
+  if (queryFeatures.asksAboutPractical && chunk.document_type === 'guide_pratique') {
+    score += 3;
+  }
+
   if (chunk.language === 'ar' && /[\u0600-\u06FF]/.test(queryFeatures.text)) {
     score += 1;
   }
@@ -604,11 +639,14 @@ async function retrieveLegalResults(question, options = {}) {
     scope,
   );
 
+  const topResults = reranked.slice(0, topK);
+  console.log('[legal-kb] retrieved:', topResults.map((r) => `${r.chunk.chunk_id}(${r.rerankScore?.toFixed(2)})`).join(', '));
+
   return {
     queryFeatures,
     usedVector: Array.isArray(queryEmbedding) && vectorCandidates.length > 0,
     queryEmbedding,
-    results: reranked.slice(0, topK),
+    results: topResults,
   };
 }
 
