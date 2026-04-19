@@ -1119,15 +1119,26 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const chosenLang = parseLang(controlValue);
 
       if (chosenLang) {
-        // Langue choisie → sauvegarder et passer à l'Écran 2 (CGU)
+        // Save language; if already consented go straight to main menu (no re-CGU, no re-role)
+        const alreadyConsented = await storage.hasConsent(context.phone);
         user = await storage.saveUser({
           ...user,
           user_language: chosenLang,
-          current_state: STATES.AWAITING_CONSENT,
+          current_state: alreadyConsented ? STATES.MAIN_MENU : STATES.AWAITING_CONSENT,
         });
-        console.log(`[state] ${context.phone} → AWAITING_CONSENT (langue: ${chosenLang})`);
 
-        // Envoyer le consentement dans la langue choisie
+        if (alreadyConsented) {
+          console.log(`[state] ${context.phone} → MAIN_MENU (langue changée: ${chosenLang}, consentement existant conservé)`);
+          const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+          if (!sentInteractive) {
+            await respondWithMainMenu(response, user);
+            res.type('text/xml').send(response.toString());
+          }
+          return;
+        }
+
+        console.log(`[state] ${context.phone} → AWAITING_CONSENT (langue: ${chosenLang})`);
+        // Nouvel utilisateur → envoyer le consentement dans la langue choisie
         try {
           const consentResult = await interactive.sendConsentScreen(context.phone, chosenLang);
           if (consentResult) {
@@ -1441,7 +1452,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
     // ── Module CNSS (conversationnel avec footer) ─────────────────────────
     if (user.current_state === STATES.AWAITING_CNSS_QUESTION && currentTheme) {
-      const answer = await cnss.answerQuestion(context.message, currentTheme.id);
+      const answer = await cnss.answerQuestion(context.message, currentTheme.id, lang);
       const footerResult = await sendAIResponseWithFooter(context.phone, lang, answer);
       if (footerResult) {
         res.type('text/xml').send(buildEmptyTwiml());

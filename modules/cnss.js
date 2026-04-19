@@ -911,11 +911,13 @@ function detectLanguage(text) {
     return { code: 'fr', label: 'français' };
 }
 
-async function answerQuestion(question, scope) {
+async function answerQuestion(question, scope, userLang = null) {
     const client = getAzureClient();
     const scopeLabel = buildScopeLabel(scope);
     const normalizedScope = normalizeScope(scope);
-    const lang = detectLanguage(question);
+    // Use stored user language if provided; fall back to text-based detection
+    const langMap = { ar: { code: 'ar', label: 'arabe (العربية)' }, es: { code: 'es', label: 'espagnol' }, ru: { code: 'ru', label: 'russe (русский)' }, fr: { code: 'fr', label: 'français' } };
+    const lang = (userLang && langMap[userLang]) || detectLanguage(question);
     const useLegalKb = legalKb.shouldUseLegalKb(normalizedScope);
 
     if (!client) {
