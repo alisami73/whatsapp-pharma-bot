@@ -979,7 +979,7 @@ Question : ${question}`;
                 { role: 'user', content: userContent },
             ],
             max_tokens: 400,
-            temperature: 0.1,
+            temperature: 0.3,
             top_p: 1,
         });
 
