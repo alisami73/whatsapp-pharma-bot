@@ -557,7 +557,8 @@ async function hasConsent(phone) {
   const consents = await getConsents();
   return consents.some(
     (entry) =>
-      phonesMatch(entry.phone, normalizedPhone) && entry.source === 'explicit_consent',
+      phonesMatch(entry.phone, normalizedPhone) &&
+      (entry.consent_status === 'accepted' || entry.source === 'explicit_consent'),
   );
 }
 

@@ -19,7 +19,6 @@ const interactive = require('./modules/interactive');
 const { t, parseLang } = require('./modules/i18n');
 const { sendAIResponseWithFooter } = require('./modules/shared/footer');
 const software = require('./modules/themes/software');
-const comingSoon = require('./modules/themes/coming-soon');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -362,6 +361,29 @@ function findThemeFromPayload(payload, themes) {
   return themes.find((theme) => normalizeText(theme.id) === themeId) || null;
 }
 
+function findThemeFromMessage(message, themes, lang) {
+  const normalizedMessage = normalizeText(message);
+  if (!normalizedMessage) {
+    return null;
+  }
+
+  return themes.find((theme) => {
+    const localizedTitle = t(`theme_${theme.id}`, lang);
+    const candidates = [theme.title, localizedTitle];
+
+    return candidates.some((candidate) => {
+      const normalizedCandidate = normalizeText(candidate);
+      return (
+        Boolean(normalizedCandidate) &&
+        (normalizedMessage === normalizedCandidate ||
+          normalizedMessage.startsWith(normalizedCandidate) ||
+          (normalizedMessage.length <= normalizedCandidate.length + 12 &&
+            normalizedCandidate.startsWith(normalizedMessage)))
+      );
+    });
+  }) || null;
+}
+
 /** Retourne la langue de l'utilisateur, 'fr' par défaut. */
 function getUserLang(user) {
   return user && user.user_language ? user.user_language : 'fr';
@@ -532,7 +554,7 @@ async function handleOnboardingFlowSubmission(response, user, context) {
   const currentPharmacist = (await storage.getPharmacist(context.phone)) || { phone: context.phone };
   await storage.savePharmacist({
     ...currentPharmacist,
-    role: storedRole,
+    role: storedRole || currentPharmacist.role || null,
     entry_choice: submission.entry_choice || null,
     onboarding_completed: true,
   });
@@ -601,44 +623,7 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
   }
 
   if (action === 'ask_question') {
-    // Vérification de restriction par rôle avant d'accéder au service
-    const pharmacistForRole = await storage.getPharmacist(user.phone);
-    const userRole = pharmacistForRole && pharmacistForRole.role;
-    if (consent.isRoleRestricted(userRole, theme)) {
-      response.message(consent.buildRoleRestrictionMessage(theme.title));
-      return;
-    }
-
-    // Pour les modules spéciaux, entrer directement dans l'état du module
-    if (theme.module_type === 'medindex') {
-      await setMedindexState(user, theme.id);
-      response.message(
-        `Module MedIndex - Recherche de medicaments\n\n` +
-        `Tapez le nom du medicament (nom commercial ou DCI) :\n\nRETOUR pour revenir au menu.`
-      );
-      return;
-    }
-    if (theme.module_type === 'interactions') {
-      await setInteractionState(user, theme.id);
-      response.message(interactions.buildInteractionPrompt());
-      return;
-    }
-    if (theme.module_type === 'monitoring') {
-      await setMonitoringChoiceState(user, theme.id);
-      const pharmacist = await storage.getPharmacist(user.phone);
-      const software = (pharmacist && pharmacist.software) || 'blink';
-      response.message(monitoring.buildMonitoringMenu(software));
-      return;
-    }
-    if (usesDocumentKnowledge(theme)) {
-      await setCnssQuestionState(user, theme.id);
-      response.message(cnss.buildCnssQuestionPrompt(theme));
-      return;
-    }
-
-    // knowledge_base : comportement existant
-    await setFreeQuestionState(user, theme.id);
-    response.message(buildAskQuestionPrompt(theme));
+    await startThemePrimaryAction(response, user, theme);
     return;
   }
 
@@ -666,6 +651,69 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
   }
 
   await respondWithMainMenu(response, user);
+}
+
+async function startThemePrimaryAction(response, user, theme) {
+  if (!theme) {
+    await respondWithMainMenu(response, user, 'Theme introuvable.');
+    return;
+  }
+
+  if (theme.requires_auth && !user.authenticated) {
+    await respondWithThemeMenu(response, user, theme);
+    return;
+  }
+
+  const pharmacistForRole = await storage.getPharmacist(user.phone);
+  const userRole = pharmacistForRole && pharmacistForRole.role;
+  if (consent.isRoleRestricted(userRole, theme)) {
+    response.message(consent.buildRoleRestrictionMessage(theme.title));
+    return;
+  }
+
+  if (theme.id === 'software') {
+    const lang = getUserLang(user);
+    await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL, current_theme: 'software' });
+    const carouselResult = await software.sendSoftwareCarousel(user.phone, lang);
+    if (carouselResult) {
+      response.message('Consultez les options Blink Premium envoyees ci-dessus.');
+      return;
+    }
+    response.message(software.buildSoftwareCarouselText(lang));
+    return;
+  }
+
+  if (theme.module_type === 'medindex') {
+    await setMedindexState(user, theme.id);
+    response.message(
+      `Module MedIndex - Recherche de medicaments\n\n` +
+      `Tapez le nom du medicament (nom commercial ou DCI) :\n\nRETOUR pour revenir au menu.`
+    );
+    return;
+  }
+
+  if (theme.module_type === 'interactions') {
+    await setInteractionState(user, theme.id);
+    response.message(interactions.buildInteractionPrompt());
+    return;
+  }
+
+  if (theme.module_type === 'monitoring') {
+    await setMonitoringChoiceState(user, theme.id);
+    const pharmacist = await storage.getPharmacist(user.phone);
+    const softwareName = (pharmacist && pharmacist.software) || 'blink';
+    response.message(monitoring.buildMonitoringMenu(softwareName));
+    return;
+  }
+
+  if (usesDocumentKnowledge(theme)) {
+    await setCnssQuestionState(user, theme.id);
+    response.message(cnss.buildCnssQuestionPrompt(theme));
+    return;
+  }
+
+  await setFreeQuestionState(user, theme.id);
+  response.message(buildAskQuestionPrompt(theme));
 }
 
 async function handleFreeQuestion(response, user, theme, incomingMessage) {
@@ -1117,6 +1165,29 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
           source: 'interactive_button',
           lang,
         });
+        const existingPharmacist = await storage.getPharmacist(context.phone);
+        const shouldSkipRoleStep = Boolean(
+          existingPharmacist && (existingPharmacist.onboarding_completed || existingPharmacist.role)
+        );
+
+        if (shouldSkipRoleStep) {
+          const confirmation = consent.buildConsentConfirmation(existingPharmacist.role);
+          const sentInteractive = await tryRespondWithMainMenuInteractive(
+            context.phone,
+            res,
+            { ...user, authenticated: false },
+            confirmation,
+          );
+
+          if (!sentInteractive) {
+            const activeThemes = (await storage.getThemes()).filter((theme) => theme.active);
+            await setMainMenuState({ ...user, authenticated: false });
+            response.message(`${confirmation}\n\n${buildMainMenu(activeThemes)}`);
+            res.type('text/xml').send(response.toString());
+          }
+          return;
+        }
+
         // Démarrer l'onboarding par le rôle
         user = await setOnboardingState({ ...user, authenticated: false }, STATES.ONBOARDING_ROLE);
         console.log(`[state] ${context.phone} → ONBOARDING_ROLE`);
@@ -1202,6 +1273,11 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       ? themes.find((theme) => theme.id === user.current_theme)
       : null;
     const payloadTheme = findThemeFromPayload(context.normalizedPayload, activeThemes);
+    const textTheme =
+      !currentTheme && user.current_state === STATES.MAIN_MENU
+        ? findThemeFromMessage(context.message, activeThemes, lang)
+        : null;
+    const selectedTheme = payloadTheme || textTheme;
 
     if (user.current_theme && (!currentTheme || !currentTheme.active)) {
       user = await setMainMenuState(user);
@@ -1263,25 +1339,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    if (payloadTheme) {
-      // Routing Software → carrousel Blink Premium
-      if (payloadTheme.id === 'software') {
-        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL, current_theme: 'software' });
-        const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
-        if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(software.buildSoftwareCarouselText(lang));
+    if (selectedTheme && !currentTheme) {
+      if (selectedTheme.id === 'medindex') {
+        await startThemePrimaryAction(response, user, selectedTheme);
         res.type('text/xml').send(response.toString());
         return;
       }
-      // Routing Medindex → Bientôt disponible
-      if (payloadTheme.id === 'medindex') {
-        const { sent, text } = await comingSoon.handleComingSoon(context.phone, lang);
-        if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(text);
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-      await handleThemeSelection(response, user, payloadTheme);
+      await startThemePrimaryAction(response, user, selectedTheme);
       res.type('text/xml').send(response.toString());
       return;
     }
