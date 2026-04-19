@@ -1309,8 +1309,9 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     const currentTheme = user.current_theme
       ? themes.find((theme) => theme.id === user.current_theme)
       : null;
-    const payloadTheme = findThemeFromPayload(context.normalizedPayload, activeThemes);
-    const textTheme = !currentTheme
+    // For Twilio list-pickers, the item id arrives in Body (not ButtonPayload) — check both
+    const payloadTheme = findThemeFromPayload(context.normalizedPayload || context.normalizedMessage, activeThemes);
+    const textTheme = !payloadTheme && !currentTheme
       ? findThemeFromMessage(context.message, activeThemes, lang)
       : null;
     const selectedTheme = payloadTheme || textTheme;
