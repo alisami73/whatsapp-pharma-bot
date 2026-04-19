@@ -1,0 +1,84 @@
+{
+  "doc_id": "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995",
+  "chunks": [
+    {
+      "chunk_id": "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995__chunk_001",
+      "doc_id": "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995",
+      "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
+      "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
+      "language": "fr",
+      "document_type": "code de déontologie",
+      "official_title": "Circulaire du ministre de la santé N° 022202 DR/30/31du 12 juin 1995",
+      "short_title": "Absence des pharmaciens d'officnecirculaire 022202-DR-30-31 du 12-06- 1995",
+      "topic_tags": [
+        "officine",
+        "ouverture d'officine",
+        "exploitation officinale",
+        "absence du pharmacien",
+        "remplacement",
+        "responsabilité de l'officine",
+        "médicament",
+        "pharmacie",
+        "établissements pharmaceutiques"
+      ],
+      "structure_path": "unnamed_section",
+      "article_number": null,
+      "page_start": 1,
+      "page_end": 1,
+      "text": "ROYAUME DU MAROC\nMinistère de la Santé\nDirection du Médicament\net de la Pharmacie\nCirculaire du ministre de la santé\nN° 022202 DR/30/31du 12 juin 1995\nOBJET: Absences des pharmaciens de leurs officines\nJ'ai l'honneur de vous informer que mon attention est attirée sur le fait que certains pharmaciens s'absentent\nsouvent de leurs pharmacies et en confient la gestion à leurs employés.\nPréjudiciable à la santé de la population, ces agissements sont contraires aux dispositions légales et\nréglementaires régissant l'exercice de la pharmacie.\nL'article 8 du Dahir du 21 Chaâbane ( 21 février 1960 ) portant réglementation de l'exercice de la profession de\nmédecin, pharmacien, chirurgien-dentiste, herboriste et sage-femme prévoit en effet ce qui suit:\n\" aucun pharmacien ne doit tenir plus d'une officine de pharmacie, il doit en être seul propriétaire et la gérer en\npersonne\"\nCette règle est de plus précisée par l'article 8 du code de déontologie des pharmaciens aux termes duquel \"le\npharmacien prépare et délivre lui même les médicaments et surveille attentivement l'exécution de tous les actes\npharmaceutiques qu'il n'accomplit pas lui même\"\nIl convient donc de rappeler aux pharmaciens concernés la nécessité de respecter strictement ces dispositions\nd'intérêt publique.\nIl importe de leur rappeler également qu'il ressort de la réglementation en vigueur qu'en cas d'absence du\npharmacien, l'officine dont il est titulaire ne peut être maintenue ouverte que s'il se fait remplacer dans les\nconditions prévues par les textes.\nJe vous prie en outre de porter à leur connaissance que tout manquement aux obligations qui précèdent\nconstitue une faute professionnelle pouvant faire l'objet d'une sanction ordinale et entraîner, le cas échéant, le\nretrait par l'administration, de l'autorisation d'exercice de la pharmacie à titre privé.\n(Adressée au CNOP le 12 juin 1995)\nwww.pharmacie.ma",
+      "clean_text": "ROYAUME DU MAROC\nMinistère de la Santé\nDirection du Médicament\net de la Pharmacie\nCirculaire du ministre de la santé\nN° 022202 DR/30/31du 12 juin 1995\nOBJET: Absences des pharmaciens de leurs officines\nJ'ai l'honneur de vous informer que mon attention est attirée sur le fait que certains pharmaciens s'absentent\nsouvent de leurs pharmacies et en confient la gestion à leurs employés.\nPréjudiciable à la santé de la population, ces agissements sont contraires aux dispositions légales et\nréglementaires régissant l'exercice de la pharmacie.\nL'article 8 du Dahir du 21 Chaâbane ( 21 février 1960 ) portant réglementation de l'exercice de la profession de\nmédecin, pharmacien, chirurgien-dentiste, herboriste et sage-femme prévoit en effet ce qui suit:\n\" aucun pharmacien ne doit tenir plus d'une officine de pharmacie, il doit en être seul propriétaire et la gérer en\npersonne\"\nCette règle est de plus précisée par l'article 8 du code de déontologie des pharmaciens aux termes duquel \"le\npharmacien prépare et délivre lui même les médicaments et surveille attentivement l'exécution de tous les actes\npharmaceutiques qu'il n'accomplit pas lui même\"\nIl convient donc de rappeler aux pharmaciens concernés la nécessité de respecter strictement ces dispositions\nd'intérêt publique.\nIl importe de leur rappeler également qu'il ressort de la réglementation en vigueur qu'en cas d'absence du\npharmacien, l'officine dont il est titulaire ne peut être maintenue ouverte que s'il se fait remplacer dans les\nconditions prévues par les textes.\nJe vous prie en outre de porter à leur connaissance que tout manquement aux obligations qui précèdent\nconstitue une faute professionnelle pouvant faire l'objet d'une sanction ordinale et entraîner, le cas échéant, le\nretrait par l'administration, de l'autorisation d'exercice de la pharmacie à titre privé.\n(Adressée au CNOP le 12 juin 1995)\nwww.pharmacie.ma",
+      "legal_summary": "ROYAUME DU MAROC",
+      "key_rules": [
+        "J'ai l'honneur de vous informer que mon attention est attirée sur le fait que certains pharmaciens s'absentent",
+        "\" aucun pharmacien ne doit tenir plus d'une officine de pharmacie, il doit en être seul propriétaire et la gérer en",
+        "Cette règle est de plus précisée par l'article 8 du code de déontologie des pharmaciens aux termes duquel \"le"
+      ],
+      "exceptions": [],
+      "sanctions": [
+        "constitue une faute professionnelle pouvant faire l'objet d'une sanction ordinale et entraîner, le cas échéant, le",
+        "retrait par l'administration, de l'autorisation d'exercice de la pharmacie à titre privé."
+      ],
+      "definitions": [],
+      "cross_references": [
+        "article 8"
+      ],
+      "retrieval_keywords": [
+        "absence",
+        "absence du pharmacien",
+        "absence officine",
+        "absences",
+        "attention",
+        "attirée",
+        "certains",
+        "circulaire",
+        "création officine",
+        "des",
+        "direction",
+        "establishments",
+        "exploitation officinale",
+        "fait",
+        "grossiste",
+        "honneur",
+        "informer",
+        "juin",
+        "leurs",
+        "maroc",
+        "medicine",
+        "ministre",
+        "ministère",
+        "médicament",
+        "objet",
+        "officine",
+        "officines",
+        "officnecirculaire",
+        "ouverture d'officine",
+        "pharmacie"
+      ],
+      "citation_label": "Absence des pharmaciens d'officnecirculaire 022202-DR-30-31 du 12-06- 1995, unnamed_section, p. 1",
+      "confidence": "high",
+      "manual_review_required": false,
+      "parallel_version_of": null,
+      "parallel_version_confidence": null
+    }
+  ]
+}

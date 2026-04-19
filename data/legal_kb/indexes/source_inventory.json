@@ -1,0 +1,283 @@
+[
+  {
+    "doc_id": "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
+    "detected_title": "Circulaire du ministre de la santé N° 022202 DR/30/31du 12 juin 1995",
+    "document_type": "code de déontologie",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 1,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 1 high / 0 medium / 0 low",
+      "metadata title=Microsoft Word - Document1"
+    ]
+  },
+  {
+    "doc_id": "bo_6373_ar",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_6373_Ar.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_6373_Ar.pdf",
+    "detected_title": "BO 6373 Ar",
+    "document_type": "bulletin officiel",
+    "language": "ar",
+    "is_scan": true,
+    "ocr_quality": "low",
+    "page_count": 2,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 0 high / 0 medium / 2 low",
+      "scan probable ou partiel",
+      "texte faible / OCR non satisfaisant",
+      "revue humaine recommandée",
+      "titre détecté depuis le nom de fichier"
+    ]
+  },
+  {
+    "doc_id": "bo_6373_ar_1",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_6373_Ar (1).pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_6373_Ar (1).pdf",
+    "detected_title": "BO 6373 Ar (1)",
+    "document_type": "bulletin officiel",
+    "language": "ar",
+    "is_scan": true,
+    "ocr_quality": "low",
+    "page_count": 65,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 0 high / 0 medium / 65 low",
+      "scan probable ou partiel",
+      "texte faible / OCR non satisfaisant",
+      "revue humaine recommandée",
+      "titre détecté depuis le nom de fichier"
+    ]
+  },
+  {
+    "doc_id": "bo_7026_ar_inspection",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7026_Ar-inspection.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7026_Ar-inspection.pdf",
+    "detected_title": "مرسوم رقم 2.18.878 صادر في 30 من محرم 1443 (8 سبتمبر 2021) يتعلق بكيفيات ممارسة المراقبة من طرف الصيادلة المفتشين",
+    "document_type": "décret",
+    "language": "ar",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 82,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 4 high / 0 medium / 0 low",
+      "traitement ciblé sur les pages source [7,8,9,10]"
+    ]
+  },
+  {
+    "doc_id": "bo_7278_ar",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7278_Ar.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7278_Ar.pdf",
+    "detected_title": "BO 7278 Ar",
+    "document_type": "bulletin officiel",
+    "language": "mixed",
+    "is_scan": false,
+    "ocr_quality": "medium",
+    "page_count": 57,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 51 high / 0 medium / 6 low",
+      "titre détecté depuis le nom de fichier"
+    ],
+    "parallel_version_of": "bo_7280_fr_ordre_des_pharmaciens_2024",
+    "parallel_version_confidence": "low"
+  },
+  {
+    "doc_id": "bo_7280_fr_ordre_des_pharmaciens_2024",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7280_Fr Ordre des pharmaciens 2024.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7280_Fr Ordre des pharmaciens 2024.pdf",
+    "detected_title": "BO 7280 Fr Ordre des pharmaciens 2024",
+    "document_type": "loi",
+    "language": "mixed",
+    "is_scan": false,
+    "ocr_quality": "medium",
+    "page_count": 98,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 83 high / 0 medium / 15 low",
+      "titre détecté depuis le nom de fichier"
+    ],
+    "parallel_version_of": "bo_7278_ar",
+    "parallel_version_confidence": "low"
+  },
+  {
+    "doc_id": "circulaire_pharmaciens_hospitaliers_prefectoraux_16_dmp_00_du_24_05_2005",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/circulaire pharmaciens hospitaliers prefectoraux _16-DMP-00_du_24-05-2005.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/circulaire pharmaciens hospitaliers prefectoraux _16-DMP-00_du_24-05-2005.pdf",
+    "detected_title": "Circulaire n° 16 DMP / 00 du 24 mai 2005 Objet: Attributions des pharmaciens affectés aux niveau des centres hospitaliers régionaux, provinciaux et",
+    "document_type": "circulaire",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 4,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 4 high / 0 medium / 0 low",
+      "metadata title=Microsoft Word - Document4"
+    ]
+  },
+  {
+    "doc_id": "dahir_1_06_151_du_22_novembre_2006_ar",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/dahir_1-06-151_du_22-novembre-2006_ar.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/dahir_1-06-151_du_22-novembre-2006_ar.pdf",
+    "detected_title": "dahir 1-06-151 du 22-novembre-2006 ar",
+    "document_type": "dahir",
+    "language": "ar",
+    "is_scan": true,
+    "ocr_quality": "low",
+    "page_count": 21,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 0 high / 0 medium / 21 low",
+      "scan probable ou partiel",
+      "texte faible / OCR non satisfaisant",
+      "revue humaine recommandée",
+      "titre détecté depuis le nom de fichier"
+    ]
+  },
+  {
+    "doc_id": "dahir_1_75_453_du_17_12_76_instituant_l_ordre_des_pharmaciens",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/dahir_1-75-453_du_17-12-76 instituant l'ordre des pharmaciens.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/dahir_1-75-453_du_17-12-76 instituant l'ordre des pharmaciens.pdf",
+    "detected_title": "Dahir portant loi n 1-75-453 du 25 hija 1396 (17 dÈcembre 1976) instituant un ordre des pharmaciens.",
+    "document_type": "dahir",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 9,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 9 high / 0 medium / 0 low"
+    ]
+  },
+  {
+    "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
+    "detected_title": "Décret n° 2-01-333 DU 28 Rabii 1422 ( 21 juin 2001) Relatif aux conditions et à la procédure de l'octroi des",
+    "document_type": "décret",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 4,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 4 high / 0 medium / 0 low",
+      "metadata title=Microsoft Word - Document4"
+    ]
+  },
+  {
+    "doc_id": "decret_2_63_486_26_12_63_deontologie",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-63-486_26-12-63 deontologie.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_2-63-486_26-12-63 deontologie.pdf",
+    "detected_title": "DECRET n. 2-63-486 du 9 chaabane 1383 (26 décembre 1963) approuvant et rendant applicable le code de déontologie des pharmaciens",
+    "document_type": "code de déontologie",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 7,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 7 high / 0 medium / 0 low",
+      "metadata title=PDFCreator, Job 4"
+    ]
+  },
+  {
+    "doc_id": "decret_5646_fr_relatif_a_l_ouverture_d_officine",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_5646_Fr Relatif a l'ouverture d'officine.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_5646_Fr Relatif a l'ouverture d'officine.pdf",
+    "detected_title": "decret 5646 Fr Relatif a l'ouverture d'officine",
+    "document_type": "décret",
+    "language": "fr",
+    "is_scan": true,
+    "ocr_quality": "low",
+    "page_count": 9,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 0 high / 0 medium / 9 low",
+      "scan probable ou partiel",
+      "texte faible / OCR non satisfaisant",
+      "revue humaine recommandée",
+      "titre détecté depuis le nom de fichier"
+    ]
+  },
+  {
+    "doc_id": "loi_n_17_04_fr",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/loi n° 17-04 (fr).pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/loi n° 17-04 (fr).pdf",
+    "detected_title": "OCR Document",
+    "document_type": "dahir",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 43,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 43 high / 0 medium / 0 low",
+      "metadata title=OCR Document"
+    ]
+  },
+  {
+    "doc_id": "normes_technique",
+    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/normes_technique.pdf",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/normes_technique.pdf",
+    "detected_title": "Arrêté du ministre de la santé n° 902-08 du 17 rejeb 1429 (21 juillet 2008) fixant les normes techniques d'installation, de salubrité et de surface relatives au local devant abriter une officine de pharmacie ainsi que les normes techniques relatives aux établissements pharmaceutiques",
+    "document_type": "arrêté",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 6,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 6 high / 0 medium / 0 low",
+      "metadata title=Microsoft Word - Arrêtébest.docx"
+    ]
+  },
+  {
+    "doc_id": "services_pharmacie_hospitaliere_2004_excerpt",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/services_pharmacie_hospitaliere_2004_excerpt.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/services_pharmacie_hospitaliere_2004_excerpt.json",
+    "detected_title": "Extrait sur les services de pharmacie hospitaliere",
+    "document_type": "decret",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 5,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 5 high / 0 medium / 0 low",
+      "metadata title=Extrait relatif a la creation et au fonctionnement des services de pharmacie des etablissements hospitaliers publics - texte date du 9 fevrier 2004",
+      "revue humaine recommandée",
+      "extrait textuel fourni manuellement par l'utilisateur",
+      "intitule officiel complet du texte non fourni dans l'extrait",
+      "numerotation partielle et potentiellement incomplete",
+      "double occurrence de l'article 11 dans l'extrait fourni",
+      "verification humaine recommandee contre le decret original du 9 fevrier 2004"
+    ]
+  },
+  {
+    "doc_id": "tiers_payant_2016",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/tiers_payant_2016.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/tiers_payant_2016.json",
+    "detected_title": "TIERS PAYANT",
+    "document_type": "autre",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 6,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 6 high / 0 medium / 0 low",
+      "metadata title=TIERS PAYANT - Mise a jour du 24 mars 2016",
+      "revue humaine recommandée",
+      "source textuelle fournie manuellement par l'utilisateur",
+      "source secondaire / operationnelle non verifiee contre une publication officielle consolidee",
+      "plusieurs liens sont des placeholders [lien] et doivent etre resolves manuellement"
+    ]
+  }
+]

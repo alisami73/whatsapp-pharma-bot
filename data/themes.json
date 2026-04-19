@@ -33,23 +33,11 @@
     "module_type": "cnss"
   },
   {
-    "id": "compliance",
-    "title": "Conformite CNDP / CNSS",
+    "id": "conformites",
+    "title": "Textes et Conformites en pharmacie",
     "active": true,
-    "intro_message": "Posez vos questions sur la conformite CNDP (Loi 09-08) et la CNSS.",
-    "current_focus": "Mise en conformite pharmacies, protection donnees personnelles, remboursements AMO.",
-    "requires_auth": false,
-    "allow_free_question": true,
-    "allow_subscription": false,
-    "module_type": "cnss",
-    "scopes": ["cndp", "cnss"]
-  },
-  {
-    "id": "regulations",
-    "title": "Textes et reglements pharmacie",
-    "active": true,
-    "intro_message": "Posez vos questions sur les textes legislatifs et reglements applicables en pharmacie.",
-    "current_focus": "Loi 17-04, decrets d'application, reglementation officinale.",
+    "intro_message": "Posez vos questions sur les inspections, la CNDP, les stupefiants...",
+    "current_focus": "Reglementation officinale, CNDP, CNSS, droit du travail, inspection, stupefiants, Loi 17-04.",
     "requires_auth": false,
     "allow_free_question": true,
     "allow_subscription": false,

@@ -17,7 +17,7 @@ const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
 const { t, parseLang } = require('./modules/i18n');
-const { sendAIResponseWithFooter } = require('./modules/shared/footer');
+const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const software = require('./modules/themes/software');
 
 const app = express();
@@ -159,7 +159,7 @@ function buildThemeHeader(theme) {
 }
 
 function usesDocumentKnowledge(theme) {
-  return Boolean(theme) && (theme.module_type === 'cnss' || theme.id === 'fse' || theme.id === 'compliance');
+  return Boolean(theme) && theme.module_type === 'cnss';
 }
 
 function buildThemeMenu(theme, user) {
@@ -375,6 +375,11 @@ function findThemeFromMessage(message, themes, lang) {
     return null;
   }
 
+  const normalizedLines = String(message || '')
+    .split(/\r?\n+/)
+    .map((line) => normalizeText(line))
+    .filter(Boolean);
+
   return themes.find((theme) => {
     const localizedTitle = t(`theme_${theme.id}`, lang);
     const candidates = [theme.title, localizedTitle];
@@ -384,7 +389,9 @@ function findThemeFromMessage(message, themes, lang) {
       return (
         Boolean(normalizedCandidate) &&
         (normalizedMessage === normalizedCandidate ||
+          normalizedMessage.includes(normalizedCandidate) ||
           normalizedMessage.startsWith(normalizedCandidate) ||
+          normalizedLines.includes(normalizedCandidate) ||
           (normalizedMessage.length <= normalizedCandidate.length + 12 &&
             normalizedCandidate.startsWith(normalizedMessage)))
       );
@@ -592,6 +599,11 @@ async function handleThemeSelection(response, user, theme) {
     return;
   }
 
+  if (theme.module_type !== 'knowledge_base') {
+    await startThemePrimaryAction(response, user, theme);
+    return;
+  }
+
   await respondWithThemeMenu(response, user, theme);
 }
 
@@ -716,7 +728,7 @@ async function startThemePrimaryAction(response, user, theme) {
 
   if (usesDocumentKnowledge(theme)) {
     await setCnssQuestionState(user, theme.id);
-    response.message(cnss.buildCnssQuestionPrompt(theme));
+    response.message(cnss.buildCnssQuestionPrompt(theme, getUserLang(user)));
     return;
   }
 
@@ -1288,10 +1300,9 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       ? themes.find((theme) => theme.id === user.current_theme)
       : null;
     const payloadTheme = findThemeFromPayload(context.normalizedPayload, activeThemes);
-    const textTheme =
-      !currentTheme && user.current_state === STATES.MAIN_MENU
-        ? findThemeFromMessage(context.message, activeThemes, lang)
-        : null;
+    const textTheme = !currentTheme
+      ? findThemeFromMessage(context.message, activeThemes, lang)
+      : null;
     const selectedTheme = payloadTheme || textTheme;
 
     if (user.current_theme && (!currentTheme || !currentTheme.active)) {
@@ -1325,11 +1336,14 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (controlValue === 'retour') {
       if (user.current_state === STATES.AWAITING_FREE_QUESTION && currentTheme) {
         await respondWithThemeMenu(response, user, currentTheme);
+        res.type('text/xml').send(response.toString());
       } else {
-        await respondWithMainMenu(response, user);
+        const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+        if (!sentInteractive) {
+          await respondWithMainMenu(response, user);
+          res.type('text/xml').send(response.toString());
+        }
       }
-
-      res.type('text/xml').send(response.toString());
       return;
     }
 
@@ -1354,13 +1368,16 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    if (selectedTheme && !currentTheme) {
-      if (selectedTheme.id === 'medindex') {
-        await startThemePrimaryAction(response, user, selectedTheme);
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-      await startThemePrimaryAction(response, user, selectedTheme);
+    // Interactive list payload → always overrides current state (re-entering a theme is valid)
+    if (payloadTheme) {
+      await startThemePrimaryAction(response, user, payloadTheme);
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // Text-based theme match → only when not already in a theme
+    if (textTheme && !currentTheme) {
+      await startThemePrimaryAction(response, user, textTheme);
       res.type('text/xml').send(response.toString());
       return;
     }
@@ -1416,7 +1433,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       if (footerResult) {
         res.type('text/xml').send(buildEmptyTwiml());
       } else {
-        response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
+        response.message(appendTextFooter(answer, lang, { includeBack: true }));
         res.type('text/xml').send(response.toString());
       }
       return;
@@ -1431,7 +1448,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         if (footerResult) {
           res.type('text/xml').send(buildEmptyTwiml());
         } else {
-          response.message(actionResult.text);
+          response.message(appendTextFooter(actionResult.text, lang));
           res.type('text/xml').send(response.toString());
         }
         return;
@@ -1480,8 +1497,11 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    await respondWithMainMenu(response, user, 'Merci de choisir un theme avec son numero.');
-    res.type('text/xml').send(response.toString());
+    const sentFallbackMenu = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+    if (!sentFallbackMenu) {
+      await respondWithMainMenu(response, user);
+      res.type('text/xml').send(response.toString());
+    }
   } catch (error) {
     next(error);
   }

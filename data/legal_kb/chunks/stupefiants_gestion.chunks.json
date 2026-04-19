@@ -1,0 +1,57 @@
+{
+  "doc_id": "stupefiants_gestion",
+  "document_type": "guide_pratique",
+  "title": "Stupéfiants — de l'approvisionnement à la dispensation",
+  "citation_label": "Guide gestion stupéfiants — Dahir du 2 décembre 1922, réglementation officinale marocaine",
+  "confidence": 0.93,
+  "chunks": [
+    {
+      "chunk_id": "stupefiants_001",
+      "topic_tags": ["stupéfiants", "conformites", "approvisionnement", "réglementation", "pharmacie", "officine"],
+      "text": "STUPÉFIANTS EN PHARMACIE — RÉGLEMENTATION ET APPROVISIONNEMENT\n\nBase légale : Dahir du 2 décembre 1922 relatif aux substances vénéneuses et stupéfiantes, et ses textes d'application.\n\nApprovisionnement :\n• Les stupéfiants sont commandés exclusivement via un carnet à souches à 3 volets (carnet de commande officiel fourni par la Direction du Médicament et de la Pharmacie — DMP).\n• Volet 1 : conservé par la pharmacie (souche)\n• Volet 2 : envoyé au grossiste répartiteur\n• Volet 3 : transmis à la DMP\n• La commande doit être signée et datée par le pharmacien titulaire.\n• Les quantités commandées doivent correspondre aux besoins réels justifiés par la comptabilité.\n\nStockage :\n• Les stupéfiants doivent être conservés dans une armoire métallique fermée à clé (armoire B), distincte des autres médicaments.\n• Accès réservé au pharmacien titulaire (ou à son délégué désigné par écrit).",
+      "clean_text": "Stupéfiants réglementation approvisionnement : Dahir 2 décembre 1922, carnet à souches 3 volets DMP, volet 1 pharmacie volet 2 grossiste volet 3 DMP, signé titulaire, armoire métallique fermée clé armoire B.",
+      "key_rules": [
+        "Commander les stupéfiants uniquement via carnet à souches officiel DMP",
+        "Conserver le volet 1 (souche) dans la pharmacie",
+        "Armoire B fermée à clé en permanence",
+        "Accès réservé au pharmacien titulaire"
+      ],
+      "retrieval_keywords": ["stupéfiants pharmacie", "carnet à souches", "commande stupéfiants", "armoire stupéfiants", "Dahir 1922", "DMP stupéfiants", "approvisionnement stupéfiants", "morphine codéine"],
+      "sanctions": ["Infraction pénale (Dahir 1922) en cas de commande hors carnet officiel", "Retrait d'autorisation d'exercer"],
+      "exceptions": [],
+      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04 art. 63"]
+    },
+    {
+      "chunk_id": "stupefiants_002",
+      "topic_tags": ["stupéfiants", "conformites", "comptabilité", "registre", "dispensation", "pharmacie"],
+      "text": "STUPÉFIANTS — DISPENSATION ET COMPTABILITÉ OBLIGATOIRE\n\nPrescription :\n• Les stupéfiants ne peuvent être délivrés que sur ordonnance sécurisée (papier sécurisé, nominative, avec quantité en toutes lettres).\n• La prescription est valable 7 jours à compter de la date d'émission.\n• Il est interdit de délivrer une quantité supérieure à celle prescrite.\n\nComptabilité (registre stupéfiants) :\n• Chaque entrée (réception) et sortie (dispensation) doit être enregistrée dans le registre stupéfiants.\n• Le registre doit comporter : date, désignation du produit, forme, dosage, quantité entrante ou sortante, numéro d'ordonnance, nom du prescripteur, nom du patient.\n• Une balance (stock théorique − sorties = stock réel) doit être vérifiable à tout moment.\n• En cas de discordance entre le stock physique et le registre, l'inspecteur considère cela comme une infraction grave.",
+      "clean_text": "Stupéfiants dispensation comptabilité : ordonnance sécurisée 7 jours quantité toutes lettres, registre entrées sorties date désignation dosage quantité ordonnance prescripteur patient, balance stock théorique réel.",
+      "key_rules": [
+        "Ordonnance sécurisée obligatoire, valable 7 jours",
+        "Quantité en toutes lettres sur l'ordonnance",
+        "Registre stupéfiants : entrées et sorties consignées à chaque opération",
+        "Balance stock vérifiable en permanence"
+      ],
+      "retrieval_keywords": ["registre stupéfiants", "comptabilité stupéfiants", "ordonnance sécurisée", "balance stupéfiants", "dispensation stupéfiants", "7 jours ordonnance", "stock stupéfiants"],
+      "sanctions": ["Délit pénal en cas de délivrance sans ordonnance", "Infraction grave si discordance de stock non justifiée"],
+      "exceptions": ["Urgence médicale documentée peut justifier une dérogation temporaire sous contrôle médical"],
+      "cross_references": ["Dahir du 2 décembre 1922", "Circulaire DMP sur les stupéfiants"]
+    },
+    {
+      "chunk_id": "stupefiants_003",
+      "topic_tags": ["stupéfiants", "conformites", "registre", "reports", "périmés", "retours", "vols", "pharmacie"],
+      "text": "STUPÉFIANTS — TENUE DU REGISTRE : CAS PARTICULIERS\n\nBonnes pratiques pour la tenue du registre stupéfiants :\n\n• Reports en bas de page : à chaque changement de page, reporter le solde total (balance) en bas de la page précédente et en haut de la nouvelle page, signé par le pharmacien.\n• Médicaments périmés : les stupéfiants périmés ne peuvent pas être détruits librement. Ils doivent être retournés à la DMP ou au grossiste répartiteur avec un bon de retour officiel, mentionné dans le registre.\n• Retours patients : si un patient rapporte des stupéfiants non utilisés, ils doivent être consignés dans le registre comme entrée exceptionnelle et retournés selon la procédure officielle.\n• Vols ou pertes : en cas de vol ou de perte de stupéfiants, déclarer immédiatement à la DMP et aux autorités compétentes (Gendarmerie/Police). Conserver une copie du procès-verbal dans le registre.\n• Conservation du registre : 10 ans minimum.",
+      "clean_text": "Stupéfiants registre cas particuliers : reports bas de page solde signé, périmés retour DMP bon officiel, retours patients entrée exceptionnelle, vol perte déclaration DMP police procès-verbal, conservation 10 ans.",
+      "key_rules": [
+        "Reporter le solde en bas de chaque page, signé par le titulaire",
+        "Périmés : retour DMP ou grossiste avec bon officiel, inscrit au registre",
+        "Vol ou perte : déclaration immédiate DMP + autorités + PV dans le registre",
+        "Conservation du registre stupéfiants : 10 ans minimum"
+      ],
+      "retrieval_keywords": ["registre stupéfiants report", "stupéfiants périmés", "retour stupéfiants", "vol stupéfiants", "perte stupéfiants", "DMP retour médicament", "conservation registre stupéfiants"],
+      "sanctions": ["Infraction en cas de destruction non autorisée de stupéfiants périmés", "Infraction en cas de non-déclaration de vol"],
+      "exceptions": [],
+      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04", "Circulaire DMP gestion des retours"]
+    }
+  ]
+}

@@ -6,7 +6,7 @@
  * sendAIResponseWithFooter(to, lang, bodyText)
  *
  * Envoie la réponse IA (bodyText) dans un message twilio/quick-reply
- * incluant 2 boutons footer :
+ * incluant 2 boutons footer quand INTERACTIVE_FOOTER_ENABLED=true :
  *   - back_to_themes  → "Choisir un thème"
  *   - back_to_language → "Changer de langue"
  *
@@ -27,6 +27,37 @@ function getInteractive() {
 }
 
 const FOOTER_CACHE_KEY_PREFIX = 'footer_v1';
+
+function isFooterQuickReplyEnabled() {
+  return String(process.env.INTERACTIVE_FOOTER_ENABLED || '').toLowerCase() === 'true';
+}
+
+function buildTextFooter(lang, options = {}) {
+  const safeLang = ['fr', 'ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+  const { includeBack = false } = options;
+
+  const messages = {
+    fr: includeBack
+      ? 'Envoyez RETOUR pour revenir au menu, MENU pour choisir un theme ou LANGUE pour changer de langue.'
+      : 'Envoyez MENU pour choisir un theme ou LANGUE pour changer de langue.',
+    ar: includeBack
+      ? 'أرسل RETOUR للعودة إلى القائمة، أو MENU لاختيار موضوع، أو LANGUE لتغيير اللغة.'
+      : 'أرسل MENU لاختيار موضوع أو LANGUE لتغيير اللغة.',
+    es: includeBack
+      ? 'Envie RETOUR para volver al menu, MENU para elegir un tema o LANGUE para cambiar el idioma.'
+      : 'Envie MENU para elegir un tema o LANGUE para cambiar el idioma.',
+    ru: includeBack
+      ? 'Отправьте RETOUR, чтобы вернуться в меню, MENU, чтобы выбрать тему, или LANGUE, чтобы сменить язык.'
+      : 'Отправьте MENU, чтобы выбрать тему, или LANGUE, чтобы сменить язык.',
+  };
+
+  return messages[safeLang] || messages.fr;
+}
+
+function appendTextFooter(bodyText, lang, options = {}) {
+  const navigationText = buildTextFooter(lang, options);
+  return `${String(bodyText || '').trim()}\n\n${navigationText}`;
+}
 
 /**
  * Retourne la spec du template footer pour une langue donnée.
@@ -59,7 +90,7 @@ function buildFooterSpec(lang) {
  */
 async function sendAIResponseWithFooter(to, lang, bodyText) {
   const interactive = getInteractive();
-  if (!interactive.isInteractiveEnabled()) return null;
+  if (!interactive.isInteractiveEnabled() || !isFooterQuickReplyEnabled()) return null;
 
   const cacheKey = `${FOOTER_CACHE_KEY_PREFIX}_${lang}`;
 
@@ -138,4 +169,9 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
   }
 }
 
-module.exports = { sendAIResponseWithFooter };
+module.exports = {
+  appendTextFooter,
+  buildTextFooter,
+  isFooterQuickReplyEnabled,
+  sendAIResponseWithFooter,
+};

@@ -1,0 +1,57 @@
+{
+  "doc_id": "inspection_pharmacie",
+  "document_type": "guide_pratique",
+  "title": "Se préparer à l'inspection en pharmacie",
+  "citation_label": "Guide inspection officinale — DMP Maroc",
+  "confidence": 0.92,
+  "chunks": [
+    {
+      "chunk_id": "inspection_pharmacie_001",
+      "topic_tags": ["inspection", "conformites", "locaux", "pharmacie", "officine"],
+      "text": "INSPECTION EN PHARMACIE — LOCAUX ET MATÉRIEL REQUIS\n\nLors d'une inspection, les inspecteurs du ministère (DMP) vérifient en priorité les locaux et le matériel :\n\n• Affichage obligatoire : titre de pharmacien (diplôme encadré), horaires d'ouverture, prix des médicaments, numéro de l'Ordre national des pharmaciens.\n• Préparatoire : doit être équipé et clairement séparé du comptoir de vente.\n• Réfrigérateur : maintenu entre 2°C et 8°C, avec enregistrement des températures. Les médicaments thermosensibles (vaccins, insuline…) doivent y être stockés séparément des aliments.\n• Armoires de sécurité : armoire A (tableau A), armoire B (stupéfiants, fermée à clé), armoire C (tableau C — médicaments à prescription obligatoire).\n• Local conforme : pas de vente d'articles non pharmaceutiques en zone médicament.",
+      "clean_text": "Inspection pharmacie locaux matériel : affichage titre diplôme horaires prix ONPF, préparatoire séparé, réfrigérateur 2-8°C enregistrement températures, armoires A B C sécurité, stupéfiants armoire fermée clé.",
+      "key_rules": [
+        "Afficher le diplôme, les horaires et les prix",
+        "Réfrigérateur entre 2°C et 8°C avec relevés quotidiens",
+        "Armoire B (stupéfiants) fermée à clé en permanence",
+        "Préparatoire séparé du comptoir de vente"
+      ],
+      "retrieval_keywords": ["inspection", "contrôle", "DMP", "locaux pharmacie", "affichage diplôme", "réfrigérateur", "armoire stupéfiants", "préparatoire", "tableau A B C"],
+      "sanctions": ["Mise en demeure de mise en conformité", "Suspension d'activité en cas de manquement grave"],
+      "exceptions": [],
+      "cross_references": ["Loi 17-04 sur l'exercice de la pharmacie", "Dahir du 2 décembre 1922 (stupéfiants)"]
+    },
+    {
+      "chunk_id": "inspection_pharmacie_002",
+      "topic_tags": ["inspection", "conformites", "ordonnancier", "registre alcool", "comptabilité", "officine"],
+      "text": "INSPECTION EN PHARMACIE — REGISTRES ET DOCUMENTS OBLIGATOIRES\n\nL'inspecteur vérifie systématiquement les registres et documents de traçabilité :\n\n• Ordonnancier : registre chronologique de toutes les ordonnances reçues. Obligation légale. Chaque entrée doit mentionner la date, le numéro d'ordonnance, le prescripteur, le patient, le médicament et la quantité délivrée.\n• Registre alcool : tout achat et toute utilisation d'alcool pharmaceutique doivent être consignés dans un registre dédié avec date, quantité achetée, fournisseur et utilisation.\n• Registre stupéfiants : comptabilité entrées/sorties avec balance quotidienne. Toute discordance est considérée comme une infraction grave.\n• Ordonnances sécurisées : conserver les ordonnances de stupéfiants pendant 10 ans.\n• Bon de commande fournisseur : conserver les bons de livraison et factures d'achats de médicaments.",
+      "clean_text": "Inspection registres obligatoires : ordonnancier chronologique prescripteur patient médicament quantité, registre alcool achats utilisations, registre stupéfiants entrées sorties balance quotidienne, ordonnances sécurisées conservées 10 ans.",
+      "key_rules": [
+        "Ordonnancier à jour, signé, chronologique",
+        "Registre alcool : chaque achat et usage consigné",
+        "Registre stupéfiants : balance quotidienne entrées/sorties",
+        "Conserver les ordonnances stupéfiants 10 ans"
+      ],
+      "retrieval_keywords": ["ordonnancier", "registre alcool", "registre stupéfiants", "comptabilité stupéfiants", "inspection documents", "traçabilité médicaments", "ordonnance sécurisée"],
+      "sanctions": ["Infraction pénale en cas d'absence d'ordonnancier", "Suspension en cas de discordance stupéfiants non justifiée"],
+      "exceptions": [],
+      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04 art. 63"]
+    },
+    {
+      "chunk_id": "inspection_pharmacie_003",
+      "topic_tags": ["inspection", "conformites", "matières premières", "pharmacie", "DMP", "préparations"],
+      "text": "INSPECTION EN PHARMACIE — MATIÈRES PREMIÈRES ET PRÉPARATIONS MAGISTRALES\n\nSi la pharmacie réalise des préparations magistrales, des vérifications spécifiques s'appliquent :\n\n• Matières premières : chaque matière première doit être accompagnée d'un certificat d'analyse du fournisseur. Stockage séparé, étiqueté, avec date d'expiration visible.\n• Registre des préparations : chaque préparation réalisée doit être consignée avec la formule, les quantités, la date, le numéro de lot et le nom du patient.\n• Balance et matériel de préparation : étalonné et en bon état de fonctionnement.\n• Contact en cas de doute : Direction du Médicament et de la Pharmacie (DMP), Ministère de la Santé.\n\nEn cas d'inspection, restez calme, montrez votre coopération, fournissez tous les documents demandés sans attendre et signalez toute anomalie préalablement identifiée. Un rapport d'inspection est rédigé à la fin de la visite.",
+      "clean_text": "Inspection matières premières préparations magistrales : certificat analyse fournisseur, registre préparations formule quantité lot patient, balance étalonnée, DMP contact inspection, rapport inspection fin visite.",
+      "key_rules": [
+        "Certificat d'analyse obligatoire pour chaque matière première",
+        "Registre des préparations : formule, quantités, lot, patient",
+        "Balance étalonnée et opérationnelle",
+        "Coopérer avec l'inspecteur et remettre les documents sans délai"
+      ],
+      "retrieval_keywords": ["matières premières pharmacie", "préparations magistrales", "registre préparations", "certificat analyse", "DMP inspection", "balance pharmacie", "inspection préparatoire"],
+      "sanctions": ["Interdiction de préparation en cas de non-conformité", "Saisie des matières premières non conformes"],
+      "exceptions": [],
+      "cross_references": ["Loi 17-04", "Circulaire DMP sur les préparations officinales"]
+    }
+  ]
+}

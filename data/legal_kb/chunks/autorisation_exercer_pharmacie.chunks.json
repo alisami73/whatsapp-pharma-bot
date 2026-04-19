@@ -1,0 +1,41 @@
+{
+  "doc_id": "autorisation_exercer_pharmacie",
+  "document_type": "guide_pratique",
+  "title": "Autorisation d'exercer la pharmacie au Maroc — Procédure CNOP",
+  "citation_label": "Procédure CNOP — Conseil National de l'Ordre des Pharmaciens du Maroc",
+  "confidence": 0.91,
+  "chunks": [
+    {
+      "chunk_id": "autorisation_exercer_001",
+      "topic_tags": ["autorisation", "CNOP", "conformites", "pharmacie", "inscription", "exercice"],
+      "text": "AUTORISATION D'EXERCER EN PHARMACIE — PROCÉDURE ET PIÈCES REQUISES\n\nPour exercer légalement la pharmacie au Maroc, tout pharmacien doit s'inscrire au Conseil National de l'Ordre des Pharmaciens (CNOP).\n\nAdresse de dépôt :\nCNOP — Conseil National de l'Ordre des Pharmaciens\nDépôt du dossier : en personne, les jours ouvrables (se renseigner auprès du CNOP pour les horaires actuels).\n\nPièces requises (3 exemplaires de chaque sauf mention contraire) :\n1. Diplôme de pharmacien (original + 2 copies certifiées)\n2. Copie de la Carte Nationale d'Identité (CIN)\n3. Extrait de casier judiciaire n°3 (récent, moins de 3 mois)\n4. Déclaration sur l'honneur d'exercice exclusif de la pharmacie\n5. 4 photos d'identité récentes\n6. Frais d'inscription : 1 200 DH (à régler selon les modalités du CNOP)\n7. Attestation de stage (si applicable)\n8. Contrat de bail ou titre de propriété du local\n9. Plan des locaux (pharmacie ou officine)\n10. Certificat médical d'aptitude physique\n11. Tout autre document requis selon le type d'exercice (titulaire, adjoint, industrie, biologie)",
+      "clean_text": "CNOP inscription pharmacien : diplôme pharmacien 3 exemplaires, CIN, casier judiciaire n°3 moins 3 mois, déclaration honneur, 4 photos, 1200 DH frais, attestation stage, bail local, plan locaux, certificat médical aptitude.",
+      "key_rules": [
+        "Inscription au CNOP obligatoire avant tout exercice",
+        "Casier judiciaire n°3 datant de moins de 3 mois",
+        "Frais d'inscription : 1 200 DH",
+        "Fournir 3 exemplaires de chaque pièce"
+      ],
+      "retrieval_keywords": ["autorisation exercer pharmacie", "inscription CNOP", "dossier pharmacien", "casier judiciaire pharmacien", "frais CNOP", "ordre pharmaciens Maroc", "pièces dossier pharmacien"],
+      "sanctions": ["Exercice illégal de la pharmacie sans inscription CNOP — infraction pénale (Loi 17-04)"],
+      "exceptions": [],
+      "cross_references": ["Loi 17-04 sur l'exercice de la pharmacie", "Dahir 1-06-151"]
+    },
+    {
+      "chunk_id": "autorisation_exercer_002",
+      "topic_tags": ["autorisation", "CNOP", "conformites", "retrait", "diplômes étrangers", "équivalence", "pharmacie"],
+      "text": "AUTORISATION D'EXERCER — RETRAIT ET DIPLÔMES ÉTRANGERS\n\nRetrait de la carte professionnelle :\n• Le retrait de la carte d'inscription au CNOP (carte de l'Ordre) se fait les mardi et jeudi uniquement.\n• Délai de traitement : variable selon la complétude du dossier (compter 4 à 8 semaines en général).\n• Un accusé de réception est remis lors du dépôt du dossier.\n\nDiplômes étrangers :\n• Les titulaires d'un diplôme de pharmacie obtenu à l'étranger doivent au préalable obtenir une équivalence auprès du Ministère de l'Enseignement Supérieur.\n• La procédure d'équivalence est régie par le Décret 2-01-333 du 21 juin 2001 (commissions sectorielles d'équivalence).\n• Une fois l'équivalence accordée, le dossier CNOP est constitué normalement avec l'attestation d'équivalence en lieu et place du diplôme marocain.\n• Les diplômes de pays ayant une convention bilatérale avec le Maroc peuvent bénéficier d'une procédure simplifiée.",
+      "clean_text": "CNOP retrait carte mardi jeudi, délai 4-8 semaines accusé réception, diplômes étrangers équivalence Ministère Enseignement Supérieur Décret 2-01-333 21 juin 2001, convention bilatérale procédure simplifiée.",
+      "key_rules": [
+        "Retrait carte CNOP uniquement mardi et jeudi",
+        "Diplôme étranger : équivalence obligatoire avant dossier CNOP",
+        "Équivalence régie par le Décret 2-01-333 du 21 juin 2001",
+        "Convention bilatérale peut simplifier la procédure d'équivalence"
+      ],
+      "retrieval_keywords": ["retrait carte pharmacien", "CNOP retrait", "diplôme étranger pharmacie Maroc", "équivalence diplôme pharmacien", "Décret 2-01-333", "pharmacien étranger Maroc", "inscription ordre pharmaciens étranger"],
+      "sanctions": ["Dossier incomplet rejeté sans délai de recours immédiat"],
+      "exceptions": ["Pays avec convention bilatérale : procédure d'équivalence allégée"],
+      "cross_references": ["Décret 2-01-333 du 21 juin 2001", "Loi 17-04", "Dahir 1-06-151"]
+    }
+  ]
+}

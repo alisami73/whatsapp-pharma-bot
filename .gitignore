@@ -1,3 +1,17 @@
 .vercel
 .env
 node_modules/
+
+# KB build artifacts (only chunks/ and indexes/ are needed by the app)
+data/legal_kb/raw_text/
+data/legal_kb/consolidated/
+data/legal_kb/normalized/
+data/legal_kb/audit/
+data/legal_kb/qa_assets/
+data/legal_sources/
+
+# Scripts & docs not needed in production
+scripts/__pycache__/
+docs/
+AUDIT_CODEBASE.md
+IMPLEMENTATION_PLAN.md

@@ -18,6 +18,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const legalKb = require('./legal_kb');
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
@@ -150,10 +151,9 @@ function selectKnowledgeFiles(scope) {
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
-    // Thème fusionné compliance = CNDP + CNSS
-    if (normalizedScope === 'compliance') {
-        const scopedFiles = allFiles.filter((f) => /cndp|cnss/i.test(f));
-        return scopedFiles.length ? scopedFiles : allFiles;
+    // Thème fusionné conformites = tout le corpus (CNDP + CNSS + règlements)
+    if (normalizedScope === 'conformites') {
+        return allFiles;
     }
 
     return allFiles;
@@ -174,12 +174,8 @@ function buildScopeLabel(scope) {
         return 'CNDP (Loi 09-08)';
     }
 
-    if (normalizedScope === 'compliance') {
-        return 'Conformité CNDP / CNSS';
-    }
-
-    if (normalizedScope === 'regulations') {
-        return 'Textes et règlements pharmacie';
+    if (normalizedScope === 'conformites' || normalizedScope === 'compliance' || normalizedScope === 'regulations') {
+        return 'Textes et Conformités en pharmacie';
     }
 
     return 'documentation';
@@ -396,17 +392,20 @@ function formatStructuredAnswer(langCode, payload) {
         .join('\n\n');
 }
 
+const FR_STOP_WORDS = new Set(['les', 'des', 'est', 'que', 'une', 'pas', 'sur', 'par', 'aux', 'qui', 'son', 'ses', 'leur', 'leurs', 'dans', 'mais', 'avec', 'pour', 'tout', 'plus', 'cette', 'etre', 'vous', 'nous', 'ils', 'elles', 'comment', 'quoi', 'quel', 'quels', 'quelle', 'quelles', 'quand', 'vrai', 'faux', 'bien', 'tres']);
+
 function tokenizeSearch(value) {
     const normalized = normalizeText(value);
     const tokens = normalized
         .split(/\s+/)
         .map((token) => token.trim())
-        .filter((token) => token.length > 2);
+        .filter((token) => token.length > 2 && !FR_STOP_WORDS.has(token));
 
     const expansions = [];
     const raw = String(value || '');
 
-    const expansionRules = [
+    // Arabic expansions (test against raw input)
+    const arabicRules = [
         { pattern: /صيدلية|الصيدلية/u, values: ['pharmacie', 'officine'] },
         { pattern: /صيدلي|الصيدلي/u, values: ['pharmacien'] },
         { pattern: /فتح|افتتاح/u, values: ['ouverture'] },
@@ -420,10 +419,48 @@ function tokenizeSearch(value) {
         { pattern: /مستشفى|استشفائي/u, values: ['hospitaliere'] },
         { pattern: /معادلة|تكافؤ/u, values: ['equivalence'] },
         { pattern: /هيئة|النظام|الامر/u, values: ['ordre'] },
+        { pattern: /حضور|موجود/u, values: ['presence', 'absence', 'remplacement'] },
+        { pattern: /مخدرات|مخدر/u, values: ['stupefiants', 'registre'] },
+        { pattern: /اجازة|عطلة/u, values: ['conges', 'travail'] },
+        { pattern: /عامل|موظف/u, values: ['employe', 'travail', 'cnss'] },
+        { pattern: /اجر|راتب/u, values: ['salaire', 'smig', 'travail'] },
+        { pattern: /تسجيل|انخراط/u, values: ['cnss', 'affiliation', 'inscription'] },
     ];
 
-    expansionRules.forEach((rule) => {
+    arabicRules.forEach((rule) => {
         if (rule.pattern.test(raw)) {
+            expansions.push(...rule.values);
+        }
+    });
+
+    // French stem expansions (test against normalized input)
+    const frenchRules = [
+        { pattern: /absen|s absen/, values: ['absence', 'remplacement', 'officine'] },
+        { pattern: /presen/, values: ['presence', 'absence', 'remplacement'] },
+        { pattern: /inspect/, values: ['inspection', 'controle', 'dmp'] },
+        { pattern: /stupef|narcot|morphin|codein/, values: ['stupefiants', 'registre', 'armoire'] },
+        { pattern: /autoris/, values: ['autorisation', 'exercice', 'cnop'] },
+        { pattern: /conge|vacance/, values: ['conges', 'droit travail', 'travail'] },
+        { pattern: /licenci/, values: ['licenciement', 'droit travail', 'travail'] },
+        { pattern: /smig|salaire|remunerat|paye|paie/, values: ['salaire', 'smig', 'travail', 'cnss'] },
+        { pattern: /cotis|affili/, values: ['cnss', 'cotisation', 'affiliation'] },
+        { pattern: /registr|comptabil/, values: ['registre', 'comptabilite'] },
+        { pattern: /carnet/, values: ['stupefiants', 'carnet', 'commande'] },
+        { pattern: /armoir/, values: ['armoire', 'stupefiants', 'stockage'] },
+        { pattern: /tiers.?payant|rembours|mutuelle/, values: ['tiers payant', 'amo', 'remboursement'] },
+        { pattern: /diplom|equivalen/, values: ['diplome', 'equivalence', 'autorisation', 'cnop'] },
+        { pattern: /droit.trav|employe|employeur/, values: ['droit travail', 'cnss', 'obligations'] },
+        { pattern: /conformit|cndp/, values: ['conformite', 'cndp', 'loi 09-08'] },
+        { pattern: /ouvertur/, values: ['ouverture', 'officine', 'autorisation'] },
+        { pattern: /ordonnanc/, values: ['ordonnancier', 'ordonnance', 'prescription'] },
+        { pattern: /prescri/, values: ['prescription', 'ordonnance', 'medicament'] },
+        { pattern: /titulaire/, values: ['pharmacien', 'titulaire', 'officine'] },
+        { pattern: /garde|permanence/, values: ['absence', 'pharmacie', 'remplacement'] },
+        { pattern: /obligatoi|obligat/, values: ['obligation', 'reglementation', 'loi'] },
+    ];
+
+    frenchRules.forEach((rule) => {
+        if (rule.pattern.test(normalized)) {
             expansions.push(...rule.values);
         }
     });
@@ -507,10 +544,11 @@ function scoreLegalChunk(chunk, tokens, normalizedQuestion, langCode) {
         score += 6;
     }
 
-    if (langCode === 'ar' && (chunk.language === 'ar' || chunk.language === 'mixed')) {
+    const chunkLang = chunk.language || 'fr';
+    if (langCode === 'ar' && (chunkLang === 'ar' || chunkLang === 'mixed')) {
         score += 2;
     }
-    if (langCode === 'fr' && (chunk.language === 'fr' || chunk.language === 'mixed' || chunk.language === 'unknown')) {
+    if (langCode !== 'ar' && (chunkLang === 'fr' || chunkLang === 'mixed' || chunkLang === 'unknown')) {
         score += 2;
     }
 
@@ -806,10 +844,15 @@ function fallbackKeywordSearch(question, scope) {
     });
 }
 
-function fallbackLegalSearch(question) {
+async function fallbackLegalSearch(question, scope) {
     const lang = detectLanguage(question);
     const labels = getStructuredLabels(lang.code);
-    const chunks = retrieveLegalChunks(question, lang.code);
+    const retrieval = await legalKb.retrieveLegalResults(question, {
+        scope,
+        langCode: lang.code,
+        topK: 6,
+    });
+    const chunks = retrieval.results.map((entry) => entry.chunk);
 
     if (!chunks.length) {
         return formatStructuredAnswer(lang.code, {
@@ -824,7 +867,7 @@ function fallbackLegalSearch(question) {
     const shortAnswer = topChunk.legal_summary || (topChunk.clean_text || topChunk.text || '').slice(0, 400);
     const foundationLines = chunks.slice(0, 3).map((chunk) => {
         const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
-        return `${excerpt} (${chunk.citation_label || chunk.chunk_id})`;
+        return `${excerpt} (${legalKb.buildCitationLabel(chunk)})`;
     });
 
     const limitLines = [];
@@ -845,7 +888,7 @@ function fallbackLegalSearch(question) {
         shortAnswer,
         foundationLines,
         limitLines,
-        sourceLines: chunks.slice(0, 4).map((chunk) => chunk.citation_label || chunk.chunk_id),
+        sourceLines: chunks.slice(0, 4).map((chunk) => legalKb.buildCitationLabel(chunk)),
     });
 }
 
@@ -873,34 +916,54 @@ async function answerQuestion(question, scope) {
     const scopeLabel = buildScopeLabel(scope);
     const normalizedScope = normalizeScope(scope);
     const lang = detectLanguage(question);
-    const useLegalKb = normalizedScope === 'regulations';
+    const useLegalKb = legalKb.shouldUseLegalKb(normalizedScope);
 
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
-        return useLegalKb ? fallbackLegalSearch(question) : fallbackKeywordSearch(question, scope);
+        return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
     }
 
     const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
-    const legalContext = useLegalKb ? buildLegalContext(question, lang.code) : null;
+    const legalRetrieval = useLegalKb
+        ? await legalKb.retrieveLegalResults(question, {
+            scope: normalizedScope,
+            langCode: lang.code,
+            topK: MAX_LEGAL_CHUNKS,
+        })
+        : null;
+    const legalContext = useLegalKb
+        ? {
+            context: legalKb.buildLegalContext(legalRetrieval.results, { maxChars: MAX_LEGAL_CONTEXT_CHARS }),
+            results: legalRetrieval.results,
+        }
+        : null;
     const faqContext = useLegalKb ? '' : loadFaqContext(scope);
     const contextBlock = useLegalKb ? legalContext.context : faqContext;
 
     if (useLegalKb && !contextBlock) {
-        return fallbackLegalSearch(question);
+        return await fallbackLegalSearch(question, normalizedScope);
     }
 
     if (!useLegalKb && !contextBlock) {
         return fallbackKeywordSearch(question, scope);
     }
 
+    const citationInstruction = useLegalKb
+        ? `Quand tu cites les sources, reprends la formulation exacte des références [R1], [R2], etc. Si aucun fondement suffisant n'existe, dis-le explicitement.`
+        : '';
+    const legalReferenceBlock = useLegalKb
+        ? `\nRéférences candidates :\n${legalContext.results.map((entry, index) => `[R${index + 1}] ${legalKb.buildCitationLabel(entry.chunk)}`).join('\n')}`
+        : '';
+
     const userContent = `${langInstruction}
 
 Thème actuel : ${scopeLabel}.
 Tu dois répondre UNIQUEMENT aux questions relevant de ce thème en utilisant le contexte ci-dessous.
 Ne redirige pas vers ce thème si l'utilisateur s'y trouve déjà.
+${citationInstruction}
 
 ${useLegalKb ? 'Base juridique indexée :' : 'Base documentaire disponible :'}
-${contextBlock}
+${contextBlock}${legalReferenceBlock}
 
 Question : ${question}`;
 
@@ -914,7 +977,8 @@ Question : ${question}`;
                 { role: 'user', content: userContent },
             ],
             max_tokens: 400,
-            temperature: 0.3,
+            temperature: 0.1,
+            top_p: 1,
         });
 
         let reply = completion.choices[0]?.message?.content?.trim() || '';
@@ -935,29 +999,51 @@ Question : ${question}`;
         console.error('[CNSS] Erreur Azure OpenAI:', error.message || error);
 
         // Basculer en fallback si erreur LLM
-        const fallback = useLegalKb ? fallbackLegalSearch(question) : fallbackKeywordSearch(question, scope);
+        const fallback = useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
         return fallback;
     }
 }
 
 // ─── PROMPT D'INVITATION ──────────────────────────────────────────────────────
 
-function buildCnssQuestionPrompt(theme) {
-    const themeId = theme && theme.id;
+const CNSS_PROMPT_TEXTS = {
+    fse: {
+        fr: 'Posez votre question sur la FSE : fonctionnement, phase pilote, déploiement, impact en pharmacie...\n\nExemple : "La FSE est-elle obligatoire dès maintenant ?"',
+        ar: 'اطرح سؤالك حول الورقة الإلكترونية للعلاجات (FSE): الأداء، المرحلة التجريبية، النشر، التأثير على الصيدلية...\n\nمثال: "هل أصبح تطبيق FSE إلزامياً الآن؟"',
+        es: 'Haga su pregunta sobre la FSE: funcionamiento, fase piloto, despliegue, impacto en farmacia...\n\nEjemplo: "¿La FSE ya es obligatoria?"',
+        ru: 'Задайте вопрос об ЭЛН (FSE): работа, пилотная фаза, развёртывание, влияние на аптеку...\n\nПример: "FSE уже обязательна?"',
+    },
+    conformites: {
+        fr: "Posez votre question sur les textes législatifs, la conformité CNDP/CNSS, le droit du travail ou la réglementation officinale : inspection, stupéfiants, CNDP, salaires, licenciement, Loi 17-04...\n\nExemple : \"J'ai une inspection, qu'est-ce que je fais ?\"",
+        ar: 'اطرح سؤالك حول النصوص التشريعية، مطابقة CNDP/CNSS، قانون العمل أو التنظيم الصيدلاني: التفتيش، المخدرات، الأجور، الفصل، القانون 17-04...\n\nمثال: "عندي تفتيش، ماذا أفعل؟"',
+        es: 'Haga su pregunta sobre textos legislativos, conformidad CNDP/CNSS, derecho laboral o regulación: inspección, estupefacientes, salarios, despido, Ley 17-04...\n\nEjemplo: "Tengo una inspección, ¿qué hago?"',
+        ru: 'Задайте вопрос о законодательных текстах, соответствии CNDP/CNSS, трудовом праве или аптечных нормах: инспекция, наркотики, зарплаты, увольнение, Закон 17-04...\n\nПример: "У меня проверка, что делать?"',
+    },
+    default: {
+        fr: 'Posez votre question sur la CNSS : remboursements, affiliations, cotisations, prestations...\n\nExemple : "Comment déclarer un employé à la CNSS ?"',
+        ar: 'اطرح سؤالك حول CNSS: التعويضات، التسجيل، الاشتراكات، الخدمات...\n\nمثال: "كيف أسجل موظفاً في CNSS؟"',
+        es: 'Haga su pregunta sobre la CNSS: reembolsos, afiliaciones, cotizaciones, prestaciones...\n\nEjemplo: "¿Cómo declarar a un empleado en la CNSS?"',
+        ru: 'Задайте вопрос о CNSS: возмещения, аффилиации, взносы, льготы...\n\nПример: "Как зарегистрировать сотрудника в CNSS?"',
+    },
+};
 
-    return [
-        `${theme.title} — Posez votre question`,
-        '',
-        themeId === 'fse'
-            ? 'Posez votre question sur la FSE : fonctionnement, phase pilote, déploiement, impact en pharmacie...'
-            : themeId === 'compliance'
-            ? 'Posez votre question sur la conformité CNDP / CNSS : données personnelles, obligations, remboursements, procédures...'
-            : themeId === 'regulations'
-            ? "Posez votre question sur les textes et règlements pharmacie : officines, ordre, déontologie, inspection, autorisation d'exercice..."
-            : 'Posez votre question sur la CNSS : remboursements, affiliations, cotisations, prestations...',
-        '',
-        'Envoyez RETOUR pour revenir au menu.',
-    ].join('\n');
+const CNSS_PROMPT_HEADER = { fr: 'Posez votre question', ar: 'اطرح سؤالك', es: 'Haga su pregunta', ru: 'Задайте вопрос' };
+const CNSS_PROMPT_BACK = {
+    fr: 'Envoyez RETOUR pour revenir au menu.',
+    ar: 'أرسل RETOUR للعودة إلى القائمة.',
+    es: 'Envíe RETOUR para volver al menú.',
+    ru: 'Отправьте RETOUR для возврата в меню.',
+};
+
+function buildCnssQuestionPrompt(theme, lang = 'fr') {
+    const themeId = theme && theme.id;
+    const themeKey = (themeId === 'conformites' || themeId === 'compliance' || themeId === 'regulations') ? 'conformites' : (themeId || 'default');
+    const prompts = CNSS_PROMPT_TEXTS[themeKey] || CNSS_PROMPT_TEXTS.default;
+    const promptText = prompts[lang] || prompts.fr;
+    const header = CNSS_PROMPT_HEADER[lang] || CNSS_PROMPT_HEADER.fr;
+    const back = CNSS_PROMPT_BACK[lang] || CNSS_PROMPT_BACK.fr;
+
+    return [`${theme.title} — ${header}`, '', promptText, '', back].join('\n');
 }
 
 // ─── EXPORTS ──────────────────────────────────────────────────────────────────

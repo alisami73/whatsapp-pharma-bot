@@ -10,7 +10,7 @@
  */
 
 const { t } = require('../i18n');
-const { sendAIResponseWithFooter } = require('../shared/footer');
+const { appendTextFooter, sendAIResponseWithFooter } = require('../shared/footer');
 
 /**
  * Envoie le message "Bientôt disponible" avec le footer 2 boutons.
@@ -24,7 +24,7 @@ async function handleComingSoon(to, lang) {
   const text = t('coming_soon', lang);
 
   const result = await sendAIResponseWithFooter(to, lang, text);
-  return { sent: Boolean(result), text };
+  return { sent: Boolean(result), text: appendTextFooter(text, lang) };
 }
 
 module.exports = { handleComingSoon };
