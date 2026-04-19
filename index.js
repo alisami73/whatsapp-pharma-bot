@@ -82,6 +82,15 @@ function getRequestContext(req) {
   );
   const interactiveData = onboardingFlow.extractInteractiveData(req.body);
 
+  // DEBUG: log all incoming webhook fields to diagnose flow issues
+  console.log('[webhook-in]', JSON.stringify({
+    Body: req.body.Body,
+    ButtonPayload: req.body.ButtonPayload,
+    Payload: req.body.Payload,
+    From: req.body.From,
+    payload_resolved: payload,
+  }));
+
   return {
     phone,
     message,
@@ -674,6 +683,7 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
 }
 
 async function startThemePrimaryAction(response, user, theme) {
+  console.log('[startThemePrimaryAction]', theme ? theme.id : 'null', 'module_type:', theme && theme.module_type, 'requires_auth:', theme && theme.requires_auth, 'authenticated:', user.authenticated);
   if (!theme) {
     await respondWithMainMenu(response, user, 'Theme introuvable.');
     return;
@@ -1369,7 +1379,9 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     // Interactive list payload → always overrides current state (re-entering a theme is valid)
+    console.log('[flow] payloadTheme:', payloadTheme ? payloadTheme.id : null, '| textTheme:', textTheme ? textTheme.id : null, '| state:', user.current_state, '| currentTheme:', user.current_theme);
     if (payloadTheme) {
+      console.log('[flow] → startThemePrimaryAction via payload:', payloadTheme.id);
       await startThemePrimaryAction(response, user, payloadTheme);
       res.type('text/xml').send(response.toString());
       return;
@@ -1497,6 +1509,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    console.log('[flow] fallback menu | state:', user.current_state, '| currentTheme:', user.current_theme);
     const sentFallbackMenu = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
     if (!sentFallbackMenu) {
       await respondWithMainMenu(response, user);
