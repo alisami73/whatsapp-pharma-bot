@@ -67,7 +67,7 @@ async function sendSoftwareCarousel(to, lang) {
   const path = require('path');
   const CACHE_PATH = path.join(__dirname, '..', '..', 'data', 'interactive_templates.json');
   const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-  const cacheKey = `software_carousel_v1_${lang}`;
+  const cacheKey = `software_carousel_v2_${lang}`;
 
   let cache = {};
   try {
@@ -83,7 +83,7 @@ async function sendSoftwareCarousel(to, lang) {
   if (!sid) {
     const langCode = lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
     const spec = {
-      friendlyName: `blink_software_carousel_v1_${lang}`,
+      friendlyName: `blink_software_carousel_v2_${lang}`,
       language: langCode,
       types: {
         'twilio/list-picker': {
