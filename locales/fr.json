@@ -39,11 +39,11 @@
 
   "coming_soon": "🔜 Ce thème sera bientôt disponible.\nRevenez prochainement !",
 
-  "sw_carousel_body": "Que souhaitez-vous savoir sur Logiciel Blink Premium ?",
-  "sw_carousel_button": "Choisir",
-  "sw_call_me": "📞 Appelez-moi",
-  "sw_benefits": "✅ Avantages Blink Premium",
-  "sw_data_protection": "🔒 Mes données sont-elles protégées ?",
+  "sw_carousel_body": "💎 Blink Premium\nQue souhaitez-vous explorer ?",
+  "sw_carousel_button": "💎 Découvrir",
+  "sw_call_me": "📲 Être rappelé",
+  "sw_benefits": "⭐ Pourquoi Blink ?",
+  "sw_data_protection": "🔐 Mes données & CNDP",
   "sw_callback_confirm": "Notre service commercial vous appellera sur ce numéro. Merci de votre intérêt pour Blink Premium !",
   "sw_callback_notification": "📲 Ce numéro souhaite être appelé pour Blink Premium : {phone}",
   "sw_benefits_body": "Les avantages de Blink Premium :\n\n• Gestion de stock avancée\n• Facturation CNSS intégrée\n• Module de conformité CNDP\n• FSE intégrée\n• Tableau de bord analytique\n• Support client 24/7\n• Mises à jour automatiques",

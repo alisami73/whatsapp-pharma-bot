@@ -41,11 +41,11 @@
 
   "coming_soon": "🔜 Эта тема скоро будет доступна.\nЗаходите позже!",
 
-  "sw_carousel_body": "Что вы хотите узнать о программе Blink Premium?",
-  "sw_carousel_button": "Выбрать",
-  "sw_call_me": "📞 Позвоните мне",
-  "sw_benefits": "✅ Преимущества Blink Premium",
-  "sw_data_protection": "🔒 Как защищены мои данные?",
+  "sw_carousel_body": "💎 Блинк Премиум\nЧто хотите изучить?",
+  "sw_carousel_button": "💎 Изучить",
+  "sw_call_me": "📲 Перезвоните мне",
+  "sw_benefits": "⭐ Почему Blink?",
+  "sw_data_protection": "🔐 Мои данные & CNDP",
   "sw_callback_confirm": "Наша коммерческая служба свяжется с вами по этому номеру. Спасибо за интерес к Blink Premium!",
   "sw_callback_notification": "📲 Этот номер желает получить звонок по Blink Premium : {phone}",
   "sw_benefits_body": "Преимущества Blink Premium :\n\n• Расширенное управление запасами\n• Интегрированное выставление счетов CNSS\n• Модуль соответствия CNDP\n• Интегрированная FSE\n• Аналитическая панель управления\n• Поддержка клиентов 24/7\n• Автоматические обновления",
