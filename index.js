@@ -28,6 +28,9 @@ const STATES = {
   AWAITING_LANGUAGE: 'awaiting_language',              // Écran 1 — sélection langue
   AWAITING_CONSENT: 'awaiting_consent',
   BROWSING_SOFTWARE_CAROUSEL: 'browsing_software_carousel', // Carrousel Blink Premium
+  BROWSING_SW_CALLBACK_SUB:  'browsing_sw_callback_sub',   // Sous-menu Appelez-moi
+  BROWSING_SW_BENEFITS_FAQ:  'browsing_sw_benefits_faq',   // FAQ Pourquoi Blink ?
+  BROWSING_SW_DATA_FAQ:      'browsing_sw_data_faq',       // FAQ Données & CNDP
   AWAITING_CONSENT_DETAILS: 'awaiting_consent_details', // après "EN SAVOIR PLUS"
   MAIN_MENU: 'main_menu',
   THEME_MENU: 'theme_menu',
@@ -1356,6 +1359,16 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     if (controlValue === 'retour') {
+      // Software sub-FAQ states → revenir au carrousel Blink Premium
+      const swSubStates = [STATES.BROWSING_SW_CALLBACK_SUB, STATES.BROWSING_SW_BENEFITS_FAQ, STATES.BROWSING_SW_DATA_FAQ];
+      if (swSubStates.includes(user.current_state)) {
+        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL });
+        const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
+        if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(software.buildSoftwareCarouselText(lang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
       if (user.current_state === STATES.AWAITING_FREE_QUESTION && currentTheme) {
         await respondWithThemeMenu(response, user, currentTheme);
         res.type('text/xml').send(response.toString());
@@ -1463,20 +1476,89 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    // ── Sous-menu "Appelez-moi" (démo / renseignement) ───────────────────
+    if (user.current_state === STATES.BROWSING_SW_CALLBACK_SUB) {
+      const actionResult = software.handleCallbackSubAction(controlValue, context.phone, lang);
+      if (actionResult) {
+        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL });
+        const footerResult = await sendAIResponseWithFooter(context.phone, lang, actionResult.text);
+        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(appendTextFooter(actionResult.text, lang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+      const subResult = await software.sendCallbackSubMenu(context.phone, lang);
+      if (subResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      response.message(software.buildCallbackSubMenuText(lang));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── FAQ "Pourquoi Blink ?" ────────────────────────────────────────────
+    if (user.current_state === STATES.BROWSING_SW_BENEFITS_FAQ) {
+      const answerResult = software.handleBenefitsFAQAction(controlValue, lang);
+      if (answerResult) {
+        const footerResult = await sendAIResponseWithFooter(context.phone, lang, answerResult.text);
+        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(appendTextFooter(answerResult.text, lang, { includeBack: true }));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+      const faqResult = await software.sendBenefitsFAQMenu(context.phone, lang);
+      if (faqResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      response.message(software.buildBenefitsFAQText(lang));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── FAQ "Mes données & CNDP" ──────────────────────────────────────────
+    if (user.current_state === STATES.BROWSING_SW_DATA_FAQ) {
+      const answerResult = software.handleDataFAQAction(controlValue, lang);
+      if (answerResult) {
+        const footerResult = await sendAIResponseWithFooter(context.phone, lang, answerResult.text);
+        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(appendTextFooter(answerResult.text, lang, { includeBack: true }));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+      const dataResult = await software.sendDataFAQMenu(context.phone, lang);
+      if (dataResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      response.message(software.buildDataFAQText(lang));
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
     // ── Carrousel Software Blink Premium ──────────────────────────────────
     if (user.current_state === STATES.BROWSING_SOFTWARE_CAROUSEL) {
       const action = controlValue;
-      const actionResult = await software.handleSoftwareAction(action, context.phone, lang);
-      if (actionResult) {
-        const footerResult = await sendAIResponseWithFooter(context.phone, lang, actionResult.text);
-        if (footerResult) {
-          res.type('text/xml').send(buildEmptyTwiml());
-        } else {
-          response.message(appendTextFooter(actionResult.text, lang));
-          res.type('text/xml').send(response.toString());
-        }
+
+      if (action === 'sw_call_me' || action === '1') {
+        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_CALLBACK_SUB });
+        const subResult = await software.sendCallbackSubMenu(context.phone, lang);
+        if (subResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(software.buildCallbackSubMenuText(lang));
+        res.type('text/xml').send(response.toString());
         return;
       }
+
+      if (action === 'sw_benefits' || action === '2') {
+        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_BENEFITS_FAQ });
+        const faqResult = await software.sendBenefitsFAQMenu(context.phone, lang);
+        if (faqResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(software.buildBenefitsFAQText(lang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      if (action === 'sw_data_protection' || action === '3') {
+        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_DATA_FAQ });
+        const dataResult = await software.sendDataFAQMenu(context.phone, lang);
+        if (dataResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(software.buildDataFAQText(lang));
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
       // Action non reconnue → renvoyer le carrousel
       const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
       if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
