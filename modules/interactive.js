@@ -55,7 +55,7 @@ function isFresh(entry) {
 
 function buildLanguageSpec() {
   return {
-    friendlyName: 'blink_language_v1',
+    friendlyName: 'blink_language_v2',
     language: 'fr',
     types: {
       'twilio/list-picker': {
@@ -213,7 +213,7 @@ async function sendInteractive(to, contentSid) {
  */
 async function sendLanguageScreen(to) {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('language_v1', buildLanguageSpec);
+  const sid = await resolveTemplate('language_v2', buildLanguageSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
