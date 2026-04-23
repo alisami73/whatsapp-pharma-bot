@@ -3,7 +3,10 @@
     "doc_id": "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/Absence des pharmaciens d'officnecirculaire_022202-DR-30-31_du_12-06- 1995.pdf",
+    "source_sha256": "4f8dc2b5a0aa84f6403468ad11eb3b771f7c98f5277e270ce16f74ddaac9d334",
+    "content_sha256": "bd54c50928fd798e0d9c1a2c2f4a8f3e8d15379fe00d4b6533ebb1cfedc43b8c",
     "detected_title": "Circulaire du ministre de la santé N° 022202 DR/30/31du 12 juin 1995",
+    "source_document_kind": "pdf",
     "document_type": "code de déontologie",
     "language": "fr",
     "is_scan": false,
@@ -11,15 +14,40 @@
     "page_count": 1,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 1 high / 0 medium / 0 low",
-      "metadata title=Microsoft Word - Document1"
+      "ratios pages: 1 high / 0 medium / 0 low"
+    ]
+  },
+  {
+    "doc_id": "autorisation_exercer_pharmacie",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/autorisation_exercer_pharmacie.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/autorisation_exercer_pharmacie.json",
+    "source_sha256": "d4ed943b721fcad8b904df1629187e883624f773b23fcd2ae62cddb4e9027496",
+    "content_sha256": "a56fd95c35a336159306d20fdcf0234f5680e660175ed83a210c19f522aaa002",
+    "detected_title": "Autorisation d'exercer la pharmacie",
+    "source_document_kind": "manual",
+    "document_type": "guide_pratique",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 4,
+    "needs_manual_review": true,
+    "notes": [
+      "ratios pages: 4 high / 0 medium / 0 low",
+      "metadata title=Autorisation d'exercer la pharmacie",
+      "revue humaine recommandée",
+      "source textuelle fournie manuellement par l'utilisateur",
+      "document pratique oriente procedure et depot de dossier",
+      "les horaires, frais et modalites pratiques doivent etre reverifies aupres du CNOP avant utilisation operationnelle"
     ]
   },
   {
     "doc_id": "bo_6373_ar",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_6373_Ar.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_6373_Ar.pdf",
+    "source_sha256": "b770c539c9d9ca6b7bc96129c6059420814535370c7fe946284e9ccb5736dde4",
+    "content_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
     "detected_title": "BO 6373 Ar",
+    "source_document_kind": "pdf",
     "document_type": "bulletin officiel",
     "language": "ar",
     "is_scan": true,
@@ -38,7 +66,10 @@
     "doc_id": "bo_6373_ar_1",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_6373_Ar (1).pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_6373_Ar (1).pdf",
+    "source_sha256": "8e42c725e8014c07d5462c41560445bc1d163c7a33541aa5924f75f4a60091c1",
+    "content_sha256": "b83fc7083ac4197a86d6be6eed9f6ea705dea6322961e2916145f129f2546cc7",
     "detected_title": "BO 6373 Ar (1)",
+    "source_document_kind": "pdf",
     "document_type": "bulletin officiel",
     "language": "ar",
     "is_scan": true,
@@ -57,7 +88,10 @@
     "doc_id": "bo_7026_ar_inspection",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7026_Ar-inspection.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7026_Ar-inspection.pdf",
+    "source_sha256": "bd29196f0e4640c5d8cf7deaf89075b4dd2d7368c749849f6727e6f0516bd747",
+    "content_sha256": "81dbe5733ac179b918c3480768fc9f59233b581714a7fefce63c0c2c7a70b911",
     "detected_title": "مرسوم رقم 2.18.878 صادر في 30 من محرم 1443 (8 سبتمبر 2021) يتعلق بكيفيات ممارسة المراقبة من طرف الصيادلة المفتشين",
+    "source_document_kind": "pdf",
     "document_type": "décret",
     "language": "ar",
     "is_scan": false,
@@ -67,13 +101,18 @@
     "notes": [
       "ratios pages: 4 high / 0 medium / 0 low",
       "traitement ciblé sur les pages source [7,8,9,10]"
-    ]
+    ],
+    "parallel_version_of": "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs",
+    "parallel_version_confidence": "high"
   },
   {
     "doc_id": "bo_7278_ar",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7278_Ar.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7278_Ar.pdf",
+    "source_sha256": "61f99d0a8642f416cd9660a0c86e5e40bf32ed6eee7a1309929b4cb101b2eb2f",
+    "content_sha256": "1d341a734a57814db32892568e36aac66914a686c302aead85ffcffdb504e9e5",
     "detected_title": "BO 7278 Ar",
+    "source_document_kind": "pdf",
     "document_type": "bulletin officiel",
     "language": "mixed",
     "is_scan": false,
@@ -91,7 +130,10 @@
     "doc_id": "bo_7280_fr_ordre_des_pharmaciens_2024",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/BO_7280_Fr Ordre des pharmaciens 2024.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7280_Fr Ordre des pharmaciens 2024.pdf",
+    "source_sha256": "6bb34679db474c200efe66f2febd7a37238235f117230016e169eda5a80368f7",
+    "content_sha256": "af65b536bc005e89af6e711c75040ca6a211e95941e221ed2b30e2b3abbee17b",
     "detected_title": "BO 7280 Fr Ordre des pharmaciens 2024",
+    "source_document_kind": "pdf",
     "document_type": "loi",
     "language": "mixed",
     "is_scan": false,
@@ -109,7 +151,10 @@
     "doc_id": "circulaire_pharmaciens_hospitaliers_prefectoraux_16_dmp_00_du_24_05_2005",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/circulaire pharmaciens hospitaliers prefectoraux _16-DMP-00_du_24-05-2005.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/circulaire pharmaciens hospitaliers prefectoraux _16-DMP-00_du_24-05-2005.pdf",
+    "source_sha256": "e962f9463ec38ed0da593dd3df7cfcb16a5d5b9297f7537830577b1bc62134ff",
+    "content_sha256": "36c987eb1c3bb2482d9f6ac9e1c1c964953cbd908c2487ce46da8072f756732e",
     "detected_title": "Circulaire n° 16 DMP / 00 du 24 mai 2005 Objet: Attributions des pharmaciens affectés aux niveau des centres hospitaliers régionaux, provinciaux et",
+    "source_document_kind": "pdf",
     "document_type": "circulaire",
     "language": "fr",
     "is_scan": false,
@@ -117,15 +162,17 @@
     "page_count": 4,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 4 high / 0 medium / 0 low",
-      "metadata title=Microsoft Word - Document4"
+      "ratios pages: 4 high / 0 medium / 0 low"
     ]
   },
   {
     "doc_id": "dahir_1_06_151_du_22_novembre_2006_ar",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/dahir_1-06-151_du_22-novembre-2006_ar.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/dahir_1-06-151_du_22-novembre-2006_ar.pdf",
+    "source_sha256": "d91315aa5b8e7b31d624201a6d5f58f216a0d87a1ee7ca58023c2908d71932c1",
+    "content_sha256": "230e71cf46470f5324e1fa293c66192e1f53171058af80ab97a3426be76e8a44",
     "detected_title": "dahir 1-06-151 du 22-novembre-2006 ar",
+    "source_document_kind": "pdf",
     "document_type": "dahir",
     "language": "ar",
     "is_scan": true,
@@ -144,7 +191,10 @@
     "doc_id": "dahir_1_75_453_du_17_12_76_instituant_l_ordre_des_pharmaciens",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/dahir_1-75-453_du_17-12-76 instituant l'ordre des pharmaciens.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/dahir_1-75-453_du_17-12-76 instituant l'ordre des pharmaciens.pdf",
+    "source_sha256": "6e772e1aa2b55bddfba99205b9054e65e30ee8e1c037d6eaf6e067b30552205c",
+    "content_sha256": "d33d4609abbc68749f88963b57fa91d1804c3eebd48571e8c66c9409535e18b4",
     "detected_title": "Dahir portant loi n 1-75-453 du 25 hija 1396 (17 dÈcembre 1976) instituant un ordre des pharmaciens.",
+    "source_document_kind": "pdf",
     "document_type": "dahir",
     "language": "fr",
     "is_scan": false,
@@ -157,10 +207,34 @@
   },
   {
     "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
-    "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
-    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
-    "detected_title": "Décret n° 2-01-333 DU 28 Rabii 1422 ( 21 juin 2001) Relatif aux conditions et à la procédure de l'octroi des",
-    "document_type": "décret",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
+    "source_sha256": "d491c95264330f9be12132cbcf69e8e934545bcc4154c26d6ad8e4eaa2021d9b",
+    "content_sha256": "9c5be1aa3870e23dfaed96f86c2b36677435f47d721de08e3fb6fa03bba5b724",
+    "detected_title": "Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux equivalences de diplomes",
+    "source_document_kind": "manual",
+    "document_type": "decret",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 3,
+    "needs_manual_review": false,
+    "notes": [
+      "ratios pages: 3 high / 0 medium / 0 low",
+      "metadata title=Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux equivalences de diplomes",
+      "source textuelle fournie manuellement par l'utilisateur",
+      "texte retranscrit en francais, nettoye des erreurs OCR sans changer le sens juridique"
+    ]
+  },
+  {
+    "doc_id": "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/BO_7026_Ar-inspection.pdf",
+    "source_sha256": "bd29196f0e4640c5d8cf7deaf89075b4dd2d7368c749849f6727e6f0516bd747",
+    "content_sha256": "29b102f0253ce1ee3d1b8582349a14fdcf674b25db0a955d28f1291c1eb371da",
+    "detected_title": "Decret n 2.18.878 du 8 septembre 2021 relatif aux modalites d'exercice du controle par les pharmaciens inspecteurs",
+    "source_document_kind": "manual",
+    "document_type": "decret",
     "language": "fr",
     "is_scan": false,
     "ocr_quality": "high",
@@ -168,14 +242,22 @@
     "needs_manual_review": false,
     "notes": [
       "ratios pages: 4 high / 0 medium / 0 low",
-      "metadata title=Microsoft Word - Document4"
-    ]
+      "metadata title=Decret n 2.18.878 du 8 septembre 2021 relatif aux modalites d'exercice du controle par les pharmaciens inspecteurs",
+      "traduction francaise structuree fournie par l'utilisateur a partir du BO arabe",
+      "source officielle de reference : BO_7026_Ar-inspection.pdf, pages 7 a 10",
+      "contenu reorganise pour le RAG sans modification recherchee du sens juridique"
+    ],
+    "parallel_version_of": "bo_7026_ar_inspection",
+    "parallel_version_confidence": "high"
   },
   {
     "doc_id": "decret_2_63_486_26_12_63_deontologie",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-63-486_26-12-63 deontologie.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_2-63-486_26-12-63 deontologie.pdf",
+    "source_sha256": "2fd0d629cd51e406755bc9da9a4671bd8bc86f8cad02860d13a3179db987fbdc",
+    "content_sha256": "44b5e85d14438c795d6e199f10951a281b7e4c2428aa2b5fe23823538363f969",
     "detected_title": "DECRET n. 2-63-486 du 9 chaabane 1383 (26 décembre 1963) approuvant et rendant applicable le code de déontologie des pharmaciens",
+    "source_document_kind": "pdf",
     "document_type": "code de déontologie",
     "language": "fr",
     "is_scan": false,
@@ -183,15 +265,17 @@
     "page_count": 7,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 7 high / 0 medium / 0 low",
-      "metadata title=PDFCreator, Job 4"
+      "ratios pages: 7 high / 0 medium / 0 low"
     ]
   },
   {
     "doc_id": "decret_5646_fr_relatif_a_l_ouverture_d_officine",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_5646_Fr Relatif a l'ouverture d'officine.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/decret_5646_Fr Relatif a l'ouverture d'officine.pdf",
+    "source_sha256": "e9719f8dee3f1e8b5356af3f964c034e609263150733f79c667209456d015059",
+    "content_sha256": "d66fef87c0f962f116952b4fc318d76686d5625b8d43cf22d608bb20f79638ae",
     "detected_title": "decret 5646 Fr Relatif a l'ouverture d'officine",
+    "source_document_kind": "pdf",
     "document_type": "décret",
     "language": "fr",
     "is_scan": true,
@@ -210,23 +294,28 @@
     "doc_id": "loi_n_17_04_fr",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/loi n° 17-04 (fr).pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/loi n° 17-04 (fr).pdf",
-    "detected_title": "OCR Document",
-    "document_type": "dahir",
+    "source_sha256": "8dd73c99ad56a08cea8fa3f98b82d9ee2aae6353dfdf45872255ca67e079972d",
+    "content_sha256": "72adfb178462de0fd74291e5440ed2e12815fd67c47870859d36df15a5ed1848",
+    "detected_title": "Loi n° 17-04 portant code du médicament et de la pharmacie",
+    "source_document_kind": "pdf",
+    "document_type": "loi",
     "language": "fr",
     "is_scan": false,
     "ocr_quality": "high",
     "page_count": 43,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 43 high / 0 medium / 0 low",
-      "metadata title=OCR Document"
+      "ratios pages: 43 high / 0 medium / 0 low"
     ]
   },
   {
     "doc_id": "normes_technique",
     "source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/normes_technique.pdf",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/original_pdfs/normes_technique.pdf",
+    "source_sha256": "99223be8f484208594fb60d302b721f49b0b476eb7452f29bafa4f9f40e1d2e3",
+    "content_sha256": "92f94f2281fabd973fa9fd8af0f959849074acaaa2fdbf5cc64d9c69734a0a7c",
     "detected_title": "Arrêté du ministre de la santé n° 902-08 du 17 rejeb 1429 (21 juillet 2008) fixant les normes techniques d'installation, de salubrité et de surface relatives au local devant abriter une officine de pharmacie ainsi que les normes techniques relatives aux établissements pharmaceutiques",
+    "source_document_kind": "pdf",
     "document_type": "arrêté",
     "language": "fr",
     "is_scan": false,
@@ -234,15 +323,17 @@
     "page_count": 6,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 6 high / 0 medium / 0 low",
-      "metadata title=Microsoft Word - Arrêtébest.docx"
+      "ratios pages: 6 high / 0 medium / 0 low"
     ]
   },
   {
     "doc_id": "services_pharmacie_hospitaliere_2004_excerpt",
     "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/services_pharmacie_hospitaliere_2004_excerpt.json",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/services_pharmacie_hospitaliere_2004_excerpt.json",
+    "source_sha256": "157252a21b575efc29352a1b0f2fe77ee2e106f863d161652baadac8096aabea",
+    "content_sha256": "8923b252b49a79e7ed6455d0569469b8e9a933be28736e77dbddfd5ff1901738",
     "detected_title": "Extrait sur les services de pharmacie hospitaliere",
+    "source_document_kind": "manual",
     "document_type": "decret",
     "language": "fr",
     "is_scan": false,
@@ -264,7 +355,10 @@
     "doc_id": "tiers_payant_2016",
     "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/tiers_payant_2016.json",
     "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/tiers_payant_2016.json",
+    "source_sha256": "1a40cc347958ab0ed25ecff9b5d9b938c1ea16d72b6b1f71815548b25400e41d",
+    "content_sha256": "915a88a4699dbe7e3a8125d038d6c38b282e963d910246253169918f7a41d6a4",
     "detected_title": "TIERS PAYANT",
+    "source_document_kind": "manual",
     "document_type": "autre",
     "language": "fr",
     "is_scan": false,
@@ -278,6 +372,25 @@
       "source textuelle fournie manuellement par l'utilisateur",
       "source secondaire / operationnelle non verifiee contre une publication officielle consolidee",
       "plusieurs liens sont des placeholders [lien] et doivent etre resolves manuellement"
+    ]
+  },
+  {
+    "doc_id": "guide_inspection_pratique_ammps",
+    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
+    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
+    "detected_title": "Guide pratique — Se préparer à une inspection AMMPS / Ministère de la Santé",
+    "source_document_kind": "manual",
+    "document_type": "guide_pratique",
+    "language": "fr",
+    "is_scan": false,
+    "ocr_quality": "high",
+    "page_count": 4,
+    "needs_manual_review": false,
+    "notes": [
+      "guide pratique opérationnel rédigé par Blink Pharma",
+      "basé sur les pratiques AMMPS et Ministère de la Santé Maroc",
+      "validé contre Loi 17-04, Dahir 1922, circulaire MSP n°77 1987",
+      "4 chunks : locaux/matériel, registres/traçabilité, checklist pré-inspection, conduite pendant la visite"
     ]
   }
 ]

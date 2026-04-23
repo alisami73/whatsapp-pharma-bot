@@ -1,0 +1,77 @@
+{
+  "doc_id": "guide_inspection_pratique_ammps",
+  "document_type": "guide_pratique",
+  "title": "Guide pratique — Se préparer à une inspection AMMPS / Ministère de la Santé",
+  "citation_label": "Guide pratique inspection officinale — AMMPS / Ministère de la Santé Maroc",
+  "confidence": 0.95,
+  "chunks": [
+    {
+      "chunk_id": "guide_inspection_pratique_ammps_001",
+      "topic_tags": ["inspection", "conformites", "locaux", "matériel", "affichage", "réfrigérateur", "armoire", "préparatoire", "AMMPS"],
+      "text": "PRÉPARER UNE INSPECTION — LOCAUX, MATÉRIEL ET AFFICHAGE OBLIGATOIRE\n\nLors d'une inspection de l'AMMPS ou du ministère de la Santé, les inspecteurs vérifient en priorité l'état des locaux et du matériel :\n\nAFFICHAGE :\n• Le pharmacien doit afficher son titre complet : « Dr X, Docteur en Pharmacie » avec le lieu d'obtention du diplôme.\n• Les horaires d'ouverture et les prix des médicaments doivent être visibles.\n\nPRÉPARATOIRE :\n• Espace séparé et réservé aux préparations magistrales.\n• Équipé d'un point d'eau, de balances régulièrement vérifiées (étalonnées), de mortiers et des documents techniques nécessaires.\n\nRÉFRIGÉRATEUR PHARMACEUTIQUE :\n• Température obligatoirement comprise entre 2°C et 8°C — un thermomètre interne est obligatoire.\n• Dégivrage régulier obligatoire.\n• Contenu exclusivement pharmaceutique : aucun aliment ni boisson ne doit être présent.\n• Les produits thermolabiles (vaccins, insuline…) doivent être stockés et tracés séparément.\n\nARMOIRES DE SÉCURITÉ :\n• Tableau A : armoire fermée à clé (substances vénéneuses de liste A).\n• Tableau B : armoire distincte et sécurisée (stupéfiants, psychotropes — liste B).\n• Tableau C : espace séparé du reste du stock.\n• Base juridique : Dahir du 2 décembre 1922 relatif aux substances vénéneuses.",
+      "clean_text": "inspection locaux matériel affichage diplôme titre pharmacien préparatoire balances étalonnées mortiers réfrigérateur 2°C 8°C thermomètre produits thermolabiles armoire tableau A B C stupéfiants fermée clé AMMPS ministère santé.",
+      "key_rules": [
+        "Afficher le titre complet du pharmacien et le lieu d'obtention du diplôme",
+        "Préparatoire séparé, équipé et opérationnel",
+        "Réfrigérateur entre 2°C et 8°C, thermomètre obligatoire, aucun aliment",
+        "Armoires A et B fermées à clé, tableau C isolé du stock courant",
+        "Base juridique : Dahir du 2 décembre 1922 (substances vénéneuses)"
+      ],
+      "retrieval_keywords": ["inspection pharmacie", "préparer inspection", "que faire inspection", "AMMPS", "locaux pharmacie", "affichage diplôme", "réfrigérateur pharmaceutique", "thermomètre frigo", "armoire stupéfiants", "tableau A B C", "préparatoire officine", "balances pharmacie"],
+      "sanctions": ["Mise en demeure de mise en conformité", "Suspension d'activité en cas de manquement grave aux conditions d'exploitation"],
+      "exceptions": [],
+      "cross_references": ["Dahir du 2 décembre 1922 (substances vénéneuses)", "Loi 17-04 sur l'exercice de la pharmacie", "Normes techniques d'exploitation officinale"]
+    },
+    {
+      "chunk_id": "guide_inspection_pratique_ammps_002",
+      "topic_tags": ["inspection", "conformites", "ordonnancier", "registre alcool", "registre stupéfiants", "matières premières", "traçabilité", "AMMPS"],
+      "text": "PRÉPARER UNE INSPECTION — REGISTRES, DOCUMENTS ET TRAÇABILITÉ\n\nLes inspecteurs contrôlent systématiquement les registres obligatoires et la traçabilité des produits.\n\nORDONNANCIER :\n• Obligatoire dans toute officine. Doit être paraphé par l'inspecteur en pharmacie ou le service d'hygiène de la ville.\n• Aucune rature, aucun espace vide. Toujours la même couleur d'encre.\n• Chaque entrée : date, numéro d'ordonnance, prescripteur, patient, médicament, quantité délivrée.\n\nREGISTRE D'ALCOOL :\n• Obligatoire. Toute réception et toute utilisation d'alcool pharmaceutique doivent y être consignées : date, quantité, fournisseur, usage.\n\nREGISTRE STUPÉFIANTS / PSYCHOTROPES :\n• Comptabilité des entrées et sorties avec balance quotidienne.\n• Toute discordance constitue une infraction grave.\n• Ordonnances sécurisées conservées 10 ans.\n\nMATIÈRES PREMIÈRES :\n• Chaque matière première doit mentionner : numéro de lot, date de réception, date de péremption, durée de conservation, date de déconditionnement.\n• L'achat de matières premières à usage médical ne peut être effectué qu'auprès de sociétés pharmaceutiques agréées (circulaire MSP n°77 dat/ph du 18 fév. 1987).\n• Certificat d'analyse du fournisseur obligatoire pour chaque lot.\n\nFACTURES FOURNISSEURS :\n• Conserver les factures et bons de livraison des 12 derniers mois.\n• Justifient l'origine légale des produits (grossistes agréés uniquement).",
+      "clean_text": "inspection registres ordonnancier paraphé ratures espace encre registre alcool réception utilisation registre stupéfiants psychotropes entrées sorties balance discordance ordonnances 10 ans matières premières numéro lot date péremption société pharmaceutique agréée certificat analyse factures fournisseurs grossistes.",
+      "key_rules": [
+        "Ordonnancier paraphé, sans ratures ni espaces vides, même couleur d'encre",
+        "Registre alcool : chaque réception et usage consignés",
+        "Registre stupéfiants : balance quotidienne, discordance = infraction grave",
+        "Matières premières : lot, péremption, déconditionnement tracés — achat exclusivement chez grossistes agréés",
+        "Conserver factures fournisseurs 12 derniers mois"
+      ],
+      "retrieval_keywords": ["ordonnancier pharmacie", "registre alcool", "registre stupéfiants", "paraphe ordonnancier", "inspection documents", "matières premières pharmacie", "société pharmaceutique agréée", "circulaire 77 dat ph", "factures fournisseurs", "traçabilité inspection", "balance stupéfiants", "péremption matière première"],
+      "sanctions": ["Infraction pénale en cas d'absence ou de falsification d'ordonnancier", "Suspension immédiate en cas de discordance non justifiée des stupéfiants", "Saisie des matières premières non conformes ou acquises hors circuit légal"],
+      "exceptions": [],
+      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04 art. 63", "Circulaire MSP n°77 dat/ph du 18 février 1987"]
+    },
+    {
+      "chunk_id": "guide_inspection_pratique_ammps_003",
+      "topic_tags": ["inspection", "conformites", "checklist", "dossier inspection", "préparation", "produits périmés", "chaîne du froid", "AMMPS"],
+      "text": "PRÉPARER UNE INSPECTION — CHECKLIST PRATIQUE AVANT LA VISITE\n\nCe que vous devez vérifier AVANT l'arrivée des inspecteurs :\n\nDOSSIER EXPRESS À AVOIR IMMÉDIATEMENT :\n• Autorisation d'ouverture / d'exploitation de la pharmacie\n• Diplôme du pharmacien et documents professionnels à jour\n• Factures fournisseurs des 12 derniers mois\n• Registres sensibles (ordonnancier, stupéfiants, alcool)\n• Contrats du personnel si demandés\n\nCONTRÔLE DU RAYON :\n• Retirer immédiatement tout médicament périmé\n• Isoler les produits douteux (conservation incorrecte, emballage endommagé)\n• Vérifier le rangement de l'ordonnancier et des prescriptions conservées\n• S'assurer que les médicaments à prescription obligatoire sont séparés des ventes libres\n\nCHAÎNE DU FROID :\n• Vérifier et noter la température du réfrigérateur pharmaceutique\n• S'assurer que le thermomètre est fonctionnel\n• Vérifier que les produits sensibles sont correctement rangés et tracés\n\nPRODUITS AUTORISÉS :\n• Vérifier que tous les médicaments disposent d'une AMM marocaine ou sont issus du circuit légal\n• Aucun produit importé hors circuit légal ne doit être présent\n• Distinction claire entre médicament, cosmétique, complément alimentaire et dispositif médical",
+      "clean_text": "checklist inspection pharmacie dossier autorisation exploitation diplôme factures registres contrats personnel rayon périmés produits douteux ordonnancier prescriptions médicaments ordonnance chaîne froid réfrigérateur thermomètre AMM circuit légal importés.",
+      "key_rules": [
+        "Avoir l'autorisation d'exploitation, le diplôme et les factures 12 mois immédiatement disponibles",
+        "Retirer tous les médicaments périmés avant toute inspection",
+        "Température du réfrigérateur vérifiée et notée",
+        "Aucun médicament sans AMM ni produit hors circuit légal",
+        "Séparation visible médicaments OP / vente libre"
+      ],
+      "retrieval_keywords": ["checklist inspection", "que préparer inspection", "dossier inspection pharmacie", "médicaments périmés inspection", "AMM inspection", "chaîne froid inspection", "produits périmés", "autorisation exploitation", "documents inspection pharmacie", "que dois je préparer inspection", "comment se préparer inspection"],
+      "sanctions": ["Procès-verbal pour détention de médicaments périmés", "Fermeture administrative pour absence d'autorisation d'exploitation", "Saisie des produits hors AMM ou circuit illégal"],
+      "exceptions": [],
+      "cross_references": ["Loi 17-04 sur l'exercice de la pharmacie", "Réglementation AMMPS sur les AMM", "Dahir du 2 décembre 1922"]
+    },
+    {
+      "chunk_id": "guide_inspection_pratique_ammps_004",
+      "topic_tags": ["inspection", "conformites", "pendant inspection", "points sensibles", "infractions fréquentes", "AMMPS", "Maroc", "conduite à tenir"],
+      "text": "PRÉPARER UNE INSPECTION — PENDANT LA VISITE ET POINTS SENSIBLES AU MAROC\n\nCONDUITE À TENIR PENDANT L'INSPECTION :\n• Demander la carte professionnelle et l'ordre de mission de l'inspecteur avant de débuter.\n• Accompagner l'inspecteur tout au long de la visite — ne jamais le laisser seul.\n• Répondre de manière précise et factuelle aux questions posées.\n• Présenter immédiatement les documents demandés sans hésitation.\n• Prendre note de chaque observation formulée par l'inspecteur.\n• Un rapport d'inspection est rédigé à la fin de la visite — lire attentivement avant de signer.\n\nPOINTS LES PLUS CONTRÔLÉS EN OFFICINE (pratique AMMPS / MSP) :\n1. Présence et responsabilité effective du pharmacien titulaire\n2. Vente de médicaments soumis à ordonnance sans prescription\n3. Respect des règles pour psychotropes et stupéfiants\n4. Produits périmés présents à la vente\n5. Factures manquantes ou origine illégale des produits\n6. Absence du pharmacien pendant les heures d'ouverture\n7. Produits importés hors circuit légal (contrefaçons, produits non homologués)\n\nINFRACTIONS LES PLUS FRÉQUENTES AU MAROC :\n• Vente sans ordonnance de médicaments réglementés\n• Produits périmés non retirés du stock actif\n• Factures d'achat absentes ou incomplètes\n• Absence physique du pharmacien responsable\n• Produits importés hors circuit légal\n• Délégation de responsabilité non conforme à la réglementation",
+      "clean_text": "pendant inspection ordre mission carte professionnelle accompagner inspecteur rapport note observations points contrôlés présence pharmacien titulaire ordonnance médicaments réglementés psychotropes stupéfiants périmés factures manquantes absence pharmacien importés hors circuit infractions fréquentes Maroc AMMPS.",
+      "key_rules": [
+        "Exiger l'ordre de mission et la carte professionnelle de l'inspecteur",
+        "Accompagner l'inspecteur — ne jamais le laisser seul",
+        "Lire attentivement le rapport d'inspection avant de signer",
+        "Pharmacien présent physiquement pendant toutes les heures d'ouverture",
+        "Zéro tolérance sur les médicaments sans ordonnance et les produits périmés"
+      ],
+      "retrieval_keywords": ["pendant inspection pharmacie", "comment se comporter inspection", "ordre de mission inspecteur", "rapport inspection", "infractions fréquentes pharmacie Maroc", "absence pharmacien inspection", "vente sans ordonnance", "produits périmés inspection", "factures manquantes inspection", "points contrôlés AMMPS", "produits hors circuit", "délégation pharmacien"],
+      "sanctions": ["Procès-verbal d'infraction transmis à l'autorité compétente", "Mise en demeure avec délai de mise en conformité", "Fermeture temporaire ou définitive de l'officine", "Saisie des produits non conformes", "Poursuites disciplinaires devant l'Ordre des pharmaciens"],
+      "exceptions": [],
+      "cross_references": ["Loi 17-04 art. 61-65 (exercice illégal, infractions)", "Dahir 1-75-453 instituant l'Ordre des pharmaciens", "Réglementation AMMPS sur la délivrance des médicaments"]
+    }
+  ]
+}
