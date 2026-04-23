@@ -75,7 +75,7 @@ function buildChunkRow(entry) {
   const chunk = entry.chunk || {};
   return {
     chunk_id:       chunk.chunk_id,
-    doc_id:         chunk.doc_id || null,
+    doc_id:         chunk.doc_id || chunk.chunk_id?.split('_').slice(0, -1).join('_') || '',
     document_type:  chunk.document_type || null,
     title:          chunk.title || chunk.official_title || chunk.short_title || null,
     citation_label: chunk.citation_label || null,

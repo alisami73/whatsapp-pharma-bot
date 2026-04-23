@@ -25,5 +25,8 @@
     "express": "^5.2.1",
     "openai": "^6.34.0",
     "twilio": "^5.13.1"
+  },
+  "devDependencies": {
+    "pg": "^8.20.0"
   }
 }
