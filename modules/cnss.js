@@ -394,6 +394,37 @@ function escapeRegExp(value) {
     return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function extractAssistantText(message) {
+    const content = message?.content;
+
+    if (typeof content === 'string') {
+        return content.trim();
+    }
+
+    if (Array.isArray(content)) {
+        return content
+            .map((part) => {
+                if (typeof part === 'string') {
+                    return part;
+                }
+                if (typeof part?.text === 'string') {
+                    return part.text;
+                }
+                if (typeof part?.content === 'string') {
+                    return part.content;
+                }
+                if (typeof part?.text?.value === 'string') {
+                    return part.text.value;
+                }
+                return '';
+            })
+            .join('\n')
+            .trim();
+    }
+
+    return '';
+}
+
 function uniqueNonEmpty(items) {
     const seen = new Set();
     return items
@@ -543,6 +574,53 @@ function buildPracticalShortLines(chunks = []) {
             .sort((left, right) => right.score - left.score)
             .map((entry) => entry.line)
     ).slice(0, 7);
+}
+
+function getLegalSearchFallbackNotice(langCode) {
+    const notices = {
+        fr: 'La recherche juridique avancée est temporairement indisponible ; réponse reconstruite à partir de la base locale.',
+        ar: 'البحث القانوني المتقدم غير متاح مؤقتا؛ تمت إعادة بناء الجواب انطلاقا من القاعدة المحلية.',
+        es: 'La búsqueda jurídica avanzada está temporalmente indisponible; la respuesta se reconstruyó a partir de la base local.',
+        ru: 'Расширенный правовой поиск временно недоступен; ответ восстановлен на основе локальной базы.',
+    };
+
+    return notices[langCode] || notices.fr;
+}
+
+function getLegalSearchUnavailableLine(langCode) {
+    const lines = {
+        fr: "La recherche juridique distante est temporairement indisponible et aucun extrait local suffisamment pertinent n'a été retrouvé.",
+        ar: 'البحث القانوني البعيد غير متاح مؤقتا ولم يتم العثور على مقتطف محلي ذي صلة كافية.',
+        es: 'La búsqueda jurídica remota está temporalmente indisponible y no se encontró ningún extracto local suficientemente pertinente.',
+        ru: 'Удаленный правовой поиск временно недоступен, и не найдено достаточно релевантных локальных фрагментов.',
+    };
+
+    return lines[langCode] || lines.fr;
+}
+
+function formatStructuredLegalAnswerFromChunks(chunks, langCode, labelOptions = {}, extraLimitLines = []) {
+    const shortAnswer = chunks[0]?.legal_summary || (chunks[0]?.clean_text || chunks[0]?.text || '').slice(0, 400);
+    const shortLines = labelOptions.practical ? buildPracticalShortLines(chunks) : null;
+    const foundationLines = chunks.slice(0, 3).map((chunk) => {
+        const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+        return `${excerpt} (${legalKb.buildCitationLabel(chunk)})`;
+    });
+
+    const limitLines = uniqueNonEmpty([
+        ...extraLimitLines,
+        chunks.some((chunk) => chunk.manual_review_required) ? 'Au moins une source pertinente nécessite une relecture humaine prioritaire.' : null,
+        chunks.some((chunk) => chunk.confidence && chunk.confidence !== 'high') ? 'Certaines sources pertinentes ne sont pas au niveau de confiance le plus élevé.' : null,
+        chunks.some((chunk) => chunk.document_type === 'autre') ? 'Au moins une source pertinente est un document opérationnel / manuel et non un texte normatif officiel.' : null,
+    ]);
+
+    return formatStructuredAnswer(langCode, {
+        shortLines,
+        shortAnswer,
+        foundationLines,
+        limitLines: limitLines.length ? limitLines : [getStructuredLabels(langCode, labelOptions).verify],
+        sourceLines: chunks.slice(0, 4).map((chunk) => legalKb.buildCitationLabel(chunk)),
+        labelOptions,
+    });
 }
 
 function formatStructuredAnswer(langCode, payload) {
@@ -1019,53 +1097,37 @@ async function fallbackLegalSearch(question, scope) {
     const parsedQuery = legalKb.parseQueryFeatures(question);
     const labelOptions = { practical: Boolean(parsedQuery.asksAboutPractical), legal: true };
     const labels = getStructuredLabels(lang.code, labelOptions);
-    const retrieval = await legalKb.retrieveLegalResults(question, {
-        scope,
-        langCode: lang.code,
-        topK: parsedQuery.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS,
-    });
-    const chunks = retrieval.results.map((entry) => entry.chunk);
 
-    if (!chunks.length) {
-        return formatStructuredAnswer(lang.code, {
-            shortAnswer: labels.noSource,
-            foundationLines: ["Aucun chunk juridique suffisamment pertinent n'a été retrouvé dans la base actuelle."],
-            limitLines: [labels.verify],
-            sourceLines: [],
-            labelOptions,
+    try {
+        const retrieval = await legalKb.retrieveLegalResults(question, {
+            scope,
+            langCode: lang.code,
+            topK: parsedQuery.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS,
         });
+        const chunks = retrieval.results.map((entry) => entry.chunk);
+
+        if (chunks.length) {
+            return formatStructuredLegalAnswerFromChunks(chunks, lang.code, labelOptions);
+        }
+    } catch (error) {
+        console.error('[CNSS] Recherche juridique avancée indisponible:', error.message || error);
     }
 
-    const topChunk = chunks[0];
-    const shortAnswer = topChunk.legal_summary || (topChunk.clean_text || topChunk.text || '').slice(0, 400);
-    const shortLines = retrieval.queryFeatures?.asksAboutPractical
-        ? buildPracticalShortLines(chunks)
-        : null;
-    const foundationLines = chunks.slice(0, 3).map((chunk) => {
-        const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
-        return `${excerpt} (${legalKb.buildCitationLabel(chunk)})`;
-    });
-
-    const limitLines = [];
-    if (chunks.some((chunk) => chunk.manual_review_required)) {
-        limitLines.push('Au moins une source pertinente nécessite une relecture humaine prioritaire.');
-    }
-    if (chunks.some((chunk) => chunk.confidence && chunk.confidence !== 'high')) {
-        limitLines.push('Certaines sources pertinentes ne sont pas au niveau de confiance le plus élevé.');
-    }
-    if (chunks.some((chunk) => chunk.document_type === 'autre')) {
-        limitLines.push('Au moins une source pertinente est un document opérationnel / manuel et non un texte normatif officiel.');
-    }
-    if (!limitLines.length) {
-        limitLines.push(labels.verify);
+    const legacyChunks = retrieveLegalChunks(question, lang.code);
+    if (legacyChunks.length) {
+        return formatStructuredLegalAnswerFromChunks(
+            legacyChunks,
+            lang.code,
+            labelOptions,
+            [getLegalSearchFallbackNotice(lang.code)],
+        );
     }
 
     return formatStructuredAnswer(lang.code, {
-        shortLines,
-        shortAnswer,
-        foundationLines,
-        limitLines,
-        sourceLines: chunks.slice(0, 4).map((chunk) => legalKb.buildCitationLabel(chunk)),
+        shortAnswer: labels.noSource,
+        foundationLines: [getLegalSearchUnavailableLine(lang.code)],
+        limitLines: [labels.verify],
+        sourceLines: [],
         labelOptions,
     });
 }
@@ -1106,19 +1168,25 @@ async function answerQuestion(question, scope, userLang = null) {
     }
 
     const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
-    const legalRetrieval = useLegalKb
-        ? await legalKb.retrieveLegalResults(question, {
-            scope: normalizedScope,
-            langCode: lang.code,
-            topK: legalTopK,
-        })
-        : null;
-    const legalContext = useLegalKb
-        ? {
-            context: legalKb.buildLegalContext(legalRetrieval.results, { maxChars: MAX_LEGAL_CONTEXT_CHARS }),
-            results: legalRetrieval.results,
+    let legalRetrieval = null;
+    let legalContext = null;
+
+    if (useLegalKb) {
+        try {
+            legalRetrieval = await legalKb.retrieveLegalResults(question, {
+                scope: normalizedScope,
+                langCode: lang.code,
+                topK: legalTopK,
+            });
+            legalContext = {
+                context: legalKb.buildLegalContext(legalRetrieval.results, { maxChars: MAX_LEGAL_CONTEXT_CHARS }),
+                results: legalRetrieval.results,
+            };
+        } catch (error) {
+            console.error('[CNSS] Erreur lors de la récupération juridique:', error.message || error);
+            return await fallbackLegalSearch(question, normalizedScope);
         }
-        : null;
+    }
     const faqContext = useLegalKb ? '' : loadFaqContext(scope);
     const contextBlock = useLegalKb ? legalContext.context : faqContext;
 
@@ -1162,15 +1230,16 @@ Question : ${question}`;
                 { role: 'system', content: buildSystemPrompt(scope) },
                 { role: 'user', content: userContent },
             ],
-            max_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
+            max_completion_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
             temperature: 0.2,
             top_p: 1,
         });
 
-        let reply = completion.choices[0]?.message?.content?.trim() || '';
+        let reply = extractAssistantText(completion.choices[0]?.message);
 
         if (!reply) {
-            return 'Je n\'ai pas pu générer une réponse. Veuillez réessayer ou consulter cnss.ma';
+            console.warn('[CNSS] Réponse vide du modèle, basculement en mode de secours.');
+            return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
         }
 
         if (useLegalKb) {
@@ -1272,10 +1341,12 @@ module.exports = {
     loadFaqContext,
     reloadFaqContext,
     _test: {
+        fallbackLegalSearch,
         buildPracticalShortLines,
         buildLegalAnswerStyleInstruction,
         getStructuredLabels,
         postProcessLegalReply,
         replaceReferencePlaceholders,
+        extractAssistantText,
     },
 };

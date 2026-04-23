@@ -101,7 +101,7 @@ async function scoreAnswer(question, answer, contextChunks = []) {
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
-      max_tokens: 220,
+      max_completion_tokens: 220,
       temperature: 0,
       response_format: { type: 'json_object' },
     });

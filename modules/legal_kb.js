@@ -338,6 +338,7 @@ function getCorpus() {
 function invalidateCaches() {
   _corpusCache = null;
   _hybridIndexCache = null;
+  _embeddingClientCache = null;
 }
 
 function bm25Score(queryTokens, corpusEntry, corpus) {
@@ -577,33 +578,50 @@ async function embedText(value) {
   return response?.data?.[0]?.embedding || null;
 }
 
+async function resolveQueryEmbedding(question, options = {}) {
+  if (Object.prototype.hasOwnProperty.call(options, 'queryEmbedding')) {
+    return options.queryEmbedding;
+  }
+
+  if (!hasEmbeddingSupport()) {
+    return null;
+  }
+
+  try {
+    return await embedText(String(question || '').trim());
+  } catch (error) {
+    console.warn('[legal-kb] Embedding lookup failed, continuing without vectors:', error.message || error);
+    return null;
+  }
+}
+
 async function retrieveLegalResults(question, options = {}) {
   const scope = options.scope || '';
   const topK = Number(options.topK) || DEFAULT_TOP_K;
   const queryFeatures = parseQueryFeatures(question);
   const useAzureSearch = azureAiSearch.isAzureAiSearchEnabled() && !options.corpus;
+  const queryEmbedding = await resolveQueryEmbedding(question, options);
 
   if (useAzureSearch) {
-    const queryEmbedding = options.queryEmbedding || (
-      hasEmbeddingSupport()
-        ? await embedText(String(question || '').trim())
-        : null
-    );
-    const results = await azureAiSearch.searchChunks({
-      queryText: question,
-      queryEmbedding,
-      topK,
-      hybrid: options.hybrid !== undefined ? Boolean(options.hybrid) : azureAiSearch.getConfig().hybridEnabled,
-    });
-    console.log('[legal-kb] azure_ai_search retrieved:', results.map((r) => `${r.chunk.chunk_id}(${Number(r.rerankScore || 0).toFixed(2)})`).join(', '));
+    try {
+      const results = await azureAiSearch.searchChunks({
+        queryText: question,
+        queryEmbedding,
+        topK,
+        hybrid: options.hybrid !== undefined ? Boolean(options.hybrid) : azureAiSearch.getConfig().hybridEnabled,
+      });
+      console.log('[legal-kb] azure_ai_search retrieved:', results.map((r) => `${r.chunk.chunk_id}(${Number(r.rerankScore || 0).toFixed(2)})`).join(', '));
 
-    return {
-      queryFeatures,
-      usedVector: Array.isArray(queryEmbedding) && queryEmbedding.length > 0,
-      queryEmbedding,
-      results,
-      provider: 'azure_ai_search',
-    };
+      return {
+        queryFeatures,
+        usedVector: Array.isArray(queryEmbedding) && queryEmbedding.length > 0,
+        queryEmbedding,
+        results,
+        provider: 'azure_ai_search',
+      };
+    } catch (error) {
+      console.warn('[legal-kb] Azure AI Search failed, falling back to local retrieval:', error.message || error);
+    }
   }
 
   const corpus = options.corpus || getCorpus();
@@ -630,11 +648,6 @@ async function retrieveLegalResults(question, options = {}) {
   lexicalCandidates.forEach((entry, index) => lexicalRankMap.set(entry.chunk.chunk_id, index + 1));
 
   let vectorCandidates = [];
-  const queryEmbedding = options.queryEmbedding || (
-    hasEmbeddingSupport()
-      ? await embedText(String(question || '').trim())
-      : null
-  );
 
   // ── Supabase vector search (preferred when populated) ──────────────────────
   if (Array.isArray(queryEmbedding) && supabaseKb.isEnabled()) {
