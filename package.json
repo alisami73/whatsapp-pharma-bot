@@ -8,7 +8,13 @@
     "dev": "node index.js",
     "twilio:create-onboarding-flow": "node scripts/create_onboarding_flow_template.js",
     "twilio:print-onboarding-flow": "node scripts/create_onboarding_flow_template.js --print",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "kb:reindex": "node scripts/reindex_legal_kb.js",
+    "kb:reindex:azure": "node scripts/reindex_legal_kb.js --azure-search",
+    "kb:reindex:dry-run": "node scripts/reindex_legal_kb.js --dry-run",
+    "kb:search-smoke": "node scripts/search_smoke_test.js",
+    "kb:embed": "node scripts/embed_and_upload.js",
+    "kb:embed:dry-run": "node scripts/embed_and_upload.js --dry-run",
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py' && node --test tests/*.test.js"
   },
   "keywords": [],
   "author": "",

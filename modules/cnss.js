@@ -19,16 +19,18 @@
 const fs = require('fs');
 const path = require('path');
 const legalKb = require('./legal_kb');
+const supabaseKb = require('./supabase_kb');
+const qualityScorer = require('./quality_scorer');
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
 const KNOWLEDGE_DIR = path.join(__dirname, '..', 'data', 'knowledge');
 const LEGAL_CHUNKS_DIR = path.join(__dirname, '..', 'data', 'legal_kb', 'chunks');
 const LEGAL_PROMPT_PATH = path.join(__dirname, '..', 'data', 'prompts', 'legal_rag_system_prompt.md');
-const MAX_RESPONSE_CHARS = 1400; // Limite WhatsApp confortable
+const MAX_RESPONSE_CHARS = 2200; // Laisse de la place a une reponse utile et citee
 const MAX_CONTEXT_CHARS = 12000; // Limite contexte envoyé au LLM
 const MAX_LEGAL_CONTEXT_CHARS = 14000;
-const MAX_LEGAL_CHUNKS = 6;
+const MAX_LEGAL_CHUNKS = Math.max(1, Number(process.env.TOP_K) || 4);
 const DEFAULT_SYSTEM_PROMPT = `Tu es un assistant conversationnel spécialisé dans la réglementation pharmaceutique marocaine, destiné à répondre à des questions libres sur l’exercice de la pharmacie, les officines, l’Ordre des pharmaciens, la déontologie, l’inspection, l’autorisation d’exercice, la pharmacie hospitalière et les textes apparentés.
 
 Ta mission :
@@ -50,7 +52,7 @@ Règles impératives :
 10. Quand une réponse repose sur une source, cite le titre du texte, l’article ou la page si disponible.
 
 Format de réponse attendu :
-- Réponse courte
+- Réponse utile
 - Fondement
 - Limites / points à vérifier
 - Sources
@@ -64,40 +66,56 @@ Style :
 
 const STRUCTURED_LABELS = {
     fr: {
-        short: 'Réponse courte',
+        short: 'Réponse utile',
+        shortPractical: 'Ce que vous devez faire',
         foundation: 'Fondement',
+        foundationLegal: 'Base juridique',
         limits: 'Limites / points à vérifier',
+        limitsPractical: 'Risques / points à vérifier',
         sources: 'Sources',
+        sourcesPractical: 'Sources utiles',
         noSource: "Aucun fondement exploitable n'a été retrouvé dans la base actuelle pour cette question.",
         verify: 'Une vérification humaine est recommandée.',
         faqNotice: "Le contexte disponible est de nature opérationnelle / documentaire interne et non nécessairement un texte réglementaire officiel.",
         insufficient: "Les extraits disponibles ne permettent pas d'apporter une réponse suffisamment fondée.",
     },
     ar: {
-        short: 'الجواب المختصر',
+        short: 'الجواب العملي',
+        shortPractical: 'ما الذي يجب عليك فعله',
         foundation: 'الأساس',
+        foundationLegal: 'الأساس القانوني',
         limits: 'الحدود / ما يجب التحقق منه',
+        limitsPractical: 'المخاطر / ما يجب التحقق منه',
         sources: 'المصادر',
+        sourcesPractical: 'المصادر المفيدة',
         noSource: 'لم يتم العثور على أساس قابل للاستغلال في القاعدة الحالية لهذا السؤال.',
         verify: 'يوصى بالتحقق البشري.',
         faqNotice: 'السياق المتاح ذو طبيعة تشغيلية / توثيقية داخلية وليس بالضرورة نصا تنظيميا رسميا.',
         insufficient: 'المقتطفات المتاحة لا تسمح بتقديم جواب مؤسس بشكل كاف.',
     },
     es: {
-        short: 'Respuesta corta',
+        short: 'Respuesta útil',
+        shortPractical: 'Lo que debe hacer',
         foundation: 'Fundamento',
+        foundationLegal: 'Base jurídica',
         limits: 'Límites / puntos a verificar',
+        limitsPractical: 'Riesgos / puntos a verificar',
         sources: 'Fuentes',
+        sourcesPractical: 'Fuentes útiles',
         noSource: 'No se encontró fundamento utilizable en la base actual para esta pregunta.',
         verify: 'Se recomienda verificación humana.',
         faqNotice: 'El contexto disponible es operativo / documental interno y no necesariamente un texto reglamentario oficial.',
         insufficient: 'Los extractos disponibles no permiten dar una respuesta suficientemente fundamentada.',
     },
     ru: {
-        short: 'Краткий ответ',
+        short: 'Полезный ответ',
+        shortPractical: 'Что вам нужно сделать',
         foundation: 'Основание',
+        foundationLegal: 'Правовая основа',
         limits: 'Ограничения / что нужно проверить',
+        limitsPractical: 'Риски / что нужно проверить',
         sources: 'Источники',
+        sourcesPractical: 'Полезные источники',
         noSource: 'В текущей базе не найдено пригодного основания для этого вопроса.',
         verify: 'Рекомендуется человеческая проверка.',
         faqNotice: 'Доступный контекст носит операционный / внутренний документальный характер и не обязательно является официальным нормативным текстом.',
@@ -354,11 +372,26 @@ Contexte d'exécution :
 - Si le contexte provient d'une FAQ ou d'un guide opérationnel interne, ne le présente pas comme un texte réglementaire officiel.
 - Si une source contient un avertissement de qualité, mentionne-le dans "Limites / points à vérifier".
 - Si aucun fondement n'est trouvé dans le contexte, dis-le explicitement.
+- Le premier bloc doit répondre directement à la question de manière utile ; il ne doit pas être artificiellement court.
+- N'affiche jamais de marqueurs internes du type [R1], [R2], [R3] dans la réponse finale.
 - Respecte strictement le format demandé avec les quatre rubriques.`;
 }
 
-function getStructuredLabels(langCode) {
-    return STRUCTURED_LABELS[langCode] || STRUCTURED_LABELS.fr;
+function getStructuredLabels(langCode, options = {}) {
+    const base = STRUCTURED_LABELS[langCode] || STRUCTURED_LABELS.fr;
+    const { practical = false, legal = false } = options;
+
+    return {
+        ...base,
+        short: practical ? (base.shortPractical || base.short) : base.short,
+        foundation: legal ? (base.foundationLegal || base.foundation) : base.foundation,
+        limits: practical ? (base.limitsPractical || base.limits) : base.limits,
+        sources: legal ? (base.sourcesPractical || base.sources) : base.sources,
+    };
+}
+
+function escapeRegExp(value) {
+    return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function uniqueNonEmpty(items) {
@@ -375,10 +408,147 @@ function uniqueNonEmpty(items) {
         });
 }
 
+function normalizeStructuredHeadings(text, langCode, labelOptions = {}) {
+    const labels = getStructuredLabels(langCode, labelOptions);
+    const headingAliases = [
+        { aliases: ['Réponse courte', 'Réponse utile', 'Ce que vous devez faire', 'Short answer', 'Useful answer'], target: labels.short },
+        { aliases: ['Fondement', 'Base juridique', 'Foundation', 'Basis'], target: labels.foundation },
+        { aliases: ['Limites / points à vérifier', 'Risques / points à vérifier', 'Points à vérifier', 'Limits / points to verify', 'Limits'], target: labels.limits },
+        { aliases: ['Sources', 'Sources utiles', 'Source'], target: labels.sources },
+    ];
+
+    let output = String(text || '');
+    headingAliases.forEach(({ aliases, target }) => {
+        aliases.forEach((alias) => {
+            const pattern = new RegExp(`^${escapeRegExp(alias)}(?=\\s*:|\\s*$)`, 'gim');
+            output = output.replace(pattern, target);
+        });
+    });
+
+    return output;
+}
+
+function replaceReferencePlaceholders(text, legalResults = []) {
+    const referenceMap = new Map();
+    legalResults.forEach((entry, index) => {
+        const label = legalKb.buildCitationLabel(entry.chunk);
+        if (label) {
+            referenceMap.set(String(index + 1), label);
+        }
+    });
+
+    return String(text || '').replace(/\[(?:R|r)\s*(\d+)\]/g, (match, refNumber) => {
+        const label = referenceMap.get(String(refNumber));
+        return label ? `(${label})` : match;
+    });
+}
+
+function ensureReadableSourcesSection(text, legalResults = [], langCode = 'fr', labelOptions = {}) {
+    if (!legalResults.length) {
+        return String(text || '').trim();
+    }
+
+    const labels = getStructuredLabels(langCode, labelOptions);
+    const output = String(text || '').trim();
+    const hasSourcesHeading = new RegExp(`^${escapeRegExp(labels.sources)}(?=\\s*:|\\s*$)`, 'mi').test(output);
+
+    if (hasSourcesHeading) {
+        return output;
+    }
+
+    const sourceLines = legalResults
+        .slice(0, 4)
+        .map((entry) => legalKb.buildCitationLabel(entry.chunk))
+        .filter(Boolean);
+
+    if (!sourceLines.length) {
+        return output;
+    }
+
+    return `${output}\n\n${labels.sources}\n- ${sourceLines.join('\n- ')}`.trim();
+}
+
+function postProcessLegalReply(text, legalResults = [], langCode = 'fr', labelOptions = {}) {
+    let output = String(text || '').trim();
+    output = replaceReferencePlaceholders(output, legalResults);
+    output = normalizeStructuredHeadings(output, langCode, labelOptions);
+    output = ensureReadableSourcesSection(output, legalResults, langCode, labelOptions);
+    return output.trim();
+}
+
+function buildLegalAnswerStyleInstruction(langCode, legalRetrieval) {
+    const queryFeatures = legalRetrieval?.queryFeatures || {};
+    const labels = getStructuredLabels(langCode, {
+        practical: Boolean(queryFeatures.asksAboutPractical),
+        legal: true,
+    });
+    const lines = [
+        'Format obligatoire :',
+        `- ${labels.short}`,
+        `- ${labels.foundation}`,
+        `- ${labels.limits}`,
+        `- ${labels.sources}`,
+        `- N'utilise jamais les marqueurs internes [R1], [R2], etc. dans la réponse finale.`,
+        `- Dans la rubrique "${labels.sources}", écris des références lisibles pour un pharmacien : titre + article/page quand disponible.`,
+        `- Dans la rubrique "${labels.short}", réponds directement à la question ; évite les formulations vagues ou passe-partout.`,
+    ];
+
+    if (queryFeatures.asksAboutPractical) {
+        lines.push(`- La question est pratique et explicite. Dans "${labels.short}", donne une checklist concrète de 5 à 8 points utiles.`);
+        lines.push('- Quand les sources le permettent, couvre : documents à sortir, vérifications matérielles et registres sensibles, puis conduite pendant la visite.');
+        lines.push('- Évite des phrases vagues comme "préparer plusieurs éléments essentiels" ou "assurer la conformité". Donne les éléments précis présents dans les sources.');
+    }
+
+    if (queryFeatures.asksAboutSanctions) {
+        lines.push('- Si les extraits mentionnent une sanction, cite-la clairement ; sinon dis explicitement que la sanction précise n’apparaît pas dans les extraits fournis.');
+    }
+
+    if (queryFeatures.asksAboutDeadlines) {
+        lines.push('- Si les extraits mentionnent un délai, indique-le précisément ; sinon dis qu’aucun délai précis n’apparaît dans les extraits fournis.');
+    }
+
+    return lines.join('\n');
+}
+
+function buildPracticalShortLines(chunks = []) {
+    const candidates = [];
+
+    chunks.forEach((chunk) => {
+        const citation = normalizeText(legalKb.buildCitationLabel(chunk));
+        let chunkScore = 0;
+
+        if (chunk.document_type === 'guide_pratique') chunkScore += 8;
+        if (citation.includes('checklist avant la visite')) chunkScore += 7;
+        if (citation.includes('pendant la visite')) chunkScore += 6;
+        if (citation.includes('registres')) chunkScore += 5;
+        if (citation.includes('locaux') || citation.includes('materiel')) chunkScore += 4;
+        if (citation.includes('inspection')) chunkScore += 2;
+        if (chunk.confidence === 'high') chunkScore += 1;
+
+        (chunk.key_rules || []).forEach((line, index) => {
+            let score = chunkScore - (index * 0.2);
+            const normalizedLine = normalizeText(line);
+
+            if (/autorisation|diplome|factures|registres?/.test(normalizedLine)) score += 2;
+            if (/ordre de mission|carte professionnelle|rapport|signer/.test(normalizedLine)) score += 2;
+            if (/stupefiants|ordonnancier|alcool/.test(normalizedLine)) score += 1.5;
+            if (/refrigerateur|thermometre|armoire|preparatoire/.test(normalizedLine)) score += 1.5;
+
+            candidates.push({ line, score });
+        });
+    });
+
+    return uniqueNonEmpty(
+        candidates
+            .sort((left, right) => right.score - left.score)
+            .map((entry) => entry.line)
+    ).slice(0, 7);
+}
+
 function formatStructuredAnswer(langCode, payload) {
-    const labels = getStructuredLabels(langCode);
+    const labels = getStructuredLabels(langCode, payload.labelOptions || {});
     const sections = [
-        { title: labels.short, lines: [payload.shortAnswer || labels.noSource] },
+        { title: labels.short, lines: payload.shortLines?.length ? payload.shortLines : [payload.shortAnswer || labels.noSource] },
         { title: labels.foundation, lines: payload.foundationLines?.length ? payload.foundationLines : [labels.insufficient] },
         { title: labels.limits, lines: payload.limitLines?.length ? payload.limitLines : [labels.verify] },
         { title: labels.sources, lines: payload.sourceLines?.length ? uniqueNonEmpty(payload.sourceLines) : ['-'] },
@@ -846,11 +1016,13 @@ function fallbackKeywordSearch(question, scope) {
 
 async function fallbackLegalSearch(question, scope) {
     const lang = detectLanguage(question);
-    const labels = getStructuredLabels(lang.code);
+    const parsedQuery = legalKb.parseQueryFeatures(question);
+    const labelOptions = { practical: Boolean(parsedQuery.asksAboutPractical), legal: true };
+    const labels = getStructuredLabels(lang.code, labelOptions);
     const retrieval = await legalKb.retrieveLegalResults(question, {
         scope,
         langCode: lang.code,
-        topK: 6,
+        topK: parsedQuery.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS,
     });
     const chunks = retrieval.results.map((entry) => entry.chunk);
 
@@ -860,11 +1032,15 @@ async function fallbackLegalSearch(question, scope) {
             foundationLines: ["Aucun chunk juridique suffisamment pertinent n'a été retrouvé dans la base actuelle."],
             limitLines: [labels.verify],
             sourceLines: [],
+            labelOptions,
         });
     }
 
     const topChunk = chunks[0];
     const shortAnswer = topChunk.legal_summary || (topChunk.clean_text || topChunk.text || '').slice(0, 400);
+    const shortLines = retrieval.queryFeatures?.asksAboutPractical
+        ? buildPracticalShortLines(chunks)
+        : null;
     const foundationLines = chunks.slice(0, 3).map((chunk) => {
         const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
         return `${excerpt} (${legalKb.buildCitationLabel(chunk)})`;
@@ -885,10 +1061,12 @@ async function fallbackLegalSearch(question, scope) {
     }
 
     return formatStructuredAnswer(lang.code, {
+        shortLines,
         shortAnswer,
         foundationLines,
         limitLines,
         sourceLines: chunks.slice(0, 4).map((chunk) => legalKb.buildCitationLabel(chunk)),
+        labelOptions,
     });
 }
 
@@ -919,6 +1097,8 @@ async function answerQuestion(question, scope, userLang = null) {
     const langMap = { ar: { code: 'ar', label: 'arabe (العربية)' }, es: { code: 'es', label: 'espagnol' }, ru: { code: 'ru', label: 'russe (русский)' }, fr: { code: 'fr', label: 'français' } };
     const lang = (userLang && langMap[userLang]) || detectLanguage(question);
     const useLegalKb = legalKb.shouldUseLegalKb(normalizedScope);
+    const parsedLegalQuery = useLegalKb ? legalKb.parseQueryFeatures(question) : null;
+    const legalTopK = parsedLegalQuery?.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS;
 
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
@@ -930,7 +1110,7 @@ async function answerQuestion(question, scope, userLang = null) {
         ? await legalKb.retrieveLegalResults(question, {
             scope: normalizedScope,
             langCode: lang.code,
-            topK: MAX_LEGAL_CHUNKS,
+            topK: legalTopK,
         })
         : null;
     const legalContext = useLegalKb
@@ -950,8 +1130,11 @@ async function answerQuestion(question, scope, userLang = null) {
         return fallbackKeywordSearch(question, scope);
     }
 
+    const answerStyleInstruction = useLegalKb
+        ? buildLegalAnswerStyleInstruction(lang.code, legalRetrieval)
+        : '';
     const citationInstruction = useLegalKb
-        ? `Quand tu cites les sources, reprends la formulation exacte des références [R1], [R2], etc. Si aucun fondement suffisant n'existe, dis-le explicitement.`
+        ? `Tu peux utiliser les repères internes [R1], [R2], etc. pour raisonner, mais tu ne dois jamais les afficher tels quels dans la réponse finale.`
         : '';
     const legalReferenceBlock = useLegalKb
         ? `\nRéférences candidates :\n${legalContext.results.map((entry, index) => `[R${index + 1}] ${legalKb.buildCitationLabel(entry.chunk)}`).join('\n')}`
@@ -963,6 +1146,7 @@ Thème actuel : ${scopeLabel}.
 Tu dois répondre UNIQUEMENT aux questions relevant de ce thème en utilisant le contexte ci-dessous.
 Ne redirige pas vers ce thème si l'utilisateur s'y trouve déjà.
 ${citationInstruction}
+${answerStyleInstruction}
 
 ${useLegalKb ? 'Base juridique indexée :' : 'Base documentaire disponible :'}
 ${contextBlock}${legalReferenceBlock}
@@ -978,8 +1162,8 @@ Question : ${question}`;
                 { role: 'system', content: buildSystemPrompt(scope) },
                 { role: 'user', content: userContent },
             ],
-            max_tokens: 400,
-            temperature: 0.6,
+            max_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
+            temperature: 0.2,
             top_p: 1,
         });
 
@@ -989,12 +1173,44 @@ Question : ${question}`;
             return 'Je n\'ai pas pu générer une réponse. Veuillez réessayer ou consulter cnss.ma';
         }
 
+        if (useLegalKb) {
+            reply = postProcessLegalReply(reply, legalRetrieval.results, lang.code, {
+                practical: Boolean(parsedLegalQuery?.asksAboutPractical),
+                legal: true,
+            });
+        }
+
         // Tronquer si trop long pour WhatsApp
         if (reply.length > MAX_RESPONSE_CHARS) {
             reply = reply.slice(0, MAX_RESPONSE_CHARS - 30) + '\n\n[Suite : cnss.ma]';
         }
 
         console.log(`[CNSS] Réponse générée (${reply.length} chars)`);
+
+        // Fire-and-forget quality scoring — does not block the WhatsApp reply
+        if (useLegalKb && legalContext?.results?.length) {
+            const contextIds = legalContext.results.map((r) => r.chunk?.chunk_id).filter(Boolean);
+            setImmediate(() => {
+                qualityScorer.scoreAnswer(question, reply, legalContext.results)
+                    .then((quality) => {
+                        if (!quality) return;
+                        return supabaseKb.logQuality({
+                            phone: null,
+                            question,
+                            answer: reply,
+                            contextIds,
+                            score: quality.score,
+                            dims: quality.dims,
+                            retried: false,
+                            flagged: quality.flagged,
+                            scope: normalizedScope,
+                            lang: lang.code,
+                        });
+                    })
+                    .catch(() => {});
+            });
+        }
+
         return reply;
 
     } catch (error) {
@@ -1055,4 +1271,11 @@ module.exports = {
     buildCnssQuestionPrompt,
     loadFaqContext,
     reloadFaqContext,
+    _test: {
+        buildPracticalShortLines,
+        buildLegalAnswerStyleInstruction,
+        getStructuredLabels,
+        postProcessLegalReply,
+        replaceReferencePlaceholders,
+    },
 };

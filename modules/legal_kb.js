@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const azureAiSearch = require('./azure_ai_search');
+const supabaseKb = require('./supabase_kb');
 
 const LEGAL_CHUNKS_DIR = path.join(__dirname, '..', 'data', 'legal_kb', 'chunks');
 const LEGAL_HYBRID_INDEX_PATH = path.join(__dirname, '..', 'data', 'legal_kb', 'indexes', 'legal_hybrid_index.json');
@@ -10,6 +12,7 @@ const MAX_EMBEDDING_TEXT_CHARS = 2400;
 const BM25_K1 = 1.5;
 const BM25_B = 0.75;
 const RRF_K = 60;
+const DEFAULT_TOP_K = Math.max(1, Number(process.env.TOP_K) || 4);
 
 let _corpusCache = null;
 let _hybridIndexCache = null;
@@ -191,6 +194,7 @@ function buildLexicalText(chunk) {
     ...(chunk.key_rules || []),
     ...(chunk.sanctions || []),
     ...(chunk.definitions || []),
+    ...(chunk.user_questions || []),
     chunk.legal_summary,
     chunk.clean_text || chunk.text,
     chunk.citation_label,
@@ -209,6 +213,7 @@ function buildEmbeddingText(chunk) {
     (chunk.topics || chunk.topic_tags || []).length ? `Topics: ${(chunk.topics || chunk.topic_tags).join(', ')}` : null,
     (chunk.entities || []).length ? `Entities: ${chunk.entities.join(', ')}` : null,
     (chunk.citations || chunk.cross_references || []).length ? `References: ${(chunk.citations || chunk.cross_references).join(', ')}` : null,
+    (chunk.user_questions || []).length ? `User questions: ${chunk.user_questions.slice(0, 6).join(' | ')}` : null,
     chunk.legal_summary,
     chunk.clean_text || chunk.text,
   ]);
@@ -574,9 +579,34 @@ async function embedText(value) {
 
 async function retrieveLegalResults(question, options = {}) {
   const scope = options.scope || '';
-  const topK = Number(options.topK) || 6;
-  const corpus = options.corpus || getCorpus();
+  const topK = Number(options.topK) || DEFAULT_TOP_K;
   const queryFeatures = parseQueryFeatures(question);
+  const useAzureSearch = azureAiSearch.isAzureAiSearchEnabled() && !options.corpus;
+
+  if (useAzureSearch) {
+    const queryEmbedding = options.queryEmbedding || (
+      hasEmbeddingSupport()
+        ? await embedText(String(question || '').trim())
+        : null
+    );
+    const results = await azureAiSearch.searchChunks({
+      queryText: question,
+      queryEmbedding,
+      topK,
+      hybrid: options.hybrid !== undefined ? Boolean(options.hybrid) : azureAiSearch.getConfig().hybridEnabled,
+    });
+    console.log('[legal-kb] azure_ai_search retrieved:', results.map((r) => `${r.chunk.chunk_id}(${Number(r.rerankScore || 0).toFixed(2)})`).join(', '));
+
+    return {
+      queryFeatures,
+      usedVector: Array.isArray(queryEmbedding) && queryEmbedding.length > 0,
+      queryEmbedding,
+      results,
+      provider: 'azure_ai_search',
+    };
+  }
+
+  const corpus = options.corpus || getCorpus();
 
   const lexicalCandidates = corpus.entries
     .map((entry) => {
@@ -606,7 +636,28 @@ async function retrieveLegalResults(question, options = {}) {
       : null
   );
 
-  if (Array.isArray(queryEmbedding)) {
+  // ── Supabase vector search (preferred when populated) ──────────────────────
+  if (Array.isArray(queryEmbedding) && supabaseKb.isEnabled()) {
+    try {
+      const sbResults = await supabaseKb.searchChunks({
+        queryText: String(question || '').trim(),
+        queryEmbedding,
+        topK: Math.max(topK * 4, 20),
+      });
+      if (sbResults.length > 0) {
+        vectorCandidates = sbResults.map((r) => ({
+          chunk: r.chunk,
+          vectorScore: r.rerankScore,
+        }));
+        console.log('[legal-kb] supabase hybrid retrieved:', sbResults.map((r) => `${r.chunk.chunk_id}(${Number(r.rerankScore || 0).toFixed(3)})`).join(', '));
+      }
+    } catch (sbErr) {
+      console.warn('[legal-kb] Supabase search failed, falling back to local cosine:', sbErr.message);
+    }
+  }
+
+  // ── Local cosine fallback (when Supabase unavailable or empty) ────────────
+  if (!vectorCandidates.length && Array.isArray(queryEmbedding)) {
     vectorCandidates = corpus.entries
       .filter((entry) => Array.isArray(entry.chunk.embedding))
       .map((entry) => ({
@@ -651,15 +702,22 @@ async function retrieveLegalResults(question, options = {}) {
   const topResults = reranked.slice(0, topK);
   console.log('[legal-kb] retrieved:', topResults.map((r) => `${r.chunk.chunk_id}(${r.rerankScore?.toFixed(2)})`).join(', '));
 
+  const usedSupabase = supabaseKb.isEnabled() && vectorCandidates.length > 0;
+
   return {
     queryFeatures,
     usedVector: Array.isArray(queryEmbedding) && vectorCandidates.length > 0,
     queryEmbedding,
     results: topResults,
+    provider: usedSupabase ? 'supabase' : 'local_bm25',
   };
 }
 
 function buildCitationLabel(chunk) {
+  if (String(chunk?.citation_label || '').trim()) {
+    return String(chunk.citation_label).trim();
+  }
+
   const sourceTitle = chunk.title || chunk.official_title || chunk.short_title || chunk.doc_id;
   const sectionLabel = chunk.section_path || chunk.structure_path || chunk.chunk_type || 'section';
   const articlePart = chunk.article_number ? `art. ${chunk.article_number}` : null;
