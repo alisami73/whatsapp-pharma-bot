@@ -15,12 +15,12 @@
   "cgu_declined": "Ha rechazado las condiciones de uso. El servicio está cerrado.\nPara reiniciar, envíe OUI.",
   "cgu_link": "Consulte nuestras Condiciones Generales de Uso:\n{url}\n\nUna vez leídas, vuelva aquí para aceptar o rechazar.",
 
-  "role_body": "¿Cuál es su función en la farmacia?",
+  "role_body": "👤 ¿Cuál es su función en la farmacia?",
   "role_button": "Elegir función",
   "role_section": "Su función",
-  "role_titulaire": "Farmacéutico titular",
-  "role_adjoint": "Farmacéutico adjunto",
-  "role_autre": "Otra función",
+  "role_titulaire": "🏥 Farmacéutico titular",
+  "role_adjoint": "💊 Farmacéutico adjunto",
+  "role_autre": "👤 Otra función",
 
   "onboarding_complete": "✅ Perfil registrado. ¡Bienvenido a Blink Premium!",
 

@@ -91,7 +91,7 @@ function buildConsentSpec(lang) {
 
 function buildRoleSpec(lang) {
   return {
-    friendlyName: `blink_role_v2_${lang}`,
+    friendlyName: `blink_role_v3_${lang}`,
     language: lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr',
     types: {
       'twilio/list-picker': {
@@ -236,7 +236,7 @@ async function sendConsentScreen(to, lang = 'fr') {
  */
 async function sendRoleScreen(to, lang = 'fr') {
   if (!isInteractiveEnabled()) return null;
-  const cacheKey = `role_v2_${lang}`;
+  const cacheKey = `role_v3_${lang}`;
   const sid = await resolveTemplate(cacheKey, () => buildRoleSpec(lang));
   if (!sid) return null;
   return sendInteractive(to, sid);

@@ -15,12 +15,12 @@
   "cgu_declined": "Vous avez refusé les conditions d'utilisation. Le service est fermé.\nPour relancer, envoyez OUI.",
   "cgu_link": "Consultez nos Conditions Générales d'Utilisation :\n{url}\n\nUne fois lues, revenez ici pour accepter ou refuser.",
 
-  "role_body": "Quel est votre rôle dans l'officine ?",
+  "role_body": "👤 Quel est votre rôle dans l'officine ?",
   "role_button": "Choisir mon rôle",
   "role_section": "Votre rôle",
-  "role_titulaire": "Pharmacien titulaire",
-  "role_adjoint": "Pharmacien adjoint",
-  "role_autre": "Autre rôle",
+  "role_titulaire": "🏥 Pharmacien titulaire",
+  "role_adjoint": "💊 Pharmacien adjoint",
+  "role_autre": "👤 Autre rôle",
 
   "onboarding_complete": "✅ Profil enregistré. Bienvenue dans Blink Premium !",
 
