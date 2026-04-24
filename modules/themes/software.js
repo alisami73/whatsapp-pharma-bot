@@ -294,7 +294,7 @@ async function sendBenefitsFAQMenu(to, lang) {
   if (!interactive.isInteractiveEnabled()) return null;
 
   const langCode = lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
-  const cacheKey = `software_benefits_faq_v2_${lang}`;
+  const cacheKey = `software_benefits_faq_v3_${lang}`;
   const CACHE_PATH = require('path').join(__dirname, '..', '..', 'data', 'interactive_templates.json');
   const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
   const fs = require('fs');
@@ -311,23 +311,25 @@ async function sendBenefitsFAQMenu(to, lang) {
 
   if (!sid) {
     const btn = t('sw_faq_btn_more', lang).slice(0, 20);
+    const BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/$/, '');
+    const img = (n) => `${BASE_URL}/public/carousel/blink-carte-0${n}.jpg`;
     const spec = {
-      friendlyName: `blink_software_benefits_faq_v2_${lang}`,
+      friendlyName: `blink_software_benefits_faq_v3_${lang}`,
       language: langCode,
       types: {
         'twilio/carousel': {
           body: t('sw_benefits_carousel_body', lang),
           cards: [
-            { title: t('sw_faq_q1', lang), body: t('sw_card_body_q1', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q1' }] },
-            { title: t('sw_faq_q2', lang), body: t('sw_card_body_q2', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q2' }] },
-            { title: t('sw_faq_q3', lang), body: t('sw_card_body_q3', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q3' }] },
-            { title: t('sw_faq_q4', lang), body: t('sw_card_body_q4', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q4' }] },
-            { title: t('sw_faq_q5', lang), body: t('sw_card_body_q5', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q5' }] },
-            { title: t('sw_faq_q6', lang), body: t('sw_card_body_q6', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q6' }] },
-            { title: t('sw_faq_q7', lang), body: t('sw_card_body_q7', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q7' }] },
-            { title: t('sw_faq_q8', lang), body: t('sw_card_body_q8', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q8' }] },
-            { title: t('sw_faq_medindex', lang), body: t('sw_card_body_medindex', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_medindex' }] },
-            { title: t('sw_faq_ia', lang), body: t('sw_card_body_ia', lang), actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_ia' }] },
+            { title: t('sw_faq_q1', lang), body: t('sw_card_body_q1', lang), media: [img(1)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q1' }] },
+            { title: t('sw_faq_q2', lang), body: t('sw_card_body_q2', lang), media: [img(2)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q2' }] },
+            { title: t('sw_faq_q3', lang), body: t('sw_card_body_q3', lang), media: [img(3)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q3' }] },
+            { title: t('sw_faq_q4', lang), body: t('sw_card_body_q4', lang), media: [img(4)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q4' }] },
+            { title: t('sw_faq_q5', lang), body: t('sw_card_body_q5', lang), media: [img(5)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q5' }] },
+            { title: t('sw_faq_q6', lang), body: t('sw_card_body_q6', lang), media: [img(6)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q6' }] },
+            { title: t('sw_faq_q7', lang), body: t('sw_card_body_q7', lang), media: [img(7)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q7' }] },
+            { title: t('sw_faq_q8', lang), body: t('sw_card_body_q8', lang), media: [img(8)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q8' }] },
+            { title: t('sw_faq_medindex', lang), body: t('sw_card_body_medindex', lang), media: [`${BASE_URL}/public/carousel/blink-carte-09.jpg`], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_medindex' }] },
+            { title: t('sw_faq_ia', lang), body: t('sw_card_body_ia', lang), media: [`${BASE_URL}/public/carousel/blink-carte-10.jpg`], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_ia' }] },
           ],
         },
       },
