@@ -94,8 +94,25 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
   if (!interactive.isInteractiveEnabled() || !isFooterQuickReplyEnabled()) return null;
 
   if (String(bodyText || '').length > MAX_INTERACTIVE_BODY_CHARS) {
-    console.log('[footer] Réponse trop longue pour le template quick-reply, fallback en texte intégral.');
-    return null;
+    console.log(`[footer] Réponse trop longue (${String(bodyText).length} chars), envoi outbound plain text.`);
+    try {
+      const client = twilioService.getTwilioClient();
+      const config = twilioService.getTwilioConfig();
+      const fullText = appendTextFooter(bodyText, lang, { includeBack: true });
+      const payload = {
+        to: twilioService.normalizeWhatsAppAddress(to),
+        body: fullText,
+      };
+      if (config.whatsappFrom) payload.from = config.whatsappFrom;
+      else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
+      else return null;
+      const result = await client.messages.create(payload);
+      console.log(`[footer] Outbound plain message envoyé (${fullText.length} chars) → ${result.sid}`);
+      return result;
+    } catch (err) {
+      console.error(`[footer] Outbound plain message failed: ${err.message}`);
+      return null;
+    }
   }
 
   const cacheKey = `${FOOTER_CACHE_KEY_PREFIX}_${lang}`;
