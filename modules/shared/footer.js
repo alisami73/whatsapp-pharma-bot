@@ -94,22 +94,39 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
 
   // Long messages: always use outbound API regardless of footer setting.
   // TwiML <Message> silently drops WhatsApp messages over ~1000 chars.
+  // Twilio WhatsApp outbound body limit is 1600 chars — split if needed.
+  const MAX_WA_BODY = 1550;
   if (String(bodyText || '').length > MAX_INTERACTIVE_BODY_CHARS) {
     console.log(`[footer] Réponse trop longue (${String(bodyText).length} chars), envoi outbound plain text.`);
     try {
       const client = twilioService.getTwilioClient();
       const config = twilioService.getTwilioConfig();
       const fullText = appendTextFooter(bodyText, lang, { includeBack: true });
-      const payload = {
-        to: twilioService.normalizeWhatsAppAddress(to),
-        body: fullText,
-      };
-      if (config.whatsappFrom) payload.from = config.whatsappFrom;
-      else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
+
+      const basePayload = { to: twilioService.normalizeWhatsAppAddress(to) };
+      if (config.whatsappFrom) basePayload.from = config.whatsappFrom;
+      else if (config.messagingServiceSid) basePayload.messagingServiceSid = config.messagingServiceSid;
       else return null;
-      const result = await client.messages.create(payload);
-      console.log(`[footer] Outbound plain message envoyé (${fullText.length} chars) → ${result.sid}`);
-      return result;
+
+      if (fullText.length <= MAX_WA_BODY) {
+        const result = await client.messages.create({ ...basePayload, body: fullText });
+        console.log(`[footer] Outbound envoyé (${fullText.length} chars) → ${result.sid}`);
+        return result;
+      }
+
+      // Split at the last paragraph break before the limit
+      const splitAt = fullText.lastIndexOf('\n\n', MAX_WA_BODY);
+      const cut = splitAt > 200 ? splitAt : MAX_WA_BODY;
+      const part1 = fullText.slice(0, cut).trim();
+      const part2 = fullText.slice(cut).trim();
+
+      const r1 = await client.messages.create({ ...basePayload, body: part1 });
+      console.log(`[footer] Outbound part 1 (${part1.length} chars) → ${r1.sid}`);
+      if (part2) {
+        const r2 = await client.messages.create({ ...basePayload, body: part2 });
+        console.log(`[footer] Outbound part 2 (${part2.length} chars) → ${r2.sid}`);
+      }
+      return r1;
     } catch (err) {
       console.error(`[footer] Outbound plain message failed: ${err.message}`);
       return null;

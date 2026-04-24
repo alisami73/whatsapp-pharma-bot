@@ -1249,7 +1249,7 @@ Question : ${question}`;
                 { role: 'system', content: buildSystemPrompt(scope) },
                 { role: 'user', content: userContent },
             ],
-            max_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
+            max_tokens: parsedLegalQuery?.asksAboutPractical ? 380 : 300,
             temperature: 0.7,
         });
 
