@@ -654,11 +654,17 @@ async function retrieveLegalResults(question, options = {}) {
   // ── Supabase vector search (preferred when populated) ──────────────────────
   if (Array.isArray(queryEmbedding) && supabaseKb.isEnabled()) {
     try {
-      const sbResults = await supabaseKb.searchChunks({
-        queryText: String(question || '').trim(),
-        queryEmbedding,
-        topK: Math.max(topK * 4, 20),
-      });
+      const supabaseTimeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase search timeout')), 5000),
+      );
+      const sbResults = await Promise.race([
+        supabaseKb.searchChunks({
+          queryText: String(question || '').trim(),
+          queryEmbedding,
+          topK: Math.max(topK * 4, 20),
+        }),
+        supabaseTimeout,
+      ]);
       if (sbResults.length > 0) {
         vectorCandidates = sbResults.map((r) => ({
           chunk: r.chunk,
