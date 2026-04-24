@@ -45,14 +45,15 @@
       "text": "PRÉPARER UNE INSPECTION — CHECKLIST PRATIQUE AVANT LA VISITE\n\nCe que vous devez vérifier AVANT l'arrivée des inspecteurs :\n\nDOSSIER EXPRESS À AVOIR IMMÉDIATEMENT :\n• Autorisation d'ouverture / d'exploitation de la pharmacie\n• Diplôme du pharmacien et documents professionnels à jour\n• Factures fournisseurs des 12 derniers mois\n• Registres sensibles (ordonnancier, stupéfiants, alcool)\n• Contrats du personnel si demandés\n\nCONTRÔLE DU RAYON :\n• Retirer immédiatement tout médicament périmé\n• Isoler les produits douteux (conservation incorrecte, emballage endommagé)\n• Vérifier le rangement de l'ordonnancier et des prescriptions conservées\n• S'assurer que les médicaments à prescription obligatoire sont séparés des ventes libres\n\nCHAÎNE DU FROID :\n• Vérifier et noter la température du réfrigérateur pharmaceutique\n• S'assurer que le thermomètre est fonctionnel\n• Vérifier que les produits sensibles sont correctement rangés et tracés\n\nPRODUITS AUTORISÉS :\n• Vérifier que tous les médicaments disposent d'une AMM marocaine ou sont issus du circuit légal\n• Aucun produit importé hors circuit légal ne doit être présent\n• Distinction claire entre médicament, cosmétique, complément alimentaire et dispositif médical",
       "clean_text": "checklist inspection pharmacie dossier autorisation exploitation diplôme factures registres contrats personnel rayon périmés produits douteux ordonnancier prescriptions médicaments ordonnance chaîne froid réfrigérateur thermomètre AMM circuit légal importés.",
       "key_rules": [
-        "Avoir l'autorisation d'exploitation, le diplôme et les factures 12 mois immédiatement disponibles",
+        "Avoir l'autorisation d'ouverture de l'officine (délivrée par le Ministère de la Santé), le diplôme et les factures 12 mois immédiatement disponibles",
         "Retirer tous les médicaments périmés avant toute inspection",
         "Température du réfrigérateur vérifiée et notée",
         "Aucun médicament sans AMM ni produit hors circuit légal",
-        "Séparation visible médicaments OP / vente libre"
+        "Séparation visible médicaments OP / vente libre",
+        "IMPORTANT : l'autorisation d'ouverture de l'officine est distincte de l'autorisation d'exercer (Ordre des pharmaciens). Un pharmacien titulaire de l'autorisation d'exercer peut délivrer les stupéfiants sans autorisation supplémentaire."
       ],
       "retrieval_keywords": ["checklist inspection", "que préparer inspection", "dossier inspection pharmacie", "médicaments périmés inspection", "AMM inspection", "chaîne froid inspection", "produits périmés", "autorisation exploitation", "documents inspection pharmacie", "que dois je préparer inspection", "comment se préparer inspection"],
-      "sanctions": ["Procès-verbal pour détention de médicaments périmés", "Fermeture administrative pour absence d'autorisation d'exploitation", "Saisie des produits hors AMM ou circuit illégal"],
+      "sanctions": ["Procès-verbal pour détention de médicaments périmés", "Fermeture administrative en cas d'absence de l'autorisation d'ouverture de l'officine (document administratif de l'établissement, distinct de l'autorisation d'exercer personnelle du pharmacien)", "Saisie des produits hors AMM ou circuit illégal"],
       "exceptions": [],
       "cross_references": ["Loi 17-04 sur l'exercice de la pharmacie", "Réglementation AMMPS sur les AMM", "Dahir du 2 décembre 1922"]
     },
