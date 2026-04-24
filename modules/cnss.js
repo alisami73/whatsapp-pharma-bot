@@ -1237,20 +1237,28 @@ Question : ${question}`;
                 { role: 'user', content: userContent },
             ],
             max_completion_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
-            temperature: 0.2,
-            top_p: 1,
+            temperature: 0.7,
         });
 
-        let reply = extractAssistantText(completion.choices[0]?.message);
+        const choice = completion.choices[0];
+        const finishReason = choice?.finish_reason;
+        const refusal = choice?.message?.refusal;
+        if (finishReason && finishReason !== 'stop') {
+            console.warn(`[CNSS] finish_reason=${finishReason}${refusal ? ` | refusal=${refusal.slice(0, 120)}` : ''}`);
+        }
+
+        let reply = extractAssistantText(choice?.message);
 
         if (!reply) {
-            console.warn('[CNSS] Réponse vide du modèle, basculement en mode de secours.');
+            console.warn(`[CNSS] Réponse vide du modèle (finish_reason=${finishReason}), basculement en mode de secours.`);
             if (useLegalKb && legalContext?.results?.length) {
-                return formatStructuredLegalAnswerFromChunks(
+                const fallbackAnswer = formatStructuredLegalAnswerFromChunks(
                     legalContext.results.map((r) => r.chunk),
                     lang.code,
                     { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true },
                 );
+                console.log(`[CNSS] Réponse fallback chunks (${fallbackAnswer.length} chars)`);
+                return fallbackAnswer;
             }
             return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
         }
