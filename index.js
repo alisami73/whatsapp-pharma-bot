@@ -1118,6 +1118,12 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
     // ── ÉCRAN 1 : Sélection de langue ───────────────────────────────────────────
     // Déclenché si l'utilisateur n'a pas encore de langue enregistrée.
+    // Safety: if language was lost (storage corruption on restart) but user has a real state, restore to French silently.
+    if (!user.user_language && user.current_state &&
+        user.current_state !== STATES.AWAITING_LANGUAGE && user.current_state !== STATES.AWAITING_CONSENT) {
+      user = await storage.saveUser({ ...user, user_language: 'fr' });
+      console.warn(`[state] ${context.phone} — langue perdue, restaurée à 'fr' (state: ${user.current_state})`);
+    }
     if (!user.user_language || user.current_state === STATES.AWAITING_LANGUAGE) {
       const chosenLang = parseLang(controlValue);
 

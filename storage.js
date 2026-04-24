@@ -306,6 +306,7 @@ async function readJson(name) {
 
 async function writeJson(name, value) {
   const filePath = DATA_FILES[name];
+  const tmpPath = `${filePath}.tmp`;
   const payload = JSON.stringify(value, null, 2);
   const previousWrite = writeQueues.get(filePath) || Promise.resolve();
 
@@ -313,7 +314,8 @@ async function writeJson(name, value) {
     .catch(() => undefined)
     .then(async () => {
       await ensureJsonFile(name);
-      await fsp.writeFile(filePath, payload);
+      await fsp.writeFile(tmpPath, payload);
+      await fsp.rename(tmpPath, filePath); // atomic on Linux: prevents corruption on mid-write crash
       return clone(value);
     });
 
