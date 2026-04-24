@@ -7,6 +7,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const azureAiSearch = require('../modules/azure_ai_search');
 const legalKb = require('../modules/legal_kb');
 
 const ROOT = path.join(__dirname, '..');
@@ -17,11 +18,18 @@ const LEGAL_BACKUPS_DIR = path.join(ROOT, 'data', 'legal_kb_backups');
 const BUILD_SCRIPT = path.join(ROOT, 'scripts', 'build_legal_kb.py');
 
 function parseArgs(argv) {
+  const noAzureSearch = argv.includes('--no-azure-search');
+  const pushAzureSearch = !noAzureSearch && (
+    argv.includes('--azure-search')
+    || String(process.env.VECTOR_STORE_PROVIDER || '').trim().toLowerCase() === 'azure_ai_search'
+  );
+
   return {
     dryRun: argv.includes('--dry-run'),
     skipEmbeddings: argv.includes('--skip-embeddings'),
     skipBuild: argv.includes('--skip-build'),
     noBackup: argv.includes('--no-backup'),
+    pushAzureSearch,
   };
 }
 
@@ -164,9 +172,26 @@ function buildReport(chunks, embeddingState, backupDir, buildResult, options) {
     embedding_provider: embeddingState.runtime.provider,
     embedding_model: embeddingState.runtime.model,
     embeddings_enabled: embeddingState.embeddingsEnabled,
+    azure_ai_search_enabled: options.pushAzureSearch,
     chunk_count: chunks.length,
     document_count: new Set(chunks.map((chunk) => chunk.doc_id)).size,
   };
+}
+
+async function maybePushAzureAiSearch(embeddingState, options) {
+  if (!options.pushAzureSearch || options.dryRun) {
+    return { skipped: true };
+  }
+  if (!embeddingState.embeddingsEnabled) {
+    throw new Error('Azure AI Search nécessite des embeddings recalculés. Retirez --skip-embeddings et configurez Azure OpenAI.');
+  }
+
+  const entries = embeddingState.entries.filter((entry) => Array.isArray(entry.embedding) && entry.embedding.length);
+  if (!entries.length) {
+    throw new Error('Aucun chunk avec embedding valide à pousser vers Azure AI Search.');
+  }
+
+  return await azureAiSearch.upsertChunkEntries(entries);
 }
 
 async function main() {
@@ -198,6 +223,9 @@ async function main() {
     JSON.stringify(hybridIndex, null, 2),
     'utf8',
   );
+
+  const azureSearchResult = await maybePushAzureAiSearch(embeddingState, options);
+  report.azure_ai_search = azureSearchResult;
 
   fs.writeFileSync(
     path.join(LEGAL_INDEXES_DIR, 'reindex_report.json'),

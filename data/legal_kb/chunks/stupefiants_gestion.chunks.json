@@ -1,57 +1,397 @@
 {
   "doc_id": "stupefiants_gestion",
   "document_type": "guide_pratique",
-  "title": "Stupéfiants — de l'approvisionnement à la dispensation",
-  "citation_label": "Guide gestion stupéfiants — Dahir du 2 décembre 1922, réglementation officinale marocaine",
-  "confidence": 0.93,
+  "title": "Stupéfiants, de l'approvisionnement à la dispensation",
+  "official_title": "Stupéfiants, de l'approvisionnement à la dispensation",
+  "short_title": "Gestion des stupéfiants en officine",
+  "citation_label": "Article pratique sur la gestion des stupéfiants en officine, centré sur le Dahir du 2 décembre 1922",
+  "confidence": 0.89,
+  "manual_review_required": true,
+  "notes": [
+    "source textuelle fournie manuellement par l'utilisateur",
+    "article pratique rédigé par Sbai Abdeljaouad, docteur en pharmacie à Kénitra",
+    "source secondaire explicative fondée sur le Dahir du 2 décembre 1922",
+    "les règles reprises ci-dessous doivent être lues comme une synthèse pratique et non comme le texte légal intégral"
+  ],
   "chunks": [
     {
       "chunk_id": "stupefiants_001",
-      "topic_tags": ["stupéfiants", "conformites", "approvisionnement", "réglementation", "pharmacie", "officine"],
-      "text": "STUPÉFIANTS EN PHARMACIE — RÉGLEMENTATION ET APPROVISIONNEMENT\n\nBase légale : Dahir du 2 décembre 1922 relatif aux substances vénéneuses et stupéfiantes, et ses textes d'application.\n\nApprovisionnement :\n• Les stupéfiants sont commandés exclusivement via un carnet à souches à 3 volets (carnet de commande officiel fourni par la Direction du Médicament et de la Pharmacie — DMP).\n• Volet 1 : conservé par la pharmacie (souche)\n• Volet 2 : envoyé au grossiste répartiteur\n• Volet 3 : transmis à la DMP\n• La commande doit être signée et datée par le pharmacien titulaire.\n• Les quantités commandées doivent correspondre aux besoins réels justifiés par la comptabilité.\n\nStockage :\n• Les stupéfiants doivent être conservés dans une armoire métallique fermée à clé (armoire B), distincte des autres médicaments.\n• Accès réservé au pharmacien titulaire (ou à son délégué désigné par écrit).",
-      "clean_text": "Stupéfiants réglementation approvisionnement : Dahir 2 décembre 1922, carnet à souches 3 volets DMP, volet 1 pharmacie volet 2 grossiste volet 3 DMP, signé titulaire, armoire métallique fermée clé armoire B.",
-      "key_rules": [
-        "Commander les stupéfiants uniquement via carnet à souches officiel DMP",
-        "Conserver le volet 1 (souche) dans la pharmacie",
-        "Armoire B fermée à clé en permanence",
-        "Accès réservé au pharmacien titulaire"
+      "doc_id": "stupefiants_gestion",
+      "document_id": "stupefiants_gestion",
+      "title": "Cadre réglementaire, approvisionnement et conservation des stupéfiants",
+      "official_title": "Stupéfiants, de l'approvisionnement à la dispensation",
+      "short_title": "Gestion des stupéfiants en officine",
+      "document_type": "guide_pratique",
+      "source_document_kind": "manual_text",
+      "language": "fr",
+      "jurisdiction": "Maroc",
+      "publication_reference": "Référence principale citée : Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+      "section_path": "Rappels de la réglementation > Approvisionnement et conservation",
+      "structure_path": "Rappels de la réglementation > Approvisionnement et conservation",
+      "chunk_type": "section",
+      "topic_tags": [
+        "stupéfiants",
+        "tableau B",
+        "approvisionnement",
+        "stockage",
+        "officine",
+        "conformité"
       ],
-      "retrieval_keywords": ["stupéfiants pharmacie", "carnet à souches", "commande stupéfiants", "armoire stupéfiants", "Dahir 1922", "DMP stupéfiants", "approvisionnement stupéfiants", "morphine codéine"],
-      "sanctions": ["Infraction pénale (Dahir 1922) en cas de commande hors carnet officiel", "Retrait d'autorisation d'exercer"],
+      "topics": [
+        "stupéfiants",
+        "tableau B",
+        "approvisionnement",
+        "stockage",
+        "officine",
+        "conformité"
+      ],
+      "text": "Le document rappelle que les stupéfiants sont régis principalement par le Dahir du 2 décembre 1922 (12 Rebia II 1341), portant règlement sur l'importation, le commerce, la détention et l'usage des substances vénéneuses. Il précise que les stupéfiants sont classés dans le tableau B des substances vénéneuses. Pour l'officine et les établissements de soins, l'approvisionnement ne peut se faire qu'auprès d'établissements autorisés, notamment des fabricants, des grossistes répartiteurs ou des dépositaires titulaires d'une autorisation spéciale. L'approvisionnement doit être effectué au moyen d'un carnet de commande spécial à trois volets, disponible au Conseil national de l'Ordre des pharmaciens. Les documents correspondants doivent être conservés pendant trois ans. Le texte recommande au pharmacien acheteur de rattacher le volet n° 2, renvoyé par le fournisseur, à la souche correspondante du carnet à souches. Le détenteur des stupéfiants doit conserver ces produits dans des armoires fermées à clef. Ces armoires ne peuvent contenir d'autres substances que celles qui figurent aux tableaux A et B.",
+      "clean_text": "Stupéfiants : Dahir du 2 décembre 1922, classement au tableau B, approvisionnement uniquement auprès d'établissements autorisés, carnet de commande spécial à trois volets, conservation des documents pendant trois ans, rattacher le volet n° 2 à la souche, conservation dans des armoires fermées à clef limitées aux substances des tableaux A et B.",
+      "legal_summary": "Le texte impose un approvisionnement des stupéfiants via des opérateurs autorisés et un carnet spécial à trois volets, avec conservation documentaire trois ans et stockage sous clef dans des armoires réservées aux tableaux A et B.",
+      "key_rules": [
+        "Approvisionnement uniquement auprès d'établissements autorisés",
+        "Carnet de commande spécial à trois volets obligatoire",
+        "Documents de commande à conserver pendant trois ans",
+        "Stupéfiants à conserver dans des armoires fermées à clef",
+        "Ces armoires ne peuvent contenir que les substances des tableaux A et B"
+      ],
+      "obligations": [
+        "Utiliser un carnet de commande spécial à trois volets pour l'approvisionnement",
+        "Conserver les documents pendant trois ans",
+        "Rattacher le volet n° 2 renvoyé par le fournisseur à la souche correspondante",
+        "Conserver les stupéfiants dans des armoires fermées à clef"
+      ],
+      "deadlines": [
+        "Conservation des documents pendant trois ans"
+      ],
+      "sanctions": [],
       "exceptions": [],
-      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04 art. 63"]
+      "entities": [
+        "Dahir du 2 décembre 1922",
+        "Conseil national de l'Ordre des pharmaciens",
+        "fabricants",
+        "grossistes répartiteurs",
+        "dépositaires titulaires d'une autorisation spéciale"
+      ],
+      "citations": [
+        "Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+        "tableau B des substances vénéneuses"
+      ],
+      "cross_references": [
+        "Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+        "tableau B des substances vénéneuses"
+      ],
+      "retrieval_keywords": [
+        "approvisionnement stupéfiants officine",
+        "commande stupéfiants carnet à trois volets",
+        "volet 2 fournisseur souche carnet",
+        "documents stupéfiants conservation trois ans",
+        "armoire fermée à clef stupéfiants",
+        "tableau B substances vénéneuses",
+        "où acheter les stupéfiants en pharmacie"
+      ],
+      "keywords": [
+        "stupéfiants",
+        "approvisionnement",
+        "tableau B",
+        "carnet de commande",
+        "trois volets",
+        "armoire fermée à clef",
+        "conservation trois ans"
+      ],
+      "user_questions": [
+        "Comment commander des stupéfiants en pharmacie ?",
+        "Le carnet à trois volets est-il obligatoire pour les stupéfiants ?",
+        "Combien de temps faut-il garder les documents de commande des stupéfiants ?",
+        "Où faut-il stocker les stupéfiants à l'officine ?",
+        "Peut-on mettre d'autres médicaments dans l'armoire des stupéfiants ?",
+        "Qui peut fournir les stupéfiants à une pharmacie ?"
+      ],
+      "citation_label": "Gestion des stupéfiants en officine — Approvisionnement et conservation — Dahir du 2 décembre 1922"
     },
     {
       "chunk_id": "stupefiants_002",
-      "topic_tags": ["stupéfiants", "conformites", "comptabilité", "registre", "dispensation", "pharmacie"],
-      "text": "STUPÉFIANTS — DISPENSATION ET COMPTABILITÉ OBLIGATOIRE\n\nPrescription :\n• Les stupéfiants ne peuvent être délivrés que sur ordonnance sécurisée (papier sécurisé, nominative, avec quantité en toutes lettres).\n• La prescription est valable 7 jours à compter de la date d'émission.\n• Il est interdit de délivrer une quantité supérieure à celle prescrite.\n\nComptabilité (registre stupéfiants) :\n• Chaque entrée (réception) et sortie (dispensation) doit être enregistrée dans le registre stupéfiants.\n• Le registre doit comporter : date, désignation du produit, forme, dosage, quantité entrante ou sortante, numéro d'ordonnance, nom du prescripteur, nom du patient.\n• Une balance (stock théorique − sorties = stock réel) doit être vérifiable à tout moment.\n• En cas de discordance entre le stock physique et le registre, l'inspecteur considère cela comme une infraction grave.",
-      "clean_text": "Stupéfiants dispensation comptabilité : ordonnance sécurisée 7 jours quantité toutes lettres, registre entrées sorties date désignation dosage quantité ordonnance prescripteur patient, balance stock théorique réel.",
-      "key_rules": [
-        "Ordonnance sécurisée obligatoire, valable 7 jours",
-        "Quantité en toutes lettres sur l'ordonnance",
-        "Registre stupéfiants : entrées et sorties consignées à chaque opération",
-        "Balance stock vérifiable en permanence"
+      "doc_id": "stupefiants_gestion",
+      "document_id": "stupefiants_gestion",
+      "title": "Prescription des stupéfiants et délivrance à certains praticiens",
+      "official_title": "Stupéfiants, de l'approvisionnement à la dispensation",
+      "short_title": "Gestion des stupéfiants en officine",
+      "document_type": "guide_pratique",
+      "source_document_kind": "manual_text",
+      "language": "fr",
+      "jurisdiction": "Maroc",
+      "publication_reference": "Référence principale citée : Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+      "section_path": "Rappels de la réglementation > Prescription et délivrance",
+      "structure_path": "Rappels de la réglementation > Prescription et délivrance",
+      "chunk_type": "section",
+      "topic_tags": [
+        "stupéfiants",
+        "prescription",
+        "dispensation",
+        "praticiens",
+        "article 24",
+        "officine"
       ],
-      "retrieval_keywords": ["registre stupéfiants", "comptabilité stupéfiants", "ordonnance sécurisée", "balance stupéfiants", "dispensation stupéfiants", "7 jours ordonnance", "stock stupéfiants"],
-      "sanctions": ["Délit pénal en cas de délivrance sans ordonnance", "Infraction grave si discordance de stock non justifiée"],
-      "exceptions": ["Urgence médicale documentée peut justifier une dérogation temporaire sous contrôle médical"],
-      "cross_references": ["Dahir du 2 décembre 1922", "Circulaire DMP sur les stupéfiants"]
+      "topics": [
+        "stupéfiants",
+        "prescription",
+        "dispensation",
+        "praticiens",
+        "article 24",
+        "officine"
+      ],
+      "text": "La prescription des stupéfiants doit se faire au moyen de carnets à souches. Le document insiste sur le fait que les pharmaciens doivent rigoureusement refuser l'exécution d'ordonnances qui ne seraient pas rédigées sur ces carnets dans les formes prescrites par les règlements en vigueur. La durée de prescription des stupéfiants est de sept jours. Le texte rappelle aussi que les pharmaciens peuvent délivrer aux médecins, aux vétérinaires, aux chirurgiens-dentistes et aux sages-femmes les substances du tableau B nécessaires à l'exercice de leur profession, dans les conditions et sous les réserves fixées par l'article 24 du Dahir du 2 décembre 1922. Cette délivrance n'est toutefois possible qu'à des praticiens domiciliés dans la commune ou dans des communes contiguës lorsque celles-ci sont dépourvues d'officine. Les demandes émanant de ces praticiens doivent être revêtues des mentions obligatoires et être conservées trois ans. Ce passage est important pour les situations de délivrance professionnelle hors circuit classique de dispensation au patient.",
+      "clean_text": "Prescription des stupéfiants au moyen de carnets à souches, refus obligatoire des ordonnances non conformes, durée de prescription de sept jours, délivrance possible à certains praticiens du tableau B selon l'article 24 du Dahir du 2 décembre 1922, praticiens domiciliés dans la commune ou des communes contiguës sans officine, demandes à mentions obligatoires conservées trois ans.",
+      "legal_summary": "Le document impose des ordonnances sur carnet à souches, une validité de sept jours, et encadre la délivrance de substances du tableau B à certains praticiens selon l'article 24 du Dahir du 2 décembre 1922.",
+      "key_rules": [
+        "Prescription au moyen de carnets à souches",
+        "Refuser l'exécution d'une ordonnance non rédigée sur ces carnets",
+        "Durée de prescription des stupéfiants : sept jours",
+        "Délivrance possible à certains praticiens dans les conditions de l'article 24",
+        "Demandes des praticiens à conserver trois ans"
+      ],
+      "obligations": [
+        "Refuser les ordonnances non conformes aux carnets à souches",
+        "Respecter la durée de prescription de sept jours",
+        "Vérifier que la demande du praticien comporte les mentions obligatoires",
+        "Conserver ces demandes pendant trois ans"
+      ],
+      "deadlines": [
+        "Durée de prescription des stupéfiants : sept jours",
+        "Conservation des demandes des praticiens pendant trois ans"
+      ],
+      "sanctions": [],
+      "exceptions": [
+        "Délivrance professionnelle possible à des médecins, vétérinaires, chirurgiens-dentistes et sages-femmes selon l'article 24 du Dahir du 2 décembre 1922"
+      ],
+      "entities": [
+        "Dahir du 2 décembre 1922",
+        "article 24",
+        "médecins",
+        "vétérinaires",
+        "chirurgiens-dentistes",
+        "sages-femmes"
+      ],
+      "citations": [
+        "article 24 du Dahir du 2 décembre 1922",
+        "tableau B des substances vénéneuses"
+      ],
+      "cross_references": [
+        "article 24 du Dahir du 2 décembre 1922",
+        "tableau B des substances vénéneuses"
+      ],
+      "retrieval_keywords": [
+        "ordonnance stupéfiants carnet à souches",
+        "durée prescription stupéfiants sept jours",
+        "refus ordonnance stupéfiants non conforme",
+        "délivrance stupéfiants médecin vétérinaire dentiste sage-femme",
+        "article 24 dahir 2 décembre 1922",
+        "demande praticien commune contiguë sans officine"
+      ],
+      "keywords": [
+        "prescription",
+        "carnets à souches",
+        "sept jours",
+        "article 24",
+        "praticiens",
+        "conservation trois ans"
+      ],
+      "user_questions": [
+        "Quelle est la durée de validité d'une ordonnance de stupéfiants ?",
+        "Dois-je refuser une ordonnance de stupéfiants hors carnet à souches ?",
+        "Un pharmacien peut-il délivrer des stupéfiants à un médecin ?",
+        "À quelles conditions peut-on délivrer des substances du tableau B à un praticien ?",
+        "Faut-il garder les demandes des médecins pour les stupéfiants ?",
+        "Qui peut recevoir des stupéfiants pour l'exercice de sa profession ?"
+      ],
+      "citation_label": "Gestion des stupéfiants en officine — Prescription et délivrance — Dahir du 2 décembre 1922, art. 24"
     },
     {
       "chunk_id": "stupefiants_003",
-      "topic_tags": ["stupéfiants", "conformites", "registre", "reports", "périmés", "retours", "vols", "pharmacie"],
-      "text": "STUPÉFIANTS — TENUE DU REGISTRE : CAS PARTICULIERS\n\nBonnes pratiques pour la tenue du registre stupéfiants :\n\n• Reports en bas de page : à chaque changement de page, reporter le solde total (balance) en bas de la page précédente et en haut de la nouvelle page, signé par le pharmacien.\n• Médicaments périmés : les stupéfiants périmés ne peuvent pas être détruits librement. Ils doivent être retournés à la DMP ou au grossiste répartiteur avec un bon de retour officiel, mentionné dans le registre.\n• Retours patients : si un patient rapporte des stupéfiants non utilisés, ils doivent être consignés dans le registre comme entrée exceptionnelle et retournés selon la procédure officielle.\n• Vols ou pertes : en cas de vol ou de perte de stupéfiants, déclarer immédiatement à la DMP et aux autorités compétentes (Gendarmerie/Police). Conserver une copie du procès-verbal dans le registre.\n• Conservation du registre : 10 ans minimum.",
-      "clean_text": "Stupéfiants registre cas particuliers : reports bas de page solde signé, périmés retour DMP bon officiel, retours patients entrée exceptionnelle, vol perte déclaration DMP police procès-verbal, conservation 10 ans.",
-      "key_rules": [
-        "Reporter le solde en bas de chaque page, signé par le titulaire",
-        "Périmés : retour DMP ou grossiste avec bon officiel, inscrit au registre",
-        "Vol ou perte : déclaration immédiate DMP + autorités + PV dans le registre",
-        "Conservation du registre stupéfiants : 10 ans minimum"
+      "doc_id": "stupefiants_gestion",
+      "document_id": "stupefiants_gestion",
+      "title": "Registre spécial des substances B : inscriptions, entrées, sorties et balance",
+      "official_title": "Stupéfiants, de l'approvisionnement à la dispensation",
+      "short_title": "Gestion des stupéfiants en officine",
+      "document_type": "guide_pratique",
+      "source_document_kind": "manual_text",
+      "language": "fr",
+      "jurisdiction": "Maroc",
+      "publication_reference": "Référence principale citée : Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+      "section_path": "Comptabilité des stupéfiants > Règles générales du registre",
+      "structure_path": "Comptabilité des stupéfiants > Règles générales du registre",
+      "chunk_type": "section",
+      "topic_tags": [
+        "stupéfiants",
+        "registre",
+        "comptabilité",
+        "entrées",
+        "sorties",
+        "balance"
       ],
-      "retrieval_keywords": ["registre stupéfiants report", "stupéfiants périmés", "retour stupéfiants", "vol stupéfiants", "perte stupéfiants", "DMP retour médicament", "conservation registre stupéfiants"],
-      "sanctions": ["Infraction en cas de destruction non autorisée de stupéfiants périmés", "Infraction en cas de non-déclaration de vol"],
+      "topics": [
+        "stupéfiants",
+        "registre",
+        "comptabilité",
+        "entrées",
+        "sorties",
+        "balance"
+      ],
+      "text": "Le document précise que tout achat ou toute cession, même à titre gratuit, de ces substances doit être inscrit sur un registre spécial des substances B, coté et paraphé par le chef des services municipaux ou par l'autorité de contrôle. Il est également indiqué que l'Inspection de la Pharmacie est habilitée pour parapher ce registre. Le texte mentionne qu'un “registre comptable des stupéfiants”, réalisé sous l'égide de la Fédération nationale des syndicats des pharmaciens du Maroc, a été mis à la disposition des pharmaciens avec des explications et des exemples. Les inscriptions doivent se faire sans blanc, ni rature, ni surcharge. Pour les entrées, l'inscription se fait dès réception et doit comporter la date, la désignation des produits, leur quantité, le nom et l'adresse du fournisseur. Le justificatif de l'entrée est le volet n° 2 du carnet de commandes, retourné par le fournisseur après remplissage et rattaché à la souche correspondante. Pour les sorties, l'inscription peut se faire mensuellement par relevé totalisé des quantités. Une balance des entrées et sorties doit être portée au registre afin d'assurer un suivi régulier du stock de stupéfiants.",
+      "clean_text": "Registre spécial des substances B : tout achat ou cession même gratuit doit être inscrit, registre coté et paraphé, inscriptions sans blanc ni rature ni surcharge, entrées dès réception avec date produit quantité fournisseur, justificatif par volet n° 2, sorties possibles mensuellement par relevé totalisé, balance des entrées et sorties pour suivre le stock.",
+      "legal_summary": "Tout mouvement de stupéfiants doit être inscrit sur un registre spécial des substances B, avec des règles de forme strictes et des modalités précises pour les entrées, sorties et balances.",
+      "key_rules": [
+        "Tout achat ou cession, même à titre gratuit, doit être inscrit",
+        "Registre coté et paraphé par l'autorité compétente",
+        "Inscriptions sans blanc, ni rature, ni surcharge",
+        "Entrées inscrites dès réception avec justificatif",
+        "Sorties inscrites par relevé totalisé mensuel possible",
+        "Balance des entrées et sorties à porter au registre"
+      ],
+      "obligations": [
+        "Inscrire tout achat ou cession même gratuit sur le registre spécial",
+        "Faire parapher le registre par l'autorité compétente",
+        "Tenir les inscriptions sans blanc, ni rature, ni surcharge",
+        "Inscrire les entrées dès réception",
+        "Porter une balance des entrées et sorties sur le registre"
+      ],
+      "deadlines": [
+        "Inscription des entrées dès réception",
+        "Inscription des sorties possible mensuellement par relevé totalisé"
+      ],
+      "sanctions": [],
       "exceptions": [],
-      "cross_references": ["Dahir du 2 décembre 1922", "Loi 17-04", "Circulaire DMP gestion des retours"]
+      "entities": [
+        "Inspection de la Pharmacie",
+        "chef des services municipaux",
+        "autorité de contrôle",
+        "Fédération nationale des syndicats des pharmaciens du Maroc"
+      ],
+      "citations": [
+        "registre spécial des substances B",
+        "registre comptable des stupéfiants"
+      ],
+      "cross_references": [
+        "registre spécial des substances B",
+        "registre comptable des stupéfiants"
+      ],
+      "retrieval_keywords": [
+        "registre spécial substances B",
+        "registre comptable des stupéfiants",
+        "comment inscrire les entrées stupéfiants",
+        "sorties mensuelles relevé totalisé stupéfiants",
+        "balance registre stupéfiants",
+        "registre coté et paraphé stupéfiants",
+        "sans blanc ni rature ni surcharge"
+      ],
+      "keywords": [
+        "registre spécial",
+        "substances B",
+        "entrées",
+        "sorties",
+        "balance",
+        "registre comptable"
+      ],
+      "user_questions": [
+        "Comment tenir le registre des stupéfiants ?",
+        "Que faut-il inscrire dans le registre spécial des substances B ?",
+        "Quand faut-il inscrire une entrée de stupéfiants ?",
+        "Peut-on totaliser les sorties de stupéfiants par mois ?",
+        "Qui paraphe le registre des stupéfiants ?",
+        "Le registre peut-il contenir des ratures ou des blancs ?"
+      ],
+      "citation_label": "Gestion des stupéfiants en officine — Registre spécial des substances B — Entrées, sorties et balance"
+    },
+    {
+      "chunk_id": "stupefiants_004",
+      "doc_id": "stupefiants_gestion",
+      "document_id": "stupefiants_gestion",
+      "title": "Cas particuliers du registre : reports, périmés, retours et vols",
+      "official_title": "Stupéfiants, de l'approvisionnement à la dispensation",
+      "short_title": "Gestion des stupéfiants en officine",
+      "document_type": "guide_pratique",
+      "source_document_kind": "manual_text",
+      "language": "fr",
+      "jurisdiction": "Maroc",
+      "publication_reference": "Référence principale citée : Dahir du 2 décembre 1922 (12 Rebia II 1341)",
+      "section_path": "Comptabilité des stupéfiants > Cas particuliers du registre",
+      "structure_path": "Comptabilité des stupéfiants > Cas particuliers du registre",
+      "chunk_type": "section",
+      "topic_tags": [
+        "stupéfiants",
+        "registre",
+        "périmés",
+        "retours",
+        "vols",
+        "inspection"
+      ],
+      "topics": [
+        "stupéfiants",
+        "registre",
+        "périmés",
+        "retours",
+        "vols",
+        "inspection"
+      ],
+      "text": "Le document donne plusieurs conseils pratiques pour la tenue du registre. Lorsqu'il arrive en bas de page, le pharmacien doit reporter tous les produits mentionnés sur cette page, même si certains n'ont subi aucun mouvement, afin de faciliter le contrôle. Les stupéfiants périmés restent en comptabilité dans le registre ; seul le pharmacien inspecteur de la santé peut les sortir lors de leur destruction. En cas de retour de stupéfiants à la pharmacie, à la suite d'un arrêt ou d'un changement de traitement, ou encore après le décès d'un malade, le pharmacien doit en assurer la détention. Toutefois, comme ces produits sont sortis de la chaîne pharmaceutique et reviennent sans l'intermédiaire des bons de commande, ils ne peuvent pas être réintégrés dans la comptabilité des stupéfiants de l'officine. Il est recommandé de les ranger à part pour éviter toute confusion et d'en tenir une comptabilité séparée. Lors de son passage, le pharmacien inspecteur de la santé procède à leur destruction, qu'ils soient périmés ou non. Après un vol, le pharmacien doit inscrire au registre des stupéfiants un inventaire de ce qui lui reste.",
+      "clean_text": "Cas particuliers du registre : reporter tous les produits en bas de page même sans mouvement, périmés maintenus en comptabilité jusqu'à sortie par le pharmacien inspecteur, retours de patients non réintégrables dans la comptabilité de l'officine, rangement à part et comptabilité séparée, destruction par le pharmacien inspecteur, après un vol inscrire au registre l'inventaire du stock restant.",
+      "legal_summary": "Le document encadre les reports de page, le traitement des périmés, les retours hors chaîne pharmaceutique et l'écriture à faire au registre après un vol.",
+      "key_rules": [
+        "Reporter tous les produits en bas de page même sans mouvement",
+        "Les périmés restent en comptabilité jusqu'à leur destruction",
+        "Seul le pharmacien inspecteur de la santé peut sortir les périmés lors de la destruction",
+        "Les stupéfiants retournés ne peuvent pas être réintégrés dans la comptabilité de l'officine",
+        "Tenir les retours à part avec une comptabilité séparée",
+        "Après un vol, inscrire un inventaire du stock restant"
+      ],
+      "obligations": [
+        "Reporter tous les produits mentionnés à la page pour faciliter le contrôle",
+        "Maintenir les périmés en comptabilité jusqu'à destruction par l'inspecteur",
+        "Assurer la détention des stupéfiants retournés",
+        "Ranger les retours à part et tenir une comptabilité séparée",
+        "Inscrire après un vol l'inventaire de ce qui reste"
+      ],
+      "deadlines": [],
+      "sanctions": [],
+      "exceptions": [
+        "Les stupéfiants rapportés après arrêt de traitement, changement de traitement ou décès ne réintègrent pas la comptabilité normale de l'officine"
+      ],
+      "entities": [
+        "pharmacien inspecteur de la santé"
+      ],
+      "citations": [
+        "registre des stupéfiants",
+        "pharmacien inspecteur de la santé"
+      ],
+      "cross_references": [
+        "registre des stupéfiants",
+        "pharmacien inspecteur de la santé"
+      ],
+      "retrieval_keywords": [
+        "stupéfiants périmés registre",
+        "retour patient stupéfiants officine",
+        "destruction stupéfiants pharmacien inspecteur",
+        "vol stupéfiants inventaire registre",
+        "report bas de page registre stupéfiants",
+        "comptabilité séparée retours stupéfiants"
+      ],
+      "keywords": [
+        "périmés",
+        "retours",
+        "vols",
+        "report",
+        "comptabilité séparée",
+        "pharmacien inspecteur"
+      ],
+      "user_questions": [
+        "Que faire des stupéfiants périmés dans le registre ?",
+        "Peut-on réintégrer au stock des stupéfiants rapportés par un patient ?",
+        "Comment comptabiliser un retour de stupéfiants après décès du malade ?",
+        "Que faut-il écrire dans le registre après un vol de stupéfiants ?",
+        "Faut-il reporter les lignes en bas de page du registre ?",
+        "Qui détruit les stupéfiants périmés ou retournés ?"
+      ],
+      "citation_label": "Gestion des stupéfiants en officine — Cas particuliers du registre — périmés, retours et vols"
     }
   ]
 }

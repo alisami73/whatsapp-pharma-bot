@@ -27,6 +27,7 @@ function getInteractive() {
 }
 
 const FOOTER_CACHE_KEY_PREFIX = 'footer_v1';
+const MAX_INTERACTIVE_BODY_CHARS = 950;
 
 function isFooterQuickReplyEnabled() {
   return String(process.env.INTERACTIVE_FOOTER_ENABLED || '').toLowerCase() === 'true';
@@ -92,6 +93,11 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
   const interactive = getInteractive();
   if (!interactive.isInteractiveEnabled() || !isFooterQuickReplyEnabled()) return null;
 
+  if (String(bodyText || '').length > MAX_INTERACTIVE_BODY_CHARS) {
+    console.log('[footer] Réponse trop longue pour le template quick-reply, fallback en texte intégral.');
+    return null;
+  }
+
   const cacheKey = `${FOOTER_CACHE_KEY_PREFIX}_${lang}`;
 
   // Résoudre le SID du template footer
@@ -141,8 +147,7 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
 
     if (!sid) return null;
 
-    // Tronquer le texte à 1024 chars (limite Twilio quick-reply body)
-    const safeBody = String(bodyText || '').slice(0, 1024);
+    const safeBody = String(bodyText || '');
 
     const payload = {
       to: twilioService.normalizeWhatsAppAddress(to),
