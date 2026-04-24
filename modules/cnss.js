@@ -984,7 +984,7 @@ function getAzureClient() {
     }
 
     const { AzureOpenAI } = require('openai');
-    _azureClient = new AzureOpenAI({ apiKey, endpoint, apiVersion });
+    _azureClient = new AzureOpenAI({ apiKey, endpoint, apiVersion, timeout: 22000, maxRetries: 0 });
     return _azureClient;
 }
 
@@ -1034,6 +1034,9 @@ function fallbackKeywordSearch(question, scope) {
         if (keyword === 'cnss') {
             ['affiliation', 'cotisation', 'amo', 'remboursement'].forEach((value) => expandedKeywords.add(value));
         }
+        if (/obligatoir/.test(keyword)) {
+            ['pilote', 'phase', 'obligatoire', 'generalisation', 'encore'].forEach((value) => expandedKeywords.add(value));
+        }
     });
 
     const sections = extractMarkdownSections(context);
@@ -1041,16 +1044,19 @@ function fallbackKeywordSearch(question, scope) {
     let bestScore = 0;
 
     sections.forEach((section) => {
-        const haystack = normalizeText([section.title, ...section.content].join(' '));
+        const normalizedTitle = normalizeText(section.title);
+        const haystack = normalizedTitle + ' ' + normalizeText(section.content.join(' '));
         let score = 0;
 
         expandedKeywords.forEach((kw) => {
-            if (haystack.includes(kw)) {
+            if (normalizedTitle.includes(kw)) {
+                score += 6; // Title match — much more specific than body
+            } else if (haystack.includes(kw)) {
                 score += 2;
             }
         });
 
-        if (section.title && normalizedQuestion.includes(normalizeText(section.title))) {
+        if (section.title && normalizedQuestion.includes(normalizedTitle)) {
             score += 4;
         }
 
@@ -1239,6 +1245,13 @@ Question : ${question}`;
 
         if (!reply) {
             console.warn('[CNSS] Réponse vide du modèle, basculement en mode de secours.');
+            if (useLegalKb && legalContext?.results?.length) {
+                return formatStructuredLegalAnswerFromChunks(
+                    legalContext.results.map((r) => r.chunk),
+                    lang.code,
+                    { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true },
+                );
+            }
             return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
         }
 
@@ -1285,7 +1298,14 @@ Question : ${question}`;
     } catch (error) {
         console.error('[CNSS] Erreur Azure OpenAI:', error.message || error);
 
-        // Basculer en fallback si erreur LLM
+        // Si on a déjà les chunks du KB, les formater directement sans re-fetcher
+        if (useLegalKb && legalContext?.results?.length) {
+            return formatStructuredLegalAnswerFromChunks(
+                legalContext.results.map((r) => r.chunk),
+                lang.code,
+                { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true },
+            );
+        }
         const fallback = useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
         return fallback;
     }

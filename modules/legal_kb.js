@@ -545,6 +545,8 @@ function getEmbeddingClient() {
         apiKey: process.env.AZURE_OPENAI_API_KEY,
         endpoint: process.env.AZURE_OPENAI_ENDPOINT,
         apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-02-01',
+        timeout: 8000,
+        maxRetries: 0,
       }),
     };
     return _embeddingClientCache;

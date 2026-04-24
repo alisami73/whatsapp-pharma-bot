@@ -1,5 +1,140 @@
 # CHAT ALI — whatsapp-pharma-bot
 
+## [2026-04-24] — Fix FSE "obligatoire" : mauvaise section retournée
+
+### Résumé
+Bug prod : la question "La FSE est-elle obligatoire dès maintenant ?" retournait la section "2. Comment cela va fonctionner ?" au lieu de la réponse sur la phase pilote.
+
+**Cause identifiée :**
+- Bot en mode `fallbackKeywordSearch` (Azure OpenAI non disponible ou call échoue en prod)
+- L'expansion "fse" → `['feuille', 'soins', 'electronique', 'pharmacie', 'qr', 'code']` faisait scorer la section "2." à 12 pts
+- La section "Phase pilote" scorait seulement 4 pts car "obligatoire" n'y apparaissait pas
+- Le scoring ne boostait pas les correspondances dans les TITRES de section
+
+**Fix appliqué :**
+1. `data/knowledge/fse_faq.md` — ajout section explicite "La FSE est-elle déjà obligatoire ?" (FR + AR) avec réponse directe "Non, phase pilote"
+2. `modules/cnss.js` → `fallbackKeywordSearch` :
+   - Expansion "obligatoire" → `['pilote', 'phase', 'obligatoire', 'generalisation', 'encore']`
+   - Scoring titre : match dans le titre → +6 (au lieu de +2 en body), exclusif (pas de double-comptage)
+   - Résultat : la nouvelle section "obligatoire" score 34 pts vs 14 pour "Comment ça marche"
+
+### Décisions
+- L'expansion "fse" dans `fallbackKeywordSearch` reste utile pour le body, mais le boost titre la surpasse pour les questions ciblées
+- FAQ FSE mise à jour = fix qui fonctionne même si Azure OpenAI est indisponible
+
+### À retenir pour la prochaine session
+- `gpt-5.4-mini` est le bon nom de déploiement — confirmé dans Azure Foundry
+- `AZURE_OPENAI_API_VERSION=2026-03-17` — probablement valide (embedding pipeline a fonctionné avec cette version)
+- Pattern de bug : keyword expansion sur un terme générique ("fse") peut polluer le scoring de section → préférer boost sur les titres
+
+---
+
+## [2026-04-24] — Fix Conformité : timeout Twilio + double appel retrieveLegalResults
+
+### Résumé
+Le module Conformité ne répondait pas du tout. Cause : le webhook Twilio (limite 30 secondes) expirait avant la réponse.
+
+**Chaîne de temps pour une question Conformité (avant fix) :**
+1. `retrieveLegalResults` #1 : embedding (∞) + Supabase → jusqu'à ∞ sans timeout
+2. Si Azure chat échoue → `fallbackLegalSearch` appelle `retrieveLegalResults` #2 : embedding (∞) à nouveau
+3. Total potentiel >> 30 secondes → Twilio expire → user reçoit rien
+
+**Fix appliqué :**
+1. `legal_kb.js` → `getEmbeddingClient()` : `timeout: 8000, maxRetries: 0`
+2. `cnss.js` → `getAzureClient()` : `timeout: 22000, maxRetries: 0`
+3. `cnss.js` → quand Azure chat échoue ET qu'on a déjà `legalContext.results` → utilise les chunks déjà récupérés sans re-appeler `retrieveLegalResults` (évite le double coût)
+
+**Pire cas après fix :** 8s (embedding) + 22s (chat) = 30s → dans la limite Twilio. En practice : 3-8s (embedding) + 8-15s (chat) = 11-23s.
+
+### Décisions
+- Pas de modification de `AZURE_OPENAI_API_VERSION` — `2026-03-17` fonctionne pour les embeddings → probablement valide
+- Double-appel à `retrieveLegalResults` conservé dans `fallbackLegalSearch` mais shorcircuité si les résultats sont déjà disponibles
+
+### À retenir
+- Si les timeouts sont trop courts → augmenter `timeout` dans `getAzureClient` et `getEmbeddingClient`
+- Si le problème persiste → regarder les logs Railway pour voir l'erreur exacte
+
+---
+
+## [2026-04-23] — RAG Production : Supabase pgvector + Quality Scoring (session 2)
+
+### Résumé
+RAG production entièrement opérationnel en fin de session.
+
+**Architecture déployée :**
+- `scripts/supabase_schema.sql` — tables `legal_chunks` (VECTOR 1536) + `hybrid_search` RPC + `rag_quality_logs`
+- `modules/supabase_kb.js` — client Supabase, hybrid search, quality log insert, upsert batch
+- `modules/quality_scorer.js` — scoring 0–100 sur 6 dimensions (GPT, fire-and-forget)
+- `scripts/embed_and_upload.js` — 1005 chunks embeddés via Azure text-embedding-3-small → Supabase
+- `modules/legal_kb.js` — Supabase comme provider vecteur (fallback BM25 local si vide)
+- `modules/cnss.js` — quality log fire-and-forget après chaque réponse légale
+
+**Résultats vérifiés :**
+- 1005/1005 chunks dans Supabase avec embeddings
+- Retrieval provider = `supabase` sur toutes les requêtes test
+- Scores de pertinence : 0.29–0.61 selon la requête
+- Env vars déployées sur Railway
+
+**Commits :** `94ab8f7`, `39b7bef`
+
+### Décisions
+- Service role key = seule clé nécessaire côté serveur (bypasse RLS)
+- Pas de direct PostgreSQL access sans DB password → schéma appliqué via SQL editor Supabase (manuel)
+- Quality scoring fire-and-forget : aucune latence ajoutée côté WhatsApp
+- BM25 local toujours actif pour le composant lexical — Supabase pour le vecteur uniquement
+
+### À retenir pour la prochaine session
+- `rag_quality_logs` table active — après quelques jours d'utilisation, consulter les réponses `flagged=true` ou `quality_score < 75` dans Supabase table editor pour identifier les faiblesses du RAG
+- Pour ajouter de nouveaux documents KB : (1) créer le `.chunks.json`, (2) injecter dans `legal_hybrid_index.json`, (3) relancer `npm run kb:embed` → Supabase mis à jour automatiquement
+- `pg` installé en devDependency (pour migrations futures directes si DB password disponible)
+
+---
+
+## [2026-04-23] — FAQ sub-menus Blink Premium + Inspection KB + Emojis rôles
+
+### Résumé
+Session dense — 5 chantiers terminés.
+
+**Chantier 1 — FAQ interactives carrousel Blink Premium (terminé)**
+- Renommé "Être rappelé" → "Appelez-moi" avec sous-menu 2 options : 🎯 Démo / ❓ Renseignement
+- "Pourquoi Blink ?" → list-picker 10 items (2 sections) : q1–q8 + Medindex + IA
+- "Mes données & CNDP" → list-picker 5 items : sécurité, permission, loi 09-08, contrôle, règles
+- 3 nouveaux états : BROWSING_SW_CALLBACK_SUB, BROWSING_SW_BENEFITS_FAQ, BROWSING_SW_DATA_FAQ
+- RETOUR depuis sous-états → retour au carrousel software
+- 4 langues : FR/AR/ES/RU — tous les locale keys ajoutés
+
+**Chantier 2 — Drapeaux sur sélection de langue (terminé)**
+- `language_body` mis à jour avec 🇫🇷🇲🇦🇪🇸🇷🇺 dans tous les locales
+- Template bumped → `blink_language_v2`
+
+**Chantier 3 — Emojis menu sélection rôle (terminé — commité 2026-04-23)**
+- 🏥 Pharmacien titulaire / 💊 Adjoint / 👤 Autre — dans les 4 langues
+- Template bumped → `blink_role_v3`
+- Commit : `2561126`
+
+**Chantier 4 — Knowledge base inspection pharmacie (terminé)**
+- Document "Guide pratique — Se préparer à une inspection AMMPS" ingéré en 4 chunks
+- `data/legal_kb/chunks/guide_inspection_pratique_ammps.chunks.json` créé
+- 4 chunks injectés dans `legal_hybrid_index.json` (1001→1005 entrées)
+- Scores de retrieval : 0.44–0.59 (top résultats pour toutes les requêtes inspection)
+- Commit : `c7c151a`
+
+**Chantier 5 — Architecture RAG production (design fourni, non implémenté)**
+- 15 livrables décrits : Supabase schema, TypeScript pipeline, admin dashboard Vercel
+- Embeddings : text-embedding-3-small (1536 dims), GPT-4o-mini pour génération, GPT-4o pour scoring
+- Scoring qualité 0–100 sur 6 dimensions, seuil 75
+- PAS encore implémenté dans le code — design seulement
+
+### Décisions / Priorités
+- Déploiement : Railway (pas Vercel — filesystem writable requis)
+- Stockage : JSON files (pas de migration DB prévue sauf RAG Supabase)
+- RAG Supabase : si Ali veut implémenter → prochain chantier prioritaire
+
+### À retenir pour la prochaine session
+- RAG production non implémenté — si requis : setup Supabase + ingest pipeline KB existant
+- Template Twilio role v3 actif — si problème d'affichage, vider cache `data/interactive_templates.json`
+- Le fichier `data/legal_kb/indexes/legal_hybrid_index.json` est la source autoritaire du RAG (pas les chunks/*.json)
+
 ## [2026-04-12] — Consentement/Onboarding + Recherche Agent + RAG CNSS
 
 ### Résumé

@@ -4,6 +4,14 @@
 
 ## VERSION FRANÇAISE
 
+### La FSE est-elle déjà obligatoire ?
+
+Non. La FSE n'est pas encore obligatoire. Elle est actuellement en phase pilote.
+Seules certaines pharmacies sélectionnées participent au test. La généralisation nationale se fera progressivement après les ajustements et retours terrain.
+Tant que votre pharmacie n'a pas reçu de communication officielle, vous continuez à travailler comme avant.
+
+---
+
 ### 1. Pourquoi ce projet ?
 
 Parce qu'aujourd'hui la gestion des feuilles de soins est longue et administrative :
@@ -142,6 +150,14 @@ Non. Le déploiement est progressif pour permettre une adaptation sereine.
 ---
 
 ## النسخة العربية — VERSION ARABE
+
+### هل أصبحت FSE إلزامية؟
+
+لا. FSE ليست إلزامية بعد. هي حالياً في مرحلة تجريبية.
+فقط صيدليات معينة مختارة تشارك في الاختبار. سيتم التعميم الوطني تدريجياً بعد التعديلات واسترداد آراء الميدان.
+طالما لم تتلقَّ صيدليتك إشعاراً رسمياً، فأنت تواصل العمل كالمعتاد.
+
+---
 
 ### 1. لماذا هذا المشروع؟
 
