@@ -91,8 +91,9 @@ function buildFooterSpec(lang) {
  */
 async function sendAIResponseWithFooter(to, lang, bodyText) {
   const interactive = getInteractive();
-  if (!interactive.isInteractiveEnabled() || !isFooterQuickReplyEnabled()) return null;
 
+  // Long messages: always use outbound API regardless of footer setting.
+  // TwiML <Message> silently drops WhatsApp messages over ~1000 chars.
   if (String(bodyText || '').length > MAX_INTERACTIVE_BODY_CHARS) {
     console.log(`[footer] Réponse trop longue (${String(bodyText).length} chars), envoi outbound plain text.`);
     try {
@@ -114,6 +115,8 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
       return null;
     }
   }
+
+  if (!interactive.isInteractiveEnabled() || !isFooterQuickReplyEnabled()) return null;
 
   const cacheKey = `${FOOTER_CACHE_KEY_PREFIX}_${lang}`;
 
