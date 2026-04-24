@@ -1236,7 +1236,7 @@ Question : ${question}`;
                 { role: 'system', content: buildSystemPrompt(scope) },
                 { role: 'user', content: userContent },
             ],
-            max_completion_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
+            max_tokens: parsedLegalQuery?.asksAboutPractical ? 700 : 550,
             temperature: 0.7,
         });
 
