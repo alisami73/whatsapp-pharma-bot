@@ -1168,6 +1168,19 @@ async function answerQuestion(question, scope, userLang = null) {
     const parsedLegalQuery = useLegalKb ? legalKb.parseQueryFeatures(question) : null;
     const legalTopK = parsedLegalQuery?.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS;
 
+    // Simple greetings — skip the full pipeline
+    const trimmedQ = question.trim();
+    const isGreeting = /^(bonjour|bonsoir|salut|hello|hi|salam|مرحبا|أهلا|hola|привет|здравствуйте)[!. ,]*$/i.test(trimmedQ);
+    if (isGreeting) {
+        const greetings = {
+            fr: 'Bonjour ! Posez-moi votre question sur la conformité, les inspections, les stupéfiants, la CNDP ou la réglementation officinale.',
+            ar: 'مرحباً! يمكنك طرح سؤالك حول المطابقة أو التفتيش أو المستحضرات المخدرة أو CNDP أو اللوائح الصيدلانية.',
+            es: '¡Hola! Hágame su pregunta sobre conformidad, inspecciones, estupefacientes, CNDP o regulación farmacéutica.',
+            ru: 'Здравствуйте! Задайте мне вопрос о соответствии, инспекциях, наркотиках, CNDP или фармацевтическом законодательстве.',
+        };
+        return greetings[lang.code] || greetings.fr;
+    }
+
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
         return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
