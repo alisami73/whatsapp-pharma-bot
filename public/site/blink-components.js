@@ -129,6 +129,7 @@ function injectFooter() {
     scan:    (typeof BI18N !== 'undefined' && BI18N.features) ? BI18N.features[4].title : 'Scan intelligent',
     app:     (typeof BI18N !== 'undefined' && BI18N.features) ? BI18N.features[6].title : 'Application mobile',
     navCta:  t ? t.nav_cta        : 'Demander une démo',
+    privacyHref: lq('data-cndp.html'),
   };
 
   const footerHTML = `
@@ -170,7 +171,7 @@ function injectFooter() {
     <div class="footer-bottom">
       <span>${ft.rights}</span>
       <div style="display:flex;gap:1.5rem">
-        <a href="#">${ft.privacy}</a>
+        <a href="${ft.privacyHref}">${ft.privacy}</a>
         <a href="#">${ft.cgu}</a>
       </div>
     </div>

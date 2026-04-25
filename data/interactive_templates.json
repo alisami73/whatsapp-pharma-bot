@@ -1,1 +1,18 @@
-{}
+{
+  "software_carousel_v5_fr": {
+    "sid": "HX057d8f5c71b4287014c3f15c5d19f1c9",
+    "created_at": "2026-04-25T20:40:00.000Z"
+  },
+  "software_carousel_v5_ar": {
+    "sid": "HX1dfdf3ceb1b0de32e8e39aa3eb22b055",
+    "created_at": "2026-04-25T20:40:00.000Z"
+  },
+  "software_carousel_v5_es": {
+    "sid": "HXfbc12df4f20185306429739a4f6a04a3",
+    "created_at": "2026-04-25T20:40:00.000Z"
+  },
+  "software_carousel_v5_ru": {
+    "sid": "HX8ff122efdbf28147f314abfaa47403da",
+    "created_at": "2026-04-25T20:40:00.000Z"
+  }
+}

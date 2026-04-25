@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mes données & CNDP — Blink Premium</title>
+  <meta
+    name="description"
+    content="FAQ Blink Premium sur les données, la confidentialité et la conformité CNDP."
+  />
+  <link rel="stylesheet" href="blink.css" />
+  <style>
+    .page-hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(76, 175, 80, 0.18), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(38, 198, 218, 0.14), transparent 28%),
+        linear-gradient(135deg, #f0f2f8 0%, #ffffff 100%);
+      padding: 5.5rem 2rem 4rem;
+      border-bottom: 1px solid var(--blink-border);
+      text-align: center;
+    }
+    .page-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto 8% 1.5rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.35), transparent);
+    }
+    .page-hero h1 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 900;
+      margin-bottom: 1rem;
+    }
+    .page-hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      color: #64748b;
+      font-size: 1.03rem;
+    }
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--blink-border);
+      border-radius: 999px;
+      padding: 0.6rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #475569;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .content-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 4rem 2rem 5rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.25rem;
+    }
+    .summary-card {
+      position: relative;
+      overflow: hidden;
+      background: white;
+      border-radius: 26px;
+      border: 1px solid rgba(226, 232, 240, 0.92);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+      padding: 1.5rem;
+      min-height: 200px;
+    }
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--accent, var(--blink-green));
+    }
+    .summary-card .summary-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--accent, var(--blink-green)) 12%, white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+      margin-bottom: 1rem;
+    }
+    .summary-card h2 {
+      font-size: 1.18rem;
+      font-weight: 800;
+      margin-bottom: 0.65rem;
+    }
+    .summary-card p {
+      color: #64748b;
+      font-size: 0.92rem;
+      line-height: 1.72;
+    }
+
+    .faq-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(280px, 0.95fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .faq-panel,
+    .meta-card {
+      background: white;
+      border-radius: 28px;
+      border: 1px solid rgba(226, 232, 240, 0.92);
+      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.06);
+    }
+    .faq-panel {
+      padding: 2rem;
+    }
+    .faq-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .faq-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .faq-header p {
+      color: #64748b;
+      max-width: 560px;
+      font-size: 0.95rem;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .faq-item {
+      border: 1px solid var(--blink-border);
+      border-radius: 20px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      overflow: hidden;
+    }
+    .faq-question {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .faq-question strong {
+      font-size: 0.97rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .faq-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--blink-green) 10%, white);
+      color: var(--blink-green);
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+      font-size: 1rem;
+    }
+    .faq-item.open .faq-pill {
+      transform: rotate(45deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease;
+    }
+    .faq-answer-inner {
+      padding: 0 1.25rem 1.2rem;
+      color: #64748b;
+      font-size: 0.92rem;
+      line-height: 1.72;
+    }
+
+    .meta-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .meta-card {
+      padding: 1.5rem;
+    }
+    .meta-card h3 {
+      font-size: 1.08rem;
+      font-weight: 800;
+      margin-bottom: 0.65rem;
+    }
+    .meta-card p {
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .meta-list-item {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--blink-border);
+    }
+    .meta-list-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .meta-list-item .dot {
+      width: 10px;
+      height: 10px;
+      margin-top: 0.45rem;
+      border-radius: 50%;
+      background: var(--blink-green);
+      flex-shrink: 0;
+    }
+    .meta-list-item span {
+      color: #475569;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .meta-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4caf50 0%, #26c6da 100%);
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 16px 28px rgba(76, 175, 80, 0.2);
+    }
+
+    @media (max-width: 980px) {
+      .summary-grid,
+      .faq-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 680px) {
+      .page-hero,
+      .content-shell {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+      }
+      .faq-panel,
+      .meta-card,
+      .summary-card {
+        border-radius: 22px;
+      }
+      .faq-panel {
+        padding: 1.35rem;
+      }
+      .faq-question {
+        padding: 1rem;
+      }
+      .faq-answer-inner {
+        padding: 0 1rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <script src="assets/logo-data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="blink-components.js"></script>
+  <script>injectNavbar();</script>
+
+  <section class="page-hero">
+    <p class="section-label" id="heroLabel" style="justify-content:center;display:flex;"></p>
+    <h1 id="heroTitle"></h1>
+    <p id="heroText"></p>
+    <div class="hero-badges" id="heroBadges"></div>
+  </section>
+
+  <main class="content-shell">
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="faq-layout">
+      <div class="faq-panel fade-up">
+        <div class="faq-header">
+          <div>
+            <p class="section-label" id="faqLabel"></p>
+            <h2 id="faqTitle"></h2>
+          </div>
+          <p id="faqText"></p>
+        </div>
+        <div class="faq-list" id="faqList"></div>
+      </div>
+
+      <div class="meta-stack">
+        <aside class="meta-card fade-up" data-delay="80">
+          <p class="section-label" id="guideLabel"></p>
+          <h3 id="guideTitle"></h3>
+          <p id="guideText"></p>
+          <div class="meta-list" id="guideList"></div>
+        </aside>
+
+        <aside class="meta-card fade-up" data-delay="140">
+          <p class="section-label" id="contactLabel"></p>
+          <h3 id="contactTitle"></h3>
+          <p id="contactText"></p>
+          <a class="meta-cta" id="contactCta" href="mailto:dpo@blink.ma"></a>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const lang = (window.BI18N && window.BI18N.lang) || 'fr';
+    const isRtl = lang === 'ar';
+    const lq = (p) => (lang === 'fr' ? p : `${p}?lang=${lang}`);
+
+    const COPY = {
+      fr: {
+        title: 'Mes données & CNDP',
+        heroLabel: 'Confidentialité Blink Premium',
+        heroText: 'Une page dédiée pour répondre aux questions autour des données personnelles, de la confidentialité et de la CNDP. Les questions ci-dessous sont provisoires et seront remplacées par votre FAQ finale.',
+        badges: ['FAQ évolutive', 'Design Blink Premium', 'Version brouillon prête à enrichir'],
+        summaries: [
+          {
+            icon: '🔐',
+            accent: '#4CAF50',
+            title: 'Confidentialité structurée',
+            text: 'La page regroupe un futur espace d’information clair, pensé pour rassurer les pharmaciens et centraliser vos réponses officielles.'
+          },
+          {
+            icon: '⚖️',
+            accent: '#3F51B5',
+            title: 'Cadre CNDP visible',
+            text: 'Les blocs et l’accordéon sont prêts pour accueillir vos mentions juridiques, engagements contractuels et explications pratiques.'
+          },
+          {
+            icon: '🧩',
+            accent: '#26C6DA',
+            title: 'Contenu facile à remplacer',
+            text: 'Chaque question-réponse est isolée, pour que vous puissiez remplacer le lorem ipsum sans retoucher la structure de la page.'
+          }
+        ],
+        faqLabel: 'FAQ provisoire',
+        faqTitle: 'Questions fréquentes',
+        faqText: 'Exemple de structure accordéon pour vos futures réponses “Mes données & CNDP”.',
+        faq: [
+          { q: 'Lorem ipsum — quelles données sont traitées dans Blink Premium ?', a: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, sapien at feugiat volutpat, mauris sem blandit neque, vitae gravida augue mauris non lorem.' },
+          { q: 'Lorem ipsum — comment la CNDP intervient-elle dans le cadre du service ?', a: 'Suspendisse potenti. Donec condimentum, augue vitae tristique tempor, tortor velit luctus massa, non tristique lectus erat nec dui. Placeholder à remplacer par votre réponse métier.' },
+          { q: 'Lorem ipsum — qui peut accéder aux données de la pharmacie ?', a: 'Praesent feugiat lectus ut mi pharetra, non feugiat neque varius. Curabitur luctus justo et ligula cursus, nec efficitur lacus bibendum.' },
+          { q: 'Lorem ipsum — quelles mesures de sécurité sont appliquées ?', a: 'Vivamus et commodo nisi. Nulla facilisi. Pellentesque in dui vitae velit facilisis faucibus sit amet nec risus. Contenu factice en attendant la version finale.' },
+          { q: 'Lorem ipsum — comment exercer un droit d’accès ou de rectification ?', a: 'Aliquam erat volutpat. Cras congue libero ut dui porta, ac dignissim lectus convallis. Cette réponse sert de bloc de démonstration.' }
+        ],
+        guideLabel: 'Repères',
+        guideTitle: 'Comment utiliser cette page',
+        guideText: 'La structure est déjà prête pour votre contenu final. Vous pourrez remplacer les blocs lorem ipsum par vos réponses validées.',
+        guideItems: [
+          'Ajouter vos réponses officielles question par question.',
+          'Conserver cette mise en page pour garder l’homogénéité avec le reste du site.',
+          'Utiliser le lien direct depuis WhatsApp pour orienter les utilisateurs vers cette FAQ.'
+        ],
+        contactLabel: 'Point de contact',
+        contactTitle: 'Canal dédié',
+        contactText: 'Vous pouvez remplacer ce bloc par le contact DPO, le service conformité ou un formulaire plus complet.',
+        contactCta: 'Contacter le référent données'
+      },
+      ar: {
+        title: 'بياناتي و CNDP',
+        heroLabel: 'خصوصية Blink Premium',
+        heroText: 'صفحة مخصصة للإجابة عن الأسئلة المتعلقة بالبيانات الشخصية والخصوصية وCNDP. الأسئلة أدناه مؤقتة وسيتم استبدالها لاحقاً بالنسخة النهائية.',
+        badges: ['FAQ قابلة للتطوير', 'تصميم Blink Premium', 'نسخة أولية جاهزة للإثراء'],
+        summaries: [
+          {
+            icon: '🔐',
+            accent: '#4CAF50',
+            title: 'خصوصية منظمة',
+            text: 'تجمع الصفحة مستقبلاً مساحة معلومات واضحة لطمأنة الصيادلة وتوحيد الإجابات الرسمية حول البيانات.'
+          },
+          {
+            icon: '⚖️',
+            accent: '#3F51B5',
+            title: 'إطار CNDP واضح',
+            text: 'تم تجهيز الأقسام والأكورديون لاستقبال المقتطفات القانونية والالتزامات التعاقدية والشروحات العملية.'
+          },
+          {
+            icon: '🧩',
+            accent: '#26C6DA',
+            title: 'تبديل المحتوى بسهولة',
+            text: 'كل سؤال وجواب معزول، حتى تتمكنوا من استبدال النصوص المؤقتة دون إعادة بناء الصفحة.'
+          }
+        ],
+        faqLabel: 'FAQ مؤقتة',
+        faqTitle: 'الأسئلة الشائعة',
+        faqText: 'نموذج أكورديون جاهز لأسئلتكم المستقبلية حول "بياناتي و CNDP".',
+        faq: [
+          { q: 'Lorem ipsum — ما هي البيانات التي تتم معالجتها داخل Blink Premium؟', a: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, sapien at feugiat volutpat, mauris sem blandit neque, vitae gravida augue mauris non lorem.' },
+          { q: 'Lorem ipsum — كيف يتدخل إطار CNDP في هذه الخدمة؟', a: 'Suspendisse potenti. Donec condimentum, augue vitae tristique tempor, tortor velit luctus massa, non tristique lectus erat nec dui. هذا نص مؤقت إلى حين إدراج الجواب النهائي.' },
+          { q: 'Lorem ipsum — من يحق له الوصول إلى بيانات الصيدلية؟', a: 'Praesent feugiat lectus ut mi pharetra, non feugiat neque varius. Curabitur luctus justo et ligula cursus, nec efficitur lacus bibendum.' },
+          { q: 'Lorem ipsum — ما هي إجراءات الأمان المعتمدة؟', a: 'Vivamus et commodo nisi. Nulla facilisi. Pellentesque in dui vitae velit facilisis faucibus sit amet nec risus. هذا المحتوى تجريبي فقط.' },
+          { q: 'Lorem ipsum — كيف يمكن طلب الاطلاع أو التصحيح؟', a: 'Aliquam erat volutpat. Cras congue libero ut dui porta, ac dignissim lectus convallis. هذا الجواب مجرد نموذج عرض.' }
+        ],
+        guideLabel: 'إرشادات',
+        guideTitle: 'كيفية استعمال الصفحة',
+        guideText: 'الهيكل جاهز بالفعل للمحتوى النهائي. يمكنكم استبدال النصوص المؤقتة بإجاباتكم المعتمدة مباشرة.',
+        guideItems: [
+          'إضافة الإجابات الرسمية سؤالاً بسؤال.',
+          'الحفاظ على هذا التصميم لضمان الانسجام مع بقية الموقع.',
+          'استخدام الرابط المباشر من واتساب لتوجيه المستخدمين نحو هذه الصفحة.'
+        ],
+        contactLabel: 'جهة التواصل',
+        contactTitle: 'قناة مخصصة',
+        contactText: 'يمكنكم لاحقاً استبدال هذا الجزء بجهة الاتصال الخاصة بـ DPO أو قسم الامتثال أو نموذج مفصل.',
+        contactCta: 'التواصل مع مسؤول البيانات'
+      },
+      es: {
+        title: 'Mis datos & CNDP',
+        heroLabel: 'Privacidad Blink Premium',
+        heroText: 'Una página dedicada a responder preguntas sobre datos personales, privacidad y CNDP. Las preguntas siguientes son temporales y se sustituirán por su FAQ definitiva.',
+        badges: ['FAQ evolutiva', 'Diseño Blink Premium', 'Borrador listo para enriquecer'],
+        summaries: [
+          {
+            icon: '🔐',
+            accent: '#4CAF50',
+            title: 'Privacidad estructurada',
+            text: 'La página centraliza un futuro espacio informativo claro para tranquilizar a los farmacéuticos y reunir sus respuestas oficiales.'
+          },
+          {
+            icon: '⚖️',
+            accent: '#3F51B5',
+            title: 'Marco CNDP visible',
+            text: 'Los bloques y el acordeón ya están preparados para integrar menciones jurídicas, compromisos contractuales y explicaciones prácticas.'
+          },
+          {
+            icon: '🧩',
+            accent: '#26C6DA',
+            title: 'Contenido fácil de sustituir',
+            text: 'Cada pregunta y respuesta está aislada para que pueda reemplazar el lorem ipsum sin rehacer la estructura.'
+          }
+        ],
+        faqLabel: 'FAQ provisional',
+        faqTitle: 'Preguntas frecuentes',
+        faqText: 'Ejemplo de estructura en acordeón para sus futuras respuestas de “Mis datos & CNDP”.',
+        faq: [
+          { q: 'Lorem ipsum — ¿qué datos se tratan en Blink Premium?', a: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, sapien at feugiat volutpat, mauris sem blandit neque, vitae gravida augue mauris non lorem.' },
+          { q: 'Lorem ipsum — ¿cómo interviene la CNDP dentro del servicio?', a: 'Suspendisse potenti. Donec condimentum, augue vitae tristique tempor, tortor velit luctus massa, non tristique lectus erat nec dui. Texto de marcador que podrá sustituir más adelante.' },
+          { q: 'Lorem ipsum — ¿quién puede acceder a los datos de la farmacia?', a: 'Praesent feugiat lectus ut mi pharetra, non feugiat neque varius. Curabitur luctus justo et ligula cursus, nec efficitur lacus bibendum.' },
+          { q: 'Lorem ipsum — ¿qué medidas de seguridad se aplican?', a: 'Vivamus et commodo nisi. Nulla facilisi. Pellentesque in dui vitae velit facilisis faucibus sit amet nec risus. Contenido ficticio en espera de la versión final.' },
+          { q: 'Lorem ipsum — ¿cómo ejercer un derecho de acceso o rectificación?', a: 'Aliquam erat volutpat. Cras congue libero ut dui porta, ac dignissim lectus convallis. Esta respuesta sirve únicamente como bloque de demostración.' }
+        ],
+        guideLabel: 'Puntos de referencia',
+        guideTitle: 'Cómo usar esta página',
+        guideText: 'La estructura ya está preparada para su contenido final. Podrá sustituir cada bloque temporal por respuestas validadas.',
+        guideItems: [
+          'Añadir las respuestas oficiales una por una.',
+          'Mantener esta composición para conservar la coherencia visual del sitio.',
+          'Usar el enlace directo desde WhatsApp para orientar a los usuarios hacia esta FAQ.'
+        ],
+        contactLabel: 'Punto de contacto',
+        contactTitle: 'Canal dedicado',
+        contactText: 'Más adelante puede reemplazar este bloque por el contacto del DPO, del equipo de cumplimiento o por un formulario más completo.',
+        contactCta: 'Contactar al responsable de datos'
+      },
+      ru: {
+        title: 'Мои данные & CNDP',
+        heroLabel: 'Конфиденциальность Blink Premium',
+        heroText: 'Страница посвящена вопросам о персональных данных, конфиденциальности и CNDP. Вопросы ниже временные и позже будут заменены вашей итоговой FAQ.',
+        badges: ['Гибкая FAQ', 'Дизайн Blink Premium', 'Черновик готов к наполнению'],
+        summaries: [
+          {
+            icon: '🔐',
+            accent: '#4CAF50',
+            title: 'Структурированная конфиденциальность',
+            text: 'Страница готовит понятное информационное пространство, которое успокоит фармацевтов и соберёт ваши официальные ответы.'
+          },
+          {
+            icon: '⚖️',
+            accent: '#3F51B5',
+            title: 'Видимый контекст CNDP',
+            text: 'Блоки и аккордеон уже подготовлены для юридических формулировок, договорных обязательств и практических пояснений.'
+          },
+          {
+            icon: '🧩',
+            accent: '#26C6DA',
+            title: 'Простая замена контента',
+            text: 'Каждый вопрос и ответ изолирован, поэтому lorem ipsum можно заменить без переделки всей страницы.'
+          }
+        ],
+        faqLabel: 'Временная FAQ',
+        faqTitle: 'Частые вопросы',
+        faqText: 'Пример аккордеон-структуры для будущих ответов в разделе “Мои данные & CNDP”.',
+        faq: [
+          { q: 'Lorem ipsum — какие данные обрабатываются в Blink Premium?', a: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, sapien at feugiat volutpat, mauris sem blandit neque, vitae gravida augue mauris non lorem.' },
+          { q: 'Lorem ipsum — как CNDP участвует в рамках сервиса?', a: 'Suspendisse potenti. Donec condimentum, augue vitae tristique tempor, tortor velit luctus massa, non tristique lectus erat nec dui. Временный текст, который позже можно заменить.' },
+          { q: 'Lorem ipsum — кто может получить доступ к данным аптеки?', a: 'Praesent feugiat lectus ut mi pharetra, non feugiat neque varius. Curabitur luctus justo et ligula cursus, nec efficitur lacus bibendum.' },
+          { q: 'Lorem ipsum — какие меры безопасности применяются?', a: 'Vivamus et commodo nisi. Nulla facilisi. Pellentesque in dui vitae velit facilisis faucibus sit amet nec risus. Демонстрационный контент до финального наполнения.' },
+          { q: 'Lorem ipsum — как запросить доступ или исправление данных?', a: 'Aliquam erat volutpat. Cras congue libero ut dui porta, ac dignissim lectus convallis. Этот блок служит примером структуры ответа.' }
+        ],
+        guideLabel: 'Ориентиры',
+        guideTitle: 'Как использовать страницу',
+        guideText: 'Структура уже готова для финального контента. Вы сможете заменить временные блоки утверждёнными ответами.',
+        guideItems: [
+          'Добавить официальные ответы по каждому вопросу.',
+          'Сохранить этот макет для визуальной согласованности с остальным сайтом.',
+          'Использовать прямую ссылку из WhatsApp, чтобы направлять пользователей к этой FAQ.'
+        ],
+        contactLabel: 'Контакт',
+        contactTitle: 'Выделенный канал',
+        contactText: 'Позже этот блок можно заменить контактом DPO, команды compliance или более подробной формой.',
+        contactCta: 'Связаться по вопросам данных'
+      }
+    };
+
+    const copy = COPY[lang] || COPY.fr;
+
+    document.title = `${copy.title} — Blink Premium`;
+    document.getElementById('heroLabel').textContent = copy.heroLabel;
+    document.getElementById('heroTitle').textContent = copy.title;
+    document.getElementById('heroText').textContent = copy.heroText;
+    document.getElementById('faqLabel').textContent = copy.faqLabel;
+    document.getElementById('faqTitle').textContent = copy.faqTitle;
+    document.getElementById('faqText').textContent = copy.faqText;
+    document.getElementById('guideLabel').textContent = copy.guideLabel;
+    document.getElementById('guideTitle').textContent = copy.guideTitle;
+    document.getElementById('guideText').textContent = copy.guideText;
+    document.getElementById('contactLabel').textContent = copy.contactLabel;
+    document.getElementById('contactTitle').textContent = copy.contactTitle;
+    document.getElementById('contactText').textContent = copy.contactText;
+    document.getElementById('contactCta').textContent = copy.contactCta;
+    document.getElementById('contactCta').href = 'mailto:dpo@blink.ma';
+
+    const heroBadges = document.getElementById('heroBadges');
+    copy.badges.forEach((badge) => {
+      const span = document.createElement('span');
+      span.className = 'hero-badge';
+      span.textContent = badge;
+      heroBadges.appendChild(span);
+    });
+
+    const summaryGrid = document.getElementById('summaryGrid');
+    copy.summaries.forEach((item, index) => {
+      const article = document.createElement('article');
+      article.className = 'summary-card fade-up';
+      article.dataset.delay = String(index * 70);
+      article.style.setProperty('--accent', item.accent);
+      article.innerHTML = `
+        <div class="summary-icon">${item.icon}</div>
+        <h2>${item.title}</h2>
+        <p>${item.text}</p>
+      `;
+      summaryGrid.appendChild(article);
+    });
+
+    const faqList = document.getElementById('faqList');
+    copy.faq.forEach((entry, index) => {
+      const article = document.createElement('article');
+      article.className = 'faq-item';
+      article.innerHTML = `
+        <button class="faq-question" type="button" aria-expanded="false">
+          <strong>${entry.q}</strong>
+          <span class="faq-pill">+</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">${entry.a}</div>
+        </div>
+      `;
+
+      const button = article.querySelector('.faq-question');
+      const answer = article.querySelector('.faq-answer');
+
+      if (index === 0) {
+        article.classList.add('open');
+        button.setAttribute('aria-expanded', 'true');
+        answer.style.maxHeight = `${answer.scrollHeight}px`;
+      }
+
+      button.addEventListener('click', () => {
+        const isOpen = article.classList.contains('open');
+        article.classList.toggle('open', !isOpen);
+        button.setAttribute('aria-expanded', String(!isOpen));
+        answer.style.maxHeight = isOpen ? '0px' : `${answer.scrollHeight}px`;
+      });
+
+      faqList.appendChild(article);
+    });
+
+    const guideList = document.getElementById('guideList');
+    copy.guideItems.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'meta-list-item';
+      row.innerHTML = `<span class="dot"></span><span>${item}</span>`;
+      guideList.appendChild(row);
+    });
+
+    injectFooter();
+
+    if (isRtl) {
+      document.querySelectorAll('.faq-question').forEach((button) => {
+        button.style.textAlign = 'right';
+      });
+    }
+  </script>
+</body>
+</html>

@@ -48,6 +48,10 @@ const STATES = {
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use('/public', express.static(require('path').join(__dirname, 'public')));
+app.get('/site/data&cndp.html', (req, res) => {
+  const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  res.redirect(301, `/site/data-cndp.html${queryString}`);
+});
 app.use('/site', express.static(require('path').join(__dirname, 'public', 'site')));
 app.use('/admin', adminRoutes);
 
@@ -1541,10 +1545,15 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const action = controlValue;
 
       if (action === 'sw_call_me' || action === '1') {
-        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_CALLBACK_SUB });
-        const subResult = await software.sendCallbackSubMenu(context.phone, lang);
-        if (subResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(software.buildCallbackSubMenuText(lang));
+        try {
+          await software.handleCallMeRequest(context.phone, lang);
+          res.type('text/xml').send(buildEmptyTwiml());
+          return;
+        } catch (error) {
+          console.error('[software] callback confirmation failed', error);
+        }
+
+        response.message(appendTextFooter(t('sw_callback_confirm', lang), lang));
         res.type('text/xml').send(response.toString());
         return;
       }
@@ -1559,10 +1568,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       }
 
       if (action === 'sw_data_protection' || action === '3') {
-        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_DATA_FAQ });
-        const dataResult = await software.sendDataFAQMenu(context.phone, lang);
-        if (dataResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(software.buildDataFAQText(lang));
+        response.message(appendTextFooter(software.buildDataCndpLinkText(lang), lang));
         res.type('text/xml').send(response.toString());
         return;
       }

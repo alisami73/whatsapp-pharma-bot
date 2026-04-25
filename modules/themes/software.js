@@ -4,14 +4,14 @@
  * modules/themes/software.js
  *
  * Handler du thème "Logiciel Blink Premium".
- * Présente un Carrousel 2 (Phase 1 = list-picker) avec 3 sous-actions :
- *   sw_call_me          → envoie WhatsApp au commercial + confirme à l'utilisateur
- *   sw_benefits         → liste les avantages Blink Premium
- *   sw_data_protection  → texte sur la protection des données
- *
- * TODO Phase 2: migrate to WhatsApp Template Message with CAROUSEL component
- *               with product images (https://blink.ma/assets/software/{card}.jpg)
+ * Présente un carrousel Twilio/WhatsApp avec 3 actions principales :
+ *   sw_call_me          → notifie le commercial + renvoie l'image de confirmation
+ *   sw_benefits         → ouvre le flow existant "Pourquoi Blink ?"
+ *   sw_data_protection  → renvoie un lien vers la page web CNDP
  */
+
+const fs = require('fs');
+const path = require('path');
 
 const twilioService = require('../../twilio_service');
 const { t } = require('../i18n');
@@ -19,8 +19,139 @@ const { sendAIResponseWithFooter } = require('../shared/footer');
 
 // Numéro commercial à notifier pour "Appelez-moi"
 const COMMERCIAL_PHONE = process.env.COMMERCIAL_PHONE || 'whatsapp:+212661095271';
+const DEFAULT_PUBLIC_BASE_URL = 'https://whatsapp-pharma-bot-production.up.railway.app';
+const CACHE_PATH = path.join(__dirname, '..', '..', 'data', 'interactive_templates.json');
+const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const CALLBACK_IMAGE_FILENAME = 'blink-premium-callback-confirmation.png';
 
 // TODO: paramétrer via COMMERCIAL_WEBHOOK_URL si besoin d'un webhook CRM en plus du WhatsApp
+
+function normalizeLang(lang = 'fr') {
+  return ['fr', 'ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+}
+
+function getPublicBaseUrl() {
+  const configuredBaseUrl = String(twilioService.getTwilioConfig().publicBaseUrl || '').trim();
+  return (configuredBaseUrl || DEFAULT_PUBLIC_BASE_URL).replace(/\/+$/, '');
+}
+
+function buildAbsoluteUrl(relativePath) {
+  return `${getPublicBaseUrl()}/${String(relativePath || '').replace(/^\/+/, '')}`;
+}
+
+function getLocalizedCarouselAssetPath(cardNumber, lang) {
+  const normalizedLang = normalizeLang(lang);
+  const suffix = normalizedLang === 'fr' ? '' : `-${normalizedLang}`;
+  return `public/carousel/blink-carte-${String(cardNumber).padStart(2, '0')}${suffix}.jpg`;
+}
+
+function getCallbackImageUrl() {
+  return buildAbsoluteUrl(`public/carousel/${CALLBACK_IMAGE_FILENAME}`);
+}
+
+function getDataCndpPageUrl(lang) {
+  const normalizedLang = normalizeLang(lang);
+  const suffix = normalizedLang === 'fr' ? '' : `?lang=${normalizedLang}`;
+  return `${buildAbsoluteUrl('site/data-cndp.html')}${suffix}`;
+}
+
+function readTemplateCache() {
+  try {
+    if (fs.existsSync(CACHE_PATH)) {
+      return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+    }
+  } catch (_) {}
+  return {};
+}
+
+function writeTemplateCache(cache) {
+  try {
+    fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`[software] Impossible d'écrire le cache templates: ${error.message}`);
+  }
+}
+
+function isFreshCacheEntry(entry) {
+  return Boolean(
+    entry &&
+      entry.sid &&
+      entry.created_at &&
+      Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL_MS,
+  );
+}
+
+function buildSoftwareCarouselCards(lang) {
+  const normalizedLang = normalizeLang(lang);
+
+  return [
+    {
+      title: t('sw_call_me', normalizedLang),
+      body: t('sw_card_body_call_me', normalizedLang),
+      media: getCallbackImageUrl(),
+      actions: [
+        {
+          type: 'QUICK_REPLY',
+          title: t('sw_carousel_cta_call_me', normalizedLang).slice(0, 25),
+          id: 'sw_call_me',
+        },
+      ],
+    },
+    {
+      title: t('sw_benefits', normalizedLang),
+      body: t('sw_card_body_benefits', normalizedLang),
+      media: buildAbsoluteUrl(getLocalizedCarouselAssetPath(1, normalizedLang)),
+      actions: [
+        {
+          type: 'QUICK_REPLY',
+          title: t('sw_carousel_cta_benefits', normalizedLang).slice(0, 25),
+          id: 'sw_benefits',
+        },
+      ],
+    },
+    {
+      title: t('sw_data_protection', normalizedLang),
+      body: t('sw_card_body_data', normalizedLang),
+      media: buildAbsoluteUrl(getLocalizedCarouselAssetPath(3, normalizedLang)),
+      actions: [
+        {
+          type: 'URL',
+          title: t('sw_carousel_cta_data', normalizedLang).slice(0, 25),
+          url: getDataCndpPageUrl(normalizedLang),
+        },
+      ],
+    },
+  ];
+}
+
+function buildSoftwareCarouselSpec(lang) {
+  const normalizedLang = normalizeLang(lang);
+
+  return {
+    friendlyName: `blink_software_carousel_v5_${normalizedLang}`,
+    language: normalizedLang,
+    types: {
+      'twilio/carousel': {
+        body: t('sw_carousel_body', normalizedLang),
+        cards: buildSoftwareCarouselCards(normalizedLang),
+      },
+    },
+  };
+}
+
+function getSoftwareTemplateArtifacts(lang) {
+  const normalizedLang = normalizeLang(lang);
+  const spec = buildSoftwareCarouselSpec(normalizedLang);
+  const cacheKey = `software_carousel_v5_${normalizedLang}`;
+
+  return {
+    lang: normalizedLang,
+    cacheKey,
+    spec,
+    approvalNote:
+      'Soumettre le template WhatsApp via le lien approval_create renvoyé par Twilio ou via la console Content Template Builder.',
+  };
+}
 
 /**
  * Envoie la notification WhatsApp au commercial quand un utilisateur demande à être rappelé.
@@ -58,87 +189,19 @@ async function notifyCommercial(userPhone, lang, type = 'callback') {
 }
 
 /**
- * Envoie le carrousel Blink Premium (list-picker Phase 1).
+ * Envoie le carrousel Blink Premium (template Twilio/WhatsApp).
  * Retourne null si les messages interactifs sont désactivés → fallback texte.
  */
 async function sendSoftwareCarousel(to, lang) {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
-  const twilioClient = twilioService.getTwilioClient();
-  const config = twilioService.getTwilioConfig();
-
-  const fs = require('fs');
-  const path = require('path');
-  const CACHE_PATH = path.join(__dirname, '..', '..', 'data', 'interactive_templates.json');
-  const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-  const cacheKey = `software_carousel_v3_${lang}`;
-
-  let cache = {};
-  try {
-    if (fs.existsSync(CACHE_PATH)) cache = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-  } catch (_) {}
-
-  const entry = cache[cacheKey];
-  const isFresh = entry && entry.sid && entry.created_at &&
-    (Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL_MS);
-
-  let sid = isFresh ? entry.sid : null;
-
-  if (!sid) {
-    const langCode = lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
-    const spec = {
-      friendlyName: `blink_software_carousel_v3_${lang}`,
-      language: langCode,
-      types: {
-        'twilio/list-picker': {
-          body: t('sw_carousel_body', lang),
-          button: t('sw_carousel_button', lang).slice(0, 20),
-          items: [
-            { id: 'sw_call_me',         item: t('sw_call_me', lang).slice(0, 24) },
-            { id: 'sw_benefits',        item: t('sw_benefits', lang).slice(0, 24) },
-            { id: 'sw_data_protection', item: t('sw_data_protection', lang).slice(0, 24) },
-          ],
-        },
-      },
-    };
-
-    try {
-      const created = await twilioClient.content.v1.contents.create(spec);
-      sid = created.sid;
-      cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-      fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-      console.log(`[software] Template carrousel créé: ${cacheKey} → ${sid}`);
-    } catch (createErr) {
-      console.warn(`[software] Création carrousel échouée: ${createErr.message} — recherche existant...`);
-      try {
-        const all = await twilioClient.content.v1.contents.list({ limit: 100 });
-        const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
-        if (match) {
-          sid = match.sid;
-          cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-          fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-        }
-      } catch (_) {}
-    }
-  }
+  const { cacheKey, spec } = getSoftwareTemplateArtifacts(lang);
+  const sid = await createOrFetchContentTemplate(cacheKey, spec);
 
   if (!sid) return null;
 
-  const payload = {
-    to: twilioService.normalizeWhatsAppAddress(to),
-    contentSid: sid,
-    contentVariables: '{}',
-  };
-  if (config.whatsappFrom) {
-    payload.from = config.whatsappFrom;
-  } else if (config.messagingServiceSid) {
-    payload.messagingServiceSid = config.messagingServiceSid;
-  }
-  const statusCallback = twilioService.buildStatusCallbackUrl();
-  if (statusCallback) payload.statusCallback = statusCallback;
-
-  return twilioClient.messages.create(payload);
+  return sendContentTemplateMessage(to, sid);
 }
 
 /**
@@ -156,6 +219,23 @@ function buildSoftwareCarouselText(lang) {
   ].join('\n');
 }
 
+async function sendCallbackConfirmationImage(to, lang) {
+  return twilioService.sendWhatsAppMessage({
+    to,
+    body: t('sw_callback_confirm', lang),
+    mediaUrl: getCallbackImageUrl(),
+  });
+}
+
+async function handleCallMeRequest(userPhone, lang) {
+  notifyCommercial(userPhone, lang).catch(() => {});
+  return sendCallbackConfirmationImage(userPhone, lang);
+}
+
+function buildDataCndpLinkText(lang) {
+  return t('sw_data_page_message', lang, { url: getDataCndpPageUrl(lang) });
+}
+
 /**
  * Gère la réponse à une sous-action du carrousel Software (kept for backward-compat).
  */
@@ -168,28 +248,17 @@ async function handleSoftwareAction(action, userPhone, lang) {
     return { text: t('sw_benefits_body', lang), sentInteractive: false };
   }
   if (action === 'sw_data_protection' || action === '3') {
-    return { text: t('sw_data_protection_body', lang), sentInteractive: false };
+    return { text: buildDataCndpLinkText(lang), sentInteractive: false };
   }
   return null;
 }
 
-// ── Helper : création/cache d'un template list-picker ───────────────────────
-async function createOrFetchListPicker(cacheKey, spec) {
-  const fs = require('fs');
-  const path = require('path');
-  const CACHE_PATH = path.join(__dirname, '..', '..', 'data', 'interactive_templates.json');
-  const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-  let cache = {};
-  try {
-    if (fs.existsSync(CACHE_PATH)) cache = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-  } catch (_) {}
-
+// ── Helpers Twilio Content ───────────────────────────────────────────────────
+async function createOrFetchContentTemplate(cacheKey, spec) {
+  const cache = readTemplateCache();
   const entry = cache[cacheKey];
-  const isFresh = entry && entry.sid && entry.created_at &&
-    (Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL_MS);
 
-  if (isFresh) return entry.sid;
+  if (isFreshCacheEntry(entry)) return entry.sid;
 
   const client = twilioService.getTwilioClient();
   let sid = null;
@@ -197,7 +266,7 @@ async function createOrFetchListPicker(cacheKey, spec) {
     const created = await client.content.v1.contents.create(spec);
     sid = created.sid;
     cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-    fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+    writeTemplateCache(cache);
     console.log(`[software] Template créé: ${cacheKey} → ${sid}`);
   } catch (createErr) {
     console.warn(`[software] Création échouée (${cacheKey}): ${createErr.message} — recherche existant...`);
@@ -207,14 +276,14 @@ async function createOrFetchListPicker(cacheKey, spec) {
       if (match) {
         sid = match.sid;
         cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-        fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+        writeTemplateCache(cache);
       }
     } catch (_) {}
   }
   return sid;
 }
 
-async function sendListPickerMessage(to, sid, lang) {
+async function sendContentTemplateMessage(to, sid) {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled() || !sid) return null;
 
@@ -235,6 +304,15 @@ async function sendListPickerMessage(to, sid, lang) {
   if (statusCallback) payload.statusCallback = statusCallback;
 
   return client.messages.create(payload);
+}
+
+// ── Helper : création/cache d'un template list-picker ───────────────────────
+async function createOrFetchListPicker(cacheKey, spec) {
+  return createOrFetchContentTemplate(cacheKey, spec);
+}
+
+async function sendListPickerMessage(to, sid) {
+  return sendContentTemplateMessage(to, sid);
 }
 
 // ── Sous-menu "Appelez-moi" (démo ou renseignement) ─────────────────────────
@@ -422,8 +500,12 @@ function handleDataFAQAction(action, lang) {
 }
 
 module.exports = {
+  buildSoftwareCarouselSpec,
+  getSoftwareTemplateArtifacts,
   sendSoftwareCarousel,
   buildSoftwareCarouselText,
+  handleCallMeRequest,
+  buildDataCndpLinkText,
   handleSoftwareAction,
   sendCallbackSubMenu,
   buildCallbackSubMenuText,
