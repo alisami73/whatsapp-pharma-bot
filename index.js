@@ -528,20 +528,14 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
     const lang = getUserLang(user);
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
 
-    // Respond to Twilio webhook immediately with prefix text (or empty TwiML).
-    // The carousel is sent asynchronously AFTER the response so that the text
-    // message arrives first in WhatsApp (correct reading order).
+    // Text first (separate API call) → carousel second → empty TwiML
+    // Both are synchronous so the order is guaranteed.
     if (prefix) {
-      const twimlWithPrefix = new MessagingResponse();
-      twimlWithPrefix.message(prefix);
-      res.type('text/xml').send(twimlWithPrefix.toString());
-    } else {
-      res.type('text/xml').send(buildEmptyTwiml());
+      await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
     }
 
-    // Fire-and-forget carousel send (arrives after the text above)
-    explorer.sendExplorerCarousel(phone, lang).then(async (result) => {
-      if (!result) return;
+    const result = await explorer.sendExplorerCarousel(phone, lang);
+    if (result) {
       await storage.appendMessageLog({
         direction: 'outbound',
         phone,
@@ -550,15 +544,13 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
         provider_message_sid: result.sid,
         metadata: { source: 'explorer_carousel' },
       });
-    }).catch((err) => {
-      console.error('[explorer] sendExplorerCarousel failed:', err.message || err);
-    });
-
-    return true;
+      res.type('text/xml').send(buildEmptyTwiml());
+      return true;
+    }
   } catch (err) {
     console.error('[explorer] tryRespondWithMainMenuInteractive failed:', err.message || err);
-    return false;
   }
+  return false;
 }
 
 async function respondWithMainMenu(response, user, prefix = '') {
