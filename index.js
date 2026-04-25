@@ -522,12 +522,26 @@ async function setCnssQuestionState(user, themeId) {
 // Retourne true si le message a été envoyé via l'API Twilio, false sinon.
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
 async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
+  if (!interactive.isInteractiveEnabled()) return false;
+
   try {
     const lang = getUserLang(user);
-    // Explorer carousel replaces the old list-picker main menu
-    user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
-    const result = await explorer.sendExplorerCarousel(phone, lang);
-    if (result) {
+    await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
+
+    // Respond to Twilio webhook immediately with prefix text (or empty TwiML).
+    // The carousel is sent asynchronously AFTER the response so that the text
+    // message arrives first in WhatsApp (correct reading order).
+    if (prefix) {
+      const twimlWithPrefix = new MessagingResponse();
+      twimlWithPrefix.message(prefix);
+      res.type('text/xml').send(twimlWithPrefix.toString());
+    } else {
+      res.type('text/xml').send(buildEmptyTwiml());
+    }
+
+    // Fire-and-forget carousel send (arrives after the text above)
+    explorer.sendExplorerCarousel(phone, lang).then(async (result) => {
+      if (!result) return;
       await storage.appendMessageLog({
         direction: 'outbound',
         phone,
@@ -536,16 +550,15 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
         provider_message_sid: result.sid,
         metadata: { source: 'explorer_carousel' },
       });
-      if (prefix) {
-        await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
-      }
-      res.type('text/xml').send(buildEmptyTwiml());
-      return true;
-    }
+    }).catch((err) => {
+      console.error('[explorer] sendExplorerCarousel failed:', err.message || err);
+    });
+
+    return true;
   } catch (err) {
-    console.error('[explorer] sendExplorerCarousel failed:', err.message || err);
+    console.error('[explorer] tryRespondWithMainMenuInteractive failed:', err.message || err);
+    return false;
   }
-  return false;
 }
 
 async function respondWithMainMenu(response, user, prefix = '') {
