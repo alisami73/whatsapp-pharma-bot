@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blink Premium — Gestion de pharmacie modernisée</title>
+  <meta name="description" content="Blink Premium modernise la gestion de votre pharmacie au Maroc. Stocks, ventes, fournisseurs, inventaire mobile et bien plus." />
+  <link rel="stylesheet" href="blink.css" />
+  <style>
+    /* ─── HERO ─── */
+    .hero {
+      min-height: calc(100vh - 68px);
+      background: linear-gradient(135deg, #F0F2F8 0%, #ffffff 60%, #f0fdf4 100%);
+      display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+      gap: 3rem; padding: 5rem 4rem 5rem;
+      max-width: 1280px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: color-mix(in srgb, var(--blink-green) 10%, white);
+      border: 1px solid color-mix(in srgb, var(--blink-green) 25%, white);
+      color: var(--blink-green); padding: 0.35rem 1rem;
+      border-radius: 100px; font-size: 0.8125rem; font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--blink-green); }
+    .hero h1 {
+      font-size: clamp(2.25rem, 4vw, 3.25rem); font-weight: 900;
+      line-height: 1.12; margin-bottom: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 em { font-style: normal; color: var(--blink-green); }
+    .hero-sub {
+      font-size: 1.0625rem; color: #64748B; line-height: 1.7;
+      max-width: 480px; margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex; gap: 2rem; margin-top: 3rem; padding-top: 2rem;
+      border-top: 1px solid var(--blink-border);
+    }
+    .hero-stat strong {
+      display: block; font-size: 1.75rem; font-weight: 800;
+      font-family: 'Nunito', sans-serif; color: var(--blink-text);
+    }
+    .hero-stat span { font-size: 0.8125rem; color: var(--blink-muted); }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative; display: flex; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* ─── FEATURE CARD (cycling) ─── */
+    .feat-card-wrap {
+      position: relative; width: 100%; max-width: 400px;
+      transform: rotate(2.5deg);
+      transition: transform 0.4s ease;
+      filter: drop-shadow(0 32px 64px rgba(0,0,0,0.18));
+    }
+    .feat-card-wrap:hover { transform: rotate(0deg) translateY(-6px); }
+
+    .feat-card {
+      border-radius: 24px; overflow: hidden;
+      position: relative;
+    }
+
+    /* Card slide */
+    .card-slide {
+      position: absolute; inset: 0; opacity: 0;
+      transition: opacity 0.7s ease;
+      display: flex; flex-direction: column;
+    }
+    .card-slide.active { opacity: 1; position: relative; }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .card-header-title {
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1rem; color: white;
+    }
+    .card-body {
+      flex: 1; padding: 1.5rem 1.5rem 1.75rem;
+      position: relative; overflow: hidden;
+      min-height: 220px;
+    }
+    /* Grid mesh background */
+    .card-body::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    /* Radial glow */
+    .card-body::after {
+      content: '';
+      position: absolute; right: -40px; top: -40px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .card-category {
+      font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.625rem; position: relative; z-index: 1;
+    }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; position: relative; z-index: 1; }
+    .card-title {
+      font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.625rem;
+      color: white; line-height: 1.15; margin-bottom: 0.625rem; position: relative; z-index: 1;
+    }
+    .card-claim {
+      font-size: 0.8125rem; line-height: 1.6; position: relative; z-index: 1;
+      max-width: 200px;
+    }
+    .card-footer {
+      position: absolute; bottom: 1rem; right: 1.25rem;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      z-index: 1;
+    }
+    .card-footer-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .card-counter {
+      position: absolute; top: 1rem; right: 1.25rem;
+      font-size: 0.625rem; font-weight: 600; letter-spacing: 0.05em;
+      opacity: 0.5; z-index: 1;
+    }
+
+    /* Dots */
+    .card-dots {
+      display: flex; gap: 6px; justify-content: center; margin-top: 1rem;
+    }
+    .card-dot {
+      width: 6px; height: 6px; border-radius: 3px; background: #CBD5E1;
+      transition: all 0.3s; cursor: pointer;
+    }
+    .card-dot.active { width: 20px; background: var(--blink-green); }
+
+    /* Floating badge */
+    .hero-float-badge {
+      position: absolute; bottom: 12%; right: -1.5rem;
+      background: white; border-radius: 16px;
+      padding: 0.875rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+      display: flex; align-items: center; gap: 0.75rem;
+      animation: floatBadge 3s ease-in-out infinite;
+      min-width: 210px;
+      transition: opacity 0.4s ease;
+    }
+    .hero-float-badge .badge-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .hero-float-badge strong { display: block; font-size: 0.875rem; font-weight: 700; color: #1E2A3A; }
+    .hero-float-badge span { font-size: 0.75rem; color: var(--blink-muted); }
+
+    @keyframes floatBadge {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    /* ─── FEATURES SECTION ─── */
+    .section { padding: 6rem 2rem; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 3.5rem; }
+    .section-header h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .section-header p { font-size: 1rem; color: #64748B; max-width: 540px; margin: 0 auto; }
+
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
+    }
+
+    /* ─── MODULES CAROUSEL ─── */
+    .modules-section { padding: 4rem 2rem; background: white; }
+    .modules-track {
+      display: flex; gap: 1.25rem; overflow-x: auto; padding: 1rem 2rem;
+      scroll-snap-type: x mandatory; scrollbar-width: none;
+      max-width: 1200px; margin: 0 auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modules-track::-webkit-scrollbar { display: none; }
+    .module-card {
+      flex-shrink: 0; width: 160px; scroll-snap-align: start;
+      background: var(--blink-bg); border-radius: 20px;
+      padding: 1.25rem 1rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.875rem;
+      transition: transform 0.25s, box-shadow 0.25s; cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .module-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: var(--mod-color);
+    }
+    .module-card-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: color-mix(in srgb, var(--mod-color) 15%, white);
+      display: flex; align-items: center; justify-content: center; font-size: 1.375rem;
+    }
+    .module-card span { font-size: 0.8125rem; font-weight: 600; text-align: center; line-height: 1.35; }
+
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      padding: 6rem 2rem;
+      background: linear-gradient(135deg, #43a047 0%, #4CAF50 50%, #26C6DA 100%);
+      text-align: center; color: white;
+    }
+    .cta-banner h2 {
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem); font-weight: 900;
+      color: white; margin-bottom: 0.875rem;
+    }
+    .cta-banner p { font-size: 1.0625rem; opacity: 0.9; margin-bottom: 2rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem; text-align: center; min-height: auto; }
+      .hero-visual { order: -1; }
+      .hero-mockup { transform: none; max-width: 280px; }
+      .hero-sub { max-width: 100%; }
+      .hero-actions { justify-content: center; }
+      .hero-stats { justify-content: center; }
+      .hero-float-badge { right: 0; }
+    }
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .section { padding: 4rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <script src="assets/logo-data.js"></script>
+  <script src="blink-components.js"></script>
+  <script>injectNavbar('home');</script>
+
+  <!-- HERO -->
+  <section>
+    <div class="hero">
+      <div class="hero-content">
+        <div class="hero-badge fade-up" data-delay="0">Nouveau · Blink Premium 2025</div>
+        <h1 class="fade-up" data-delay="80">La gestion de votre pharmacie, <em>réinventée.</em></h1>
+        <p class="hero-sub fade-up" data-delay="160">
+          Blink Premium modernise chaque aspect de votre quotidien, de la vente au stock, en passant par vos fournisseurs.
+        </p>
+        <div class="hero-actions fade-up" data-delay="240">
+          <a href="contact.html" class="btn btn-primary btn-lg">Demander une démo</a>
+          <a href="premium.html" class="btn btn-outline btn-lg">Voir les fonctionnalités</a>
+        </div>
+        <div class="hero-stats fade-up" data-delay="320">
+          <div class="hero-stat">
+            <strong>13+</strong>
+            <span>Modules intégrés</span>
+          </div>
+          <div class="hero-stat">
+            <strong>100%</strong>
+            <span>Cloud &amp; mobile</span>
+          </div>
+          <div class="hero-stat">
+            <strong>Maroc</strong>
+            <span>Conçu localement</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual fade-up" data-delay="120">
+        <div class="feat-card-wrap">
+          <div class="feat-card" id="heroCard"></div>
+          <div class="card-dots" id="cardDots"></div>
+        </div>
+        <div class="hero-float-badge" id="heroBadge">
+          <div class="badge-icon" id="badgeIcon" style="background:#e8f5e9;"></div>
+          <div>
+            <strong id="badgeTitle"></strong>
+            <span id="badgeTime">Il y a 2 minutes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES GRID -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-header">
+        <p class="section-label">Fonctionnalités</p>
+        <h2>Tout ce dont votre pharmacie a besoin</h2>
+        <p>Huit modules clés pour piloter votre activité avec précision et simplicité.</p>
+      </div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+  </section>
+
+  <!-- APP MODULES CAROUSEL -->
+  <section class="modules-section">
+    <div class="section-inner" style="max-width:1200px;margin:0 auto;">
+      <div class="section-header">
+        <p class="section-label">Modules de l'application</p>
+        <h2>Une solution complète, module par module</h2>
+        <p>Naviguez entre les espaces de gestion depuis une interface claire et cohérente.</p>
+      </div>
+    </div>
+    <div class="modules-track" id="modulesTrack"></div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <div class="section-inner">
+      <p class="section-label" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;">Rejoignez Blink Premium</p>
+      <h2 class="fade-up">Prêt à moderniser votre pharmacie ?</h2>
+      <p class="fade-up">Rejoignez les pharmaciens qui font confiance à Blink Premium.</p>
+      <a href="contact.html" class="btn btn-white btn-lg fade-up">Demander une démo gratuite</a>
+    </div>
+  </section>
+
+  <script>
+  const FEATURES = [
+    { title: "Migration simplifiée",  claim: "Passage sans friction vers Blink — zéro perte de données.", category: "LOGISTIQUE",  color: "#3F51B5", bg: "#1a237e", icon: "📦", anchor: "migration",        badge: "Données importées",       badgeIcon: "📦" },
+    { title: "Prise en main rapide",  claim: "Interface intuitive — votre équipe opérationnelle dès J+1.", category: "INTERFACE",   color: "#26C6DA", bg: "#004d5e", icon: "⚡", anchor: "prise-en-main",    badge: "Formation terminée",      badgeIcon: "⚡" },
+    { title: "Contrôle des stocks",   claim: "Stocks en temps réel, écarts identifiés automatiquement.",  category: "STOCK",       color: "#9C27B0", bg: "#2a003f", icon: "📊", anchor: "stocks",            badge: "Stock mis à jour",         badgeIcon: "📊" },
+    { title: "Inventaire mobile",     claim: "Inventaires depuis smartphone — scan rapide, zéro erreur.",  category: "MOBILE",      color: "#4CAF50", bg: "#1b3a1b", icon: "📱", anchor: "inventaire-mobile", badge: "Inventaire synchronisé",   badgeIcon: "📱" },
+    { title: "Scan intelligent",      claim: "Saisie des livraisons par reconnaissance assistée.",          category: "SAISIE IA",   color: "#26C6DA", bg: "#00363f", icon: "🔍", anchor: "scan-ia",           badge: "Livraison scannée",        badgeIcon: "🔍" },
+    { title: "Achats groupés",        claim: "Regroupez commandes, optimisez achats et réduisez coûts.",   category: "ACHATS",      color: "#FFC107", bg: "#3d2900", icon: "🛒", anchor: "achats-groupes",    badge: "Commande groupée",         badgeIcon: "🛒" },
+    { title: "Application mobile",    claim: "Ventes, activité et indicateurs — partout, en temps réel.",  category: "MOBILITÉ",    color: "#FF7043", bg: "#3e0f00", icon: "📲", anchor: "app-mobile",        badge: "Ventes en temps réel",     badgeIcon: "📲" },
+    { title: "Innovation continue",   claim: "Nouvelles fonctionnalités déployées régulièrement, incluses.", category: "MISE À JOUR", color: "#4CAF50", bg: "#0a2e0a", icon: "🚀", anchor: "innovation",        badge: "Nouvelle fonctionnalité",  badgeIcon: "🚀" },
+  ];
+
+  const MODULES = [
+    { name: "Accueil",             color: "#3F51B5", icon: "🏠" },
+    { name: "Mes ventes",          color: "#26C6DA", icon: "💊" },
+    { name: "Commandes remisées",  color: "#9C27B0", icon: "🏷️" },
+    { name: "Bons de commande",    color: "#FF7043", icon: "📋" },
+    { name: "Mes produits",        color: "#26C6DA", icon: "🧪" },
+    { name: "Mes avoirs",          color: "#EF5350", icon: "↩️" },
+    { name: "Mon stock",           color: "#9C27B0", icon: "📦" },
+    { name: "Mes confrères",       color: "#FFC107", icon: "🤝" },
+    { name: "Mes clients",         color: "#3F51B5", icon: "👤" },
+    { name: "Ma caisse",           color: "#4CAF50", icon: "💰" },
+    { name: "Mes fournisseurs",    color: "#FFC107", icon: "🚚" },
+    { name: "Mes rapports",        color: "#3F51B5", icon: "📈" },
+    { name: "Réglages",            color: "#94A3B8", icon: "⚙️" },
+  ];
+
+  // ─── BUILD HERO CARD CAROUSEL ───
+  const heroCard = document.getElementById('heroCard');
+  const dotsWrap = document.getElementById('cardDots');
+  const badgeIcon = document.getElementById('badgeIcon');
+  const badgeTitle = document.getElementById('badgeTitle');
+
+  let currentSlide = 0;
+
+  function buildCard(f, idx) {
+    const div = document.createElement('div');
+    div.className = 'card-slide' + (idx === 0 ? ' active' : '');
+    div.innerHTML = `
+      <div class="card-header" style="background:${f.color};">
+        <span class="card-header-title">Accueil</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="card-body" style="background:${f.bg};">
+        <div class="card-counter" style="color:white;">${String(idx+1).padStart(2,'0')} / 08</div>
+        <div class="card-category" style="color:${f.color};">${f.category}</div>
+        <div class="card-icon">${f.icon}</div>
+        <div class="card-title">${f.title}</div>
+        <div class="card-claim" style="color:rgba(255,255,255,0.6);">${f.claim}</div>
+        <div class="card-footer" style="color:rgba(255,255,255,0.4);">
+          <span class="card-footer-dot"></span> BLINK PHARMACIE
+        </div>
+      </div>
+    `;
+    return div;
+  }
+
+  // Render all slides stacked
+  FEATURES.forEach((f, i) => heroCard.appendChild(buildCard(f, i)));
+
+  // Make non-active slides absolute
+  const slides = heroCard.querySelectorAll('.card-slide');
+  slides.forEach((s, i) => {
+    if (i !== 0) { s.style.position = 'absolute'; s.style.inset = '0'; }
+  });
+
+  // Build dots
+  FEATURES.forEach((f, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'card-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(dot);
+  });
+
+  function goTo(idx) {
+    slides[currentSlide].classList.remove('active');
+    slides[currentSlide].style.position = 'absolute';
+    dotsWrap.children[currentSlide].classList.remove('active');
+
+    currentSlide = idx;
+
+    slides[currentSlide].classList.add('active');
+    slides[currentSlide].style.position = 'relative';
+    dotsWrap.children[currentSlide].classList.add('active');
+
+    // Update badge
+    const f = FEATURES[currentSlide];
+    badgeIcon.textContent = f.badgeIcon;
+    badgeIcon.style.background = 'color-mix(in srgb,' + f.color + ' 15%, white)';
+    badgeTitle.textContent = f.badge;
+  }
+
+  // Init badge
+  badgeIcon.textContent = FEATURES[0].badgeIcon;
+  badgeTitle.textContent = FEATURES[0].badge;
+
+  // Auto-advance every 3s
+  setInterval(() => goTo((currentSlide + 1) % FEATURES.length), 3000);
+
+  // ─── BENEFIT CARDS GRID ───
+  const grid = document.getElementById('cardsGrid');
+  FEATURES.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'benefit-card fade-up';
+    card.style.setProperty('--card-color', f.color);
+    card.dataset.delay = (i % 4) * 100;
+    card.innerHTML = `
+      <div class="benefit-card-icon" style="font-size:1.5rem;">${f.icon}</div>
+      <h3>${f.title}</h3>
+      <p>${f.claim}</p>
+      <a href="premium.html#${f.anchor}">Découvrir →</a>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Render modules carousel
+  const track = document.getElementById('modulesTrack');
+  MODULES.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'module-card';
+    card.style.setProperty('--mod-color', m.color);
+    card.innerHTML = `
+      <div class="module-card-icon" style="--mod-color:${m.color}">${m.icon}</div>
+      <span>${m.name}</span>
+    `;
+    card.addEventListener('click', () => window.location.href = 'premium.html');
+    track.appendChild(card);
+  });
+
+  // Re-init animations after dynamic content
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof initScrollAnimations === 'function') initScrollAnimations();
+  });
+  // Trigger again since DOMContentLoaded may have already fired
+  if (typeof initScrollAnimations === 'function') initScrollAnimations();
+  </script>
+
+  <script>injectFooter();</script>
+</body>
+</html>

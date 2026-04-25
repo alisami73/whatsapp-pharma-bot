@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demander une démo — Blink Premium</title>
+  <meta name="description" content="Demandez une démo gratuite de Blink Premium. Un conseiller vous contacte sous 24h." />
+  <link rel="stylesheet" href="blink.css" />
+  <style>
+    /* ─── PAGE HERO ─── */
+    .page-hero {
+      background: linear-gradient(135deg, #F0F2F8 0%, #ffffff 100%);
+      padding: 5rem 2rem 4rem; text-align: center;
+      border-bottom: 1px solid var(--blink-border);
+    }
+    .page-hero h1 { font-size: clamp(2rem, 4vw, 2.875rem); font-weight: 900; margin-bottom: 0.875rem; }
+    .page-hero p { font-size: 1.0625rem; color: #64748B; max-width: 520px; margin: 0 auto; }
+
+    /* ─── CONTACT LAYOUT ─── */
+    .contact-section {
+      padding: 5rem 2rem;
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 3fr 2fr; gap: 4rem; align-items: start;
+    }
+
+    /* ─── FORM ─── */
+    .form-card {
+      background: white; border-radius: 28px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.07);
+      padding: 2.75rem;
+    }
+    .form-card h2 {
+      font-size: 1.375rem; font-weight: 800; margin-bottom: 0.375rem;
+    }
+    .form-card .form-subtitle {
+      font-size: 0.9rem; color: #64748B; margin-bottom: 2rem;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8125rem; font-weight: 600; color: #475569;
+      letter-spacing: 0.02em;
+    }
+    label .req { color: var(--blink-green); margin-left: 2px; }
+
+    input, select, textarea {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1.5px solid var(--blink-border);
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9375rem;
+      color: var(--blink-text); background: var(--blink-bg);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      -webkit-appearance: none; appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blink-green);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blink-green) 15%, transparent);
+      background: white;
+    }
+    input::placeholder, textarea::placeholder { color: #CBD5E1; }
+    textarea { resize: vertical; min-height: 100px; }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 1rem center;
+      padding-right: 2.5rem; cursor: pointer;
+    }
+
+    .submit-btn {
+      width: 100%; padding: 0.95rem;
+      background: var(--blink-green); color: white;
+      border: none; border-radius: 14px;
+      font-family: 'Nunito', sans-serif; font-size: 1.0625rem; font-weight: 700;
+      cursor: pointer; transition: all 0.25s; margin-top: 0.5rem;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn:hover { background: #43a047; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76,175,80,0.35); }
+    .submit-btn:active { transform: none; }
+
+    .form-disclaimer {
+      font-size: 0.75rem; color: #94A3B8; text-align: center; margin-top: 0.875rem;
+    }
+
+    /* Success state */
+    .form-success {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; padding: 3rem; text-align: center;
+    }
+    .form-success .check-circle {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: color-mix(in srgb, var(--blink-green) 15%, white);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .form-success h3 { font-size: 1.375rem; font-weight: 800; }
+    .form-success p { font-size: 0.9375rem; color: #64748B; max-width: 320px; }
+
+    /* ─── SIDEBAR ─── */
+    .contact-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .info-card {
+      background: white; border-radius: 24px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      padding: 1.75rem;
+    }
+    .info-card h3 {
+      font-size: 1.0625rem; font-weight: 800; margin-bottom: 1.25rem;
+    }
+
+    .contact-item {
+      display: flex; align-items: center; gap: 0.875rem;
+      padding: 0.625rem 0; border-bottom: 1px solid var(--blink-border);
+    }
+    .contact-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .contact-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.125rem;
+    }
+    .contact-item-text strong { display: block; font-size: 0.875rem; font-weight: 600; }
+    .contact-item-text span { font-size: 0.8125rem; color: #64748B; }
+    .contact-item-text a { font-size: 0.8125rem; color: var(--blink-green); font-weight: 500; }
+
+    .whatsapp-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 0.85rem;
+      background: #25D366; color: white;
+      border-radius: 14px; font-weight: 700; font-size: 1rem;
+      font-family: 'Nunito', sans-serif;
+      transition: all 0.2s; margin-top: 0.75rem;
+    }
+    .whatsapp-btn:hover { background: #20BA5A; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.35); }
+
+    /* Map placeholder */
+    .map-placeholder {
+      background: linear-gradient(135deg, var(--blink-bg) 0%, #e2e8f0 100%);
+      border-radius: 16px; height: 160px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.5rem; font-size: 0.8125rem; color: var(--blink-muted);
+      border: 1px dashed #CBD5E1; margin-top: 0.75rem;
+    }
+
+    /* Reassurance badges */
+    .reassurance {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .reassurance-item {
+      background: var(--blink-bg); border-radius: 16px; padding: 1.25rem;
+      text-align: center;
+    }
+    .reassurance-item .ri-icon { font-size: 1.5rem; margin-bottom: 0.375rem; }
+    .reassurance-item strong { display: block; font-size: 0.875rem; font-weight: 700; }
+    .reassurance-item span { font-size: 0.75rem; color: #64748B; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .contact-section { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.5rem; }
+      .contact-sidebar { order: -1; }
+      .reassurance { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-card { padding: 1.75rem 1.25rem; }
+      .reassurance { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <script src="assets/logo-data.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{const el=document.getElementById('contactSidebarLogo');if(el&&typeof BLINK_LOGO_DATA_URL!=='undefined')el.src=BLINK_LOGO_DATA_URL;});</script>
+  <script src="blink-components.js"></script>
+  <script>injectNavbar('contact');</script>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <p class="section-label" style="justify-content:center;display:flex;">Démo gratuite</p>
+    <h1>Parlons de votre pharmacie</h1>
+    <p>Remplissez le formulaire ci-dessous. Un conseiller Blink vous contacte sous 24h pour organiser une démonstration personnalisée.</p>
+  </div>
+
+  <!-- CONTACT LAYOUT -->
+  <div class="contact-section">
+
+    <!-- FORM -->
+    <div class="fade-up">
+      <div class="form-card">
+        <div id="formContent">
+          <h2>Demander une démo</h2>
+          <p class="form-subtitle">Gratuit, sans engagement. Durée estimée : 30 minutes.</p>
+
+          <form id="contactForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="nom">Nom complet <span class="req">*</span></label>
+                <input type="text" id="nom" name="nom" placeholder="Dr. Ahmed Benali" required />
+              </div>
+              <div class="form-group">
+                <label for="pharmacie">Nom de la pharmacie <span class="req">*</span></label>
+                <input type="text" id="pharmacie" name="pharmacie" placeholder="Pharmacie Al Amal" required />
+              </div>
+              <div class="form-group">
+                <label for="telephone">Téléphone (WhatsApp) <span class="req">*</span></label>
+                <input type="tel" id="telephone" name="telephone" placeholder="+212 6XX XXX XXX" required />
+              </div>
+              <div class="form-group">
+                <label for="ville">Ville</label>
+                <input type="text" id="ville" name="ville" placeholder="Casablanca" />
+              </div>
+              <div class="form-group full">
+                <label for="logiciel">Logiciel actuel</label>
+                <select id="logiciel" name="logiciel">
+                  <option value="" disabled selected>Sélectionner un logiciel</option>
+                  <option value="aucun">Aucun</option>
+                  <option value="pharmawin">Pharmawin</option>
+                  <option value="winpharma">Winpharma</option>
+                  <option value="altro">Altro</option>
+                  <option value="autre">Autre</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label for="message">Message (optionnel)</label>
+                <textarea id="message" name="message" placeholder="Décrivez vos besoins ou posez vos questions…"></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+              Envoyer ma demande de démo
+            </button>
+            <p class="form-disclaimer">🔒 Vos données sont confidentielles et ne seront jamais partagées avec des tiers.</p>
+          </form>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div class="form-success" id="formSuccess">
+          <div class="check-circle">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <h3>Demande envoyée !</h3>
+          <p>Merci ! Un conseiller Blink vous contactera dans les 24 heures pour organiser votre démo personnalisée.</p>
+          <a href="premium.html" class="btn btn-outline" style="margin-top:0.5rem;">Découvrir les fonctionnalités →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="contact-sidebar fade-up" data-delay="150">
+
+      <!-- Reassurance badges -->
+      <div class="reassurance">
+        <div class="reassurance-item">
+          <div class="ri-icon">⚡</div>
+          <strong>Réponse rapide</strong>
+          <span>Sous 24h ouvrées</span>
+        </div>
+        <div class="reassurance-item">
+          <div class="ri-icon">🎯</div>
+          <strong>Sur mesure</strong>
+          <span>Démo personnalisée</span>
+        </div>
+        <div class="reassurance-item">
+          <div class="ri-icon">🇲🇦</div>
+          <strong>Local</strong>
+          <span>Équipe au Maroc</span>
+        </div>
+        <div class="reassurance-item">
+          <div class="ri-icon">🆓</div>
+          <strong>Gratuit</strong>
+          <span>Sans engagement</span>
+        </div>
+      </div>
+
+      <!-- Contact info -->
+      <div class="info-card">
+        <h3>Contactez-nous directement</h3>
+        <div style="margin-bottom:1.25rem;">
+          <img id="contactSidebarLogo" src="assets/logo-blinkpremium.png" alt="Blink Premium" style="height:68px;width:auto;display:block;">
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-icon" style="background:color-mix(in srgb,#25D366 15%,white);">📱</div>
+          <div class="contact-item-text">
+            <strong>WhatsApp</strong>
+            <a href="https://wa.me/212600000000" target="_blank">+212 6XX XXX XXX</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon" style="background:color-mix(in srgb,var(--blink-blue) 12%,white);">✉️</div>
+          <div class="contact-item-text">
+            <strong>Email</strong>
+            <a href="mailto:contact@blinkpharmacie.ma">contact@blinkpharmacie.ma</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon" style="background:color-mix(in srgb,var(--blink-orange) 12%,white);">📍</div>
+          <div class="contact-item-text">
+            <strong>Localisation</strong>
+            <span>Casablanca, Maroc</span>
+          </div>
+        </div>
+
+        <a href="https://wa.me/212600000000" target="_blank" class="whatsapp-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Écrire sur WhatsApp
+        </a>
+
+        <div class="map-placeholder">
+          <span style="font-size:1.5rem;">🗺️</span>
+          <span>Casablanca, Maroc</span>
+        </div>
+      </div>
+
+      <!-- Feature recap -->
+      <div class="info-card" style="background:linear-gradient(135deg,#F0F2F8,#e8f5e9);">
+        <h3 style="font-size:0.9375rem;">Inclus dans votre démo</h3>
+        <div style="display:flex;flex-direction:column;gap:0.625rem;margin-top:0.25rem;">
+          <div style="display:flex;align-items:center;gap:0.625rem;">
+            <span style="color:var(--blink-green);font-weight:700;">✓</span>
+            <span style="font-size:0.875rem;color:#475569;">Présentation complète des modules</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.625rem;">
+            <span style="color:var(--blink-green);font-weight:700;">✓</span>
+            <span style="font-size:0.875rem;color:#475569;">Analyse de vos besoins spécifiques</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.625rem;">
+            <span style="color:var(--blink-green);font-weight:700;">✓</span>
+            <span style="font-size:0.875rem;color:#475569;">Simulation de migration depuis votre logiciel</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.625rem;">
+            <span style="color:var(--blink-green);font-weight:700;">✓</span>
+            <span style="font-size:0.875rem;color:#475569;">Devis personnalisé sans engagement</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const form = document.getElementById('contactForm');
+  const formContent = document.getElementById('formContent');
+  const formSuccess = document.getElementById('formSuccess');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const required = form.querySelectorAll('[required]');
+    let valid = true;
+    required.forEach(el => {
+      el.style.borderColor = '';
+      if (!el.value.trim()) {
+        el.style.borderColor = '#EF5350';
+        valid = false;
+      }
+    });
+    if (!valid) return;
+
+    submitBtn.textContent = 'Envoi en cours…';
+    submitBtn.disabled = true;
+
+    const data = {
+      nom:       form.nom.value,
+      pharmacie: form.pharmacie.value,
+      telephone: form.telephone.value,
+      ville:     form.ville.value,
+      logiciel:  form.logiciel.value,
+      message:   form.message.value,
+    };
+
+    console.log('[Blink Demo Request]', data);
+
+    // Stub — replace with real API call
+    await new Promise(r => setTimeout(r, 800));
+
+    formContent.style.display = 'none';
+    formSuccess.style.display = 'flex';
+  });
+
+  // Init animations
+  if (typeof initScrollAnimations === 'function') initScrollAnimations();
+  </script>
+
+  <script>injectFooter();</script>
+</body>
+</html>
