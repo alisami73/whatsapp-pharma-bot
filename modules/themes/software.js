@@ -298,7 +298,7 @@ async function sendBenefitsFAQMenu(to, lang) {
     fr: 'HX01bacb94b4484ccf7a268865439accdb',
     ar: 'HXd94ea788e7dc9b37f33a9b5e1a1e5074',
     es: 'HXe96feee33bef32e03c97e08260c17ace',
-    ru: 'HX96eea6f671fb13c3718dc49b55e8ac20',
+    ru: 'HXe9949cebe0b68cfbebaec095d00ab434',
   };
 
   const sid = CAROUSEL_SIDS[lang] || CAROUSEL_SIDS.fr;
