@@ -529,6 +529,7 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
 
     const result = await explorer.sendExplorerCarousel(phone, lang);
+    console.log(`[explorer] sendExplorerCarousel result: ${result ? result.sid : 'null'}`);
     if (result) {
       // Carousel sent successfully — send prefix text first (appears before carousel in chat)
       if (prefix) {
@@ -545,6 +546,7 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
       res.type('text/xml').send(buildEmptyTwiml());
       return true;
     }
+    console.warn('[explorer] sendExplorerCarousel returned null — fallback to text');
   } catch (err) {
     console.error('[explorer] tryRespondWithMainMenuInteractive failed:', err.message || err);
   }

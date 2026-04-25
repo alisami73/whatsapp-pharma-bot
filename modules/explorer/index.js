@@ -196,9 +196,11 @@ async function sendExplorerCarousel(to, lang = 'fr') {
   if (cb) payload.statusCallback = cb;
 
   try {
-    return await client.messages.create(payload);
+    const msg = await client.messages.create(payload);
+    console.log(`[explorer] Carousel envoyé OK: msgSid=${msg.sid} status=${msg.status}`);
+    return msg;
   } catch (err) {
-    console.error(`[explorer] sendExplorerCarousel failed: ${err.message}`);
+    console.error(`[explorer] sendExplorerCarousel FAILED: ${err.message} (code=${err.code})`);
     return null;
   }
 }
