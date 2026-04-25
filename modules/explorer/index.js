@@ -145,6 +145,7 @@ async function sendExplorerCarousel(to, lang = 'fr') {
     (Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL);
 
   let sid = isFresh ? entry.sid : null;
+  console.log(`[explorer] cacheKey=${cacheKey} isFresh=${isFresh} sid=${sid}`);
 
   if (!sid) {
     const spec   = buildExplorerCarouselSpec(lcode);
@@ -164,20 +165,32 @@ async function sendExplorerCarousel(to, lang = 'fr') {
           sid = match.sid;
           cache[cacheKey] = { sid, created_at: new Date().toISOString() };
           writeCache(cache);
+          console.log(`[explorer] Template existant trouvé: ${cacheKey} → ${sid}`);
+        } else {
+          console.error(`[explorer] Template introuvable pour ${cacheKey}`);
         }
-      } catch (_) {}
+      } catch (listErr) {
+        console.error(`[explorer] Liste templates échouée: ${listErr.message}`);
+      }
     }
   }
 
-  if (!sid) return null;
+  if (!sid) {
+    console.error(`[explorer] Aucun SID disponible pour ${cacheKey} — abandon`);
+    return null;
+  }
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
   const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid };
+  console.log(`[explorer] Envoi carousel sid=${sid} to=${to}`);
 
   if (config.whatsappFrom) payload.from = config.whatsappFrom;
   else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
-  else return null;
+  else {
+    console.error('[explorer] Aucun sender configuré (whatsappFrom ni messagingServiceSid)');
+    return null;
+  }
 
   const cb = twilioService.buildStatusCallbackUrl();
   if (cb) payload.statusCallback = cb;
