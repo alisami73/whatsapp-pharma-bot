@@ -528,14 +528,12 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
     const lang = getUserLang(user);
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
 
-    // Text first (separate API call) → carousel second → empty TwiML
-    // Both are synchronous so the order is guaranteed.
-    if (prefix) {
-      await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
-    }
-
     const result = await explorer.sendExplorerCarousel(phone, lang);
     if (result) {
+      // Carousel sent successfully — send prefix text first (appears before carousel in chat)
+      if (prefix) {
+        await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
+      }
       await storage.appendMessageLog({
         direction: 'outbound',
         phone,

@@ -64,8 +64,7 @@ const EXPLORER_CARDS = [
     body:        'Base médicaments marocains — nom commercial, DCI & dosages',
     image:       'medindex.jpg',
     buttonLabel: 'Ouvrir MedIndex',
-    buttonType:  'URL',
-    buttonUrl:   'https://medindex.ma',
+    buttonType:  'QUICK_REPLY',
   },
 ];
 
@@ -110,9 +109,7 @@ function buildExplorerCarouselSpec(lang) {
   const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
 
   const cards = EXPLORER_CARDS.map((card) => {
-    const actions = card.buttonType === 'URL'
-      ? [{ type: 'URL', title: card.buttonLabel.slice(0, 20), url: card.buttonUrl }]
-      : [{ type: 'QUICK_REPLY', title: card.buttonLabel.slice(0, 20), id: card.id }];
+    const actions = [{ type: 'QUICK_REPLY', title: card.buttonLabel.slice(0, 20), id: card.id }];
 
     return {
       title:  card.title,
