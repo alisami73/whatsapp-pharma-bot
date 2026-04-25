@@ -115,9 +115,9 @@ function buildSoftwareCarouselCards(lang) {
       media: buildAbsoluteUrl(getLocalizedCarouselAssetPath(3, normalizedLang)),
       actions: [
         {
-          type: 'URL',
+          type: 'QUICK_REPLY',
           title: t('sw_carousel_cta_data', normalizedLang).slice(0, 25),
-          url: getDataCndpPageUrl(normalizedLang),
+          id: 'sw_data_protection',
         },
       ],
     },
@@ -128,7 +128,7 @@ function buildSoftwareCarouselSpec(lang) {
   const normalizedLang = normalizeLang(lang);
 
   return {
-    friendlyName: `blink_software_carousel_v5_${normalizedLang}`,
+    friendlyName: `blink_software_carousel_v6_${normalizedLang}`,
     language: normalizedLang,
     types: {
       'twilio/carousel': {
@@ -142,7 +142,7 @@ function buildSoftwareCarouselSpec(lang) {
 function getSoftwareTemplateArtifacts(lang) {
   const normalizedLang = normalizeLang(lang);
   const spec = buildSoftwareCarouselSpec(normalizedLang);
-  const cacheKey = `software_carousel_v5_${normalizedLang}`;
+  const cacheKey = `software_carousel_v6_${normalizedLang}`;
 
   return {
     lang: normalizedLang,
