@@ -294,68 +294,41 @@ async function sendBenefitsFAQMenu(to, lang) {
   if (!interactive.isInteractiveEnabled()) return null;
 
   const langCode = lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
-  const cacheKey = `software_benefits_faq_v3_${lang}`;
-  const CACHE_PATH = require('path').join(__dirname, '..', '..', 'data', 'interactive_templates.json');
-  const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-  const fs = require('fs');
-
-  let cache = {};
-  try {
-    if (fs.existsSync(CACHE_PATH)) cache = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-  } catch (_) {}
-
-  const entry = cache[cacheKey];
-  const isFresh = entry && entry.sid && entry.created_at &&
-    (Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL_MS);
-  let sid = isFresh ? entry.sid : null;
-
-  if (!sid) {
-    const btn = t('sw_faq_btn_more', lang).slice(0, 20);
-    const BASE_URL = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/$/, '');
-    const img = (n) => `${BASE_URL}/public/carousel/blink-carte-0${n}.jpg`;
-    const spec = {
-      friendlyName: `blink_software_benefits_faq_v3_${lang}`,
-      language: langCode,
-      types: {
-        'twilio/carousel': {
-          body: t('sw_benefits_carousel_body', lang),
-          cards: [
-            { title: t('sw_faq_q1', lang), body: t('sw_card_body_q1', lang), media: [img(1)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q1' }] },
-            { title: t('sw_faq_q2', lang), body: t('sw_card_body_q2', lang), media: [img(2)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q2' }] },
-            { title: t('sw_faq_q3', lang), body: t('sw_card_body_q3', lang), media: [img(3)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q3' }] },
-            { title: t('sw_faq_q4', lang), body: t('sw_card_body_q4', lang), media: [img(4)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q4' }] },
-            { title: t('sw_faq_q5', lang), body: t('sw_card_body_q5', lang), media: [img(5)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q5' }] },
-            { title: t('sw_faq_q6', lang), body: t('sw_card_body_q6', lang), media: [img(6)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q6' }] },
-            { title: t('sw_faq_q7', lang), body: t('sw_card_body_q7', lang), media: [img(7)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q7' }] },
-            { title: t('sw_faq_q8', lang), body: t('sw_card_body_q8', lang), media: [img(8)], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_q8' }] },
-            { title: t('sw_faq_medindex', lang), body: t('sw_card_body_medindex', lang), media: [`${BASE_URL}/public/carousel/blink-carte-09.jpg`], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_medindex' }] },
-            { title: t('sw_faq_ia', lang), body: t('sw_card_body_ia', lang), media: [`${BASE_URL}/public/carousel/blink-carte-10.jpg`], actions: [{ type: 'QUICK_REPLY', title: btn, id: 'sw_faq_ia' }] },
-          ],
-        },
+  const cacheKey = `software_benefits_faq_v4_${lang}`;
+  const spec = {
+    friendlyName: `blink_software_benefits_faq_v4_${lang}`,
+    language: langCode,
+    types: {
+      'twilio/list-picker': {
+        body: t('sw_benefits_carousel_body', lang),
+        button: t('sw_benefits_faq_button', lang).slice(0, 20),
+        sections: [
+          {
+            title: lang === 'ar' ? 'مزايا بلينك' : lang === 'es' ? 'Ventajas Blink' : lang === 'ru' ? 'Преимущества Blink' : 'Avantages Blink',
+            items: [
+              { id: 'sw_faq_q1', item: t('sw_faq_q1', lang).slice(0, 24) },
+              { id: 'sw_faq_q2', item: t('sw_faq_q2', lang).slice(0, 24) },
+              { id: 'sw_faq_q3', item: t('sw_faq_q3', lang).slice(0, 24) },
+              { id: 'sw_faq_q4', item: t('sw_faq_q4', lang).slice(0, 24) },
+              { id: 'sw_faq_q5', item: t('sw_faq_q5', lang).slice(0, 24) },
+              { id: 'sw_faq_q6', item: t('sw_faq_q6', lang).slice(0, 24) },
+              { id: 'sw_faq_q7', item: t('sw_faq_q7', lang).slice(0, 24) },
+              { id: 'sw_faq_q8', item: t('sw_faq_q8', lang).slice(0, 24) },
+            ],
+          },
+          {
+            title: lang === 'ar' ? 'ميزات متقدمة' : lang === 'es' ? 'Funcionalidades avanzadas' : lang === 'ru' ? 'Расширенные функции' : 'Fonctionnalités avancées',
+            items: [
+              { id: 'sw_faq_medindex', item: t('sw_faq_medindex', lang).slice(0, 24) },
+              { id: 'sw_faq_ia',       item: t('sw_faq_ia', lang).slice(0, 24) },
+            ],
+          },
+        ],
       },
-    };
+    },
+  };
 
-    const client = twilioService.getTwilioClient();
-    try {
-      const created = await client.content.v1.contents.create(spec);
-      sid = created.sid;
-      cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-      fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-      console.log(`[software] Carousel FAQ créé: ${cacheKey} → ${sid}`);
-    } catch (createErr) {
-      console.warn(`[software] Création carousel FAQ échouée (${createErr.message}) — recherche existant...`);
-      try {
-        const all = await client.content.v1.contents.list({ limit: 100 });
-        const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
-        if (match) {
-          sid = match.sid;
-          cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-          fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-        }
-      } catch (_) {}
-    }
-  }
-
+  const sid = await createOrFetchListPicker(cacheKey, spec);
   return sendListPickerMessage(to, sid, lang);
 }
 
