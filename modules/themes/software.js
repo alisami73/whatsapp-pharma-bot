@@ -296,9 +296,9 @@ async function sendBenefitsFAQMenu(to, lang) {
   // Approved Meta carousel SIDs — one per language (fr approved 2026-04-25)
   const CAROUSEL_SIDS = {
     fr: 'HX01bacb94b4484ccf7a268865439accdb',
-    ar: null,
-    es: null,
-    ru: null,
+    ar: 'HXd94ea788e7dc9b37f33a9b5e1a1e5074',
+    es: 'HXe96feee33bef32e03c97e08260c17ace',
+    ru: 'HX96eea6f671fb13c3718dc49b55e8ac20',
   };
 
   const sid = CAROUSEL_SIDS[lang] || CAROUSEL_SIDS.fr;
