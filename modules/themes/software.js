@@ -293,43 +293,38 @@ async function sendBenefitsFAQMenu(to, lang) {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
-  const langCode = lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
-  const cacheKey = `software_benefits_faq_v4_${lang}`;
-  const spec = {
-    friendlyName: `blink_software_benefits_faq_v4_${lang}`,
-    language: langCode,
-    types: {
-      'twilio/list-picker': {
-        body: t('sw_benefits_carousel_body', lang),
-        button: t('sw_benefits_faq_button', lang).slice(0, 20),
-        sections: [
-          {
-            title: lang === 'ar' ? 'مزايا بلينك' : lang === 'es' ? 'Ventajas Blink' : lang === 'ru' ? 'Преимущества Blink' : 'Avantages Blink',
-            items: [
-              { id: 'sw_faq_q1', item: t('sw_faq_q1', lang).slice(0, 24) },
-              { id: 'sw_faq_q2', item: t('sw_faq_q2', lang).slice(0, 24) },
-              { id: 'sw_faq_q3', item: t('sw_faq_q3', lang).slice(0, 24) },
-              { id: 'sw_faq_q4', item: t('sw_faq_q4', lang).slice(0, 24) },
-              { id: 'sw_faq_q5', item: t('sw_faq_q5', lang).slice(0, 24) },
-              { id: 'sw_faq_q6', item: t('sw_faq_q6', lang).slice(0, 24) },
-              { id: 'sw_faq_q7', item: t('sw_faq_q7', lang).slice(0, 24) },
-              { id: 'sw_faq_q8', item: t('sw_faq_q8', lang).slice(0, 24) },
-            ],
-          },
-          {
-            title: lang === 'ar' ? 'ميزات متقدمة' : lang === 'es' ? 'Funcionalidades avanzadas' : lang === 'ru' ? 'Расширенные функции' : 'Fonctionnalités avancées',
-            items: [
-              { id: 'sw_faq_medindex', item: t('sw_faq_medindex', lang).slice(0, 24) },
-              { id: 'sw_faq_ia',       item: t('sw_faq_ia', lang).slice(0, 24) },
-            ],
-          },
-        ],
-      },
-    },
+  // Approved Meta carousel SIDs — one per language (fr approved 2026-04-25)
+  const CAROUSEL_SIDS = {
+    fr: 'HX01bacb94b4484ccf7a268865439accdb',
+    ar: null,
+    es: null,
+    ru: null,
   };
 
-  const sid = await createOrFetchListPicker(cacheKey, spec);
-  return sendListPickerMessage(to, sid, lang);
+  const sid = CAROUSEL_SIDS[lang] || CAROUSEL_SIDS.fr;
+  if (!sid) return null;
+
+  const config = twilioService.getTwilioConfig();
+  const client = twilioService.getTwilioClient();
+
+  const payload = {
+    to: twilioService.normalizeWhatsAppAddress(to),
+    contentSid: sid,
+    contentVariables: '{}',
+  };
+  if (config.whatsappFrom) payload.from = config.whatsappFrom;
+  else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
+  else return null;
+
+  const statusCallback = twilioService.buildStatusCallbackUrl();
+  if (statusCallback) payload.statusCallback = statusCallback;
+
+  try {
+    return await client.messages.create(payload);
+  } catch (err) {
+    console.error(`[software] sendBenefitsFAQMenu failed: ${err.message}`);
+    return null;
+  }
 }
 
 function buildBenefitsFAQText(lang) {
