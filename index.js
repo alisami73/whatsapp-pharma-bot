@@ -18,7 +18,9 @@ const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
 const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
-const software = require('./modules/themes/software');
+const software     = require('./modules/themes/software');
+const explorer     = require('./modules/explorer');
+const answerPages  = require('./modules/answer_pages');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -30,7 +32,10 @@ const STATES = {
   BROWSING_SOFTWARE_CAROUSEL: 'browsing_software_carousel', // Carrousel Blink Premium
   BROWSING_SW_CALLBACK_SUB:  'browsing_sw_callback_sub',   // Sous-menu Appelez-moi
   BROWSING_SW_BENEFITS_FAQ:  'browsing_sw_benefits_faq',   // FAQ Pourquoi Blink ?
-  BROWSING_SW_DATA_FAQ:      'browsing_sw_data_faq',       // FAQ Données & CNDP
+  BROWSING_SW_DATA_FAQ:       'browsing_sw_data_faq',       // FAQ Données & CNDP
+  BROWSING_EXPLORER_CAROUSEL: 'browsing_explorer_carousel', // Carousel Explorer principal
+  AWAITING_FSE_QUESTION:      'awaiting_fse_question',      // Question FSE → réponse sur page web
+  AWAITING_CONFORMITE_QUESTION: 'awaiting_conformite_question', // Question Conformité → page web
   AWAITING_CONSENT_DETAILS: 'awaiting_consent_details', // après "EN SAVOIR PLUS"
   MAIN_MENU: 'main_menu',
   THEME_MENU: 'theme_menu',
@@ -54,6 +59,31 @@ app.get('/site/data&cndp.html', (req, res) => {
 });
 app.use('/site', express.static(require('path').join(__dirname, 'public', 'site')));
 app.use('/admin', adminRoutes);
+
+// ── Answer pages (FSE + Conformité) ─────────────────────────────────────────
+// GET /answers/:topic/:id → serve the answer HTML page
+app.get('/answers/:topic/:id', (req, res) => {
+  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+});
+
+// GET /api/answers/:id → JSON API fetched by the answer page
+app.get('/api/answers/:id', async (req, res) => {
+  try {
+    const data = await answerPages.getAnswer(req.params.id);
+    if (!data) return res.status(404).json({ error: 'Not found' });
+    // Never expose user_phone_hash or raw phone in response
+    const { user_phone_hash: _h, ...safe } = data;
+    res.json(safe);
+  } catch (err) {
+    console.error('[api/answers]', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /history/:phoneHash → user answer history (optional page)
+app.get('/history/:phoneHash', (req, res) => {
+  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+});
 
 function normalizeText(value) {
   return String(value || '')
@@ -493,28 +523,27 @@ async function setCnssQuestionState(user, themeId) {
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
 async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
   try {
-    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
-    await setMainMenuState(user);
     const lang = getUserLang(user);
-    const result = await interactive.sendMenuScreen(phone, activeThemes, lang);
+    // Explorer carousel replaces the old list-picker main menu
+    user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
+    const result = await explorer.sendExplorerCarousel(phone, lang);
     if (result) {
       await storage.appendMessageLog({
         direction: 'outbound',
         phone,
-        body: '[interactive:main_menu]',
+        body: '[interactive:explorer_carousel]',
         status: result.status || 'queued',
         provider_message_sid: result.sid,
-        metadata: { source: 'interactive_main_menu' },
+        metadata: { source: 'explorer_carousel' },
       });
       if (prefix) {
-        // Send the prefix as a separate text message before the interactive menu
         await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
       }
       res.type('text/xml').send(buildEmptyTwiml());
       return true;
     }
   } catch (err) {
-    console.error('[interactive] sendMenuScreen failed:', err.message || err);
+    console.error('[explorer] sendExplorerCarousel failed:', err.message || err);
   }
   return false;
 }
@@ -1370,7 +1399,64 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    // ── Explorer carousel payload → route immediately regardless of state ─────
+    if (explorer.isExplorerPayload(controlValue)) {
+      const themeId = explorer.resolveExplorerPayload(controlValue);
+
+      if (themeId === 'software') {
+        const swTheme = activeThemes.find((th) => th.id === 'software');
+        if (swTheme) await startThemePrimaryAction(response, user, swTheme);
+        else response.message('Rubrique Blink Premium indisponible.');
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      if (themeId === 'nouveautes-medicaments') {
+        const msg = `🔔 *Actu Médicaments*\n\nCette rubrique arrive bientôt !\nVous serez informé dès qu'un carousel dédié aux nouveautés médicaments, rappels de lots et mises à jour du marché pharma sera disponible.\n\nEnvoyez RETOUR pour revenir au menu.`;
+        response.message(msg);
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      if (themeId === 'fse') {
+        user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_FSE_QUESTION, current_theme: 'fse' });
+        response.message('📋 *Soins Électroniques — FSE CNSS*\n\nPosez votre question sur la Feuille de Soins Électronique.\nEx : "Comment fonctionne la facturation FSE ?" ou "Quels médicaments sont pris en charge ?"\n\nEnvoyez RETOUR pour revenir.');
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      if (themeId === 'conformites') {
+        user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_CONFORMITE_QUESTION, current_theme: 'conformites' });
+        response.message('⚖️ *Conformité Pharma*\n\nPosez votre question sur la conformité et réglementation pharmaceutique.\nEx : "Quelles sont les règles pour les stupéfiants ?" ou "Comment préparer une inspection DMP ?"\n\nEnvoyez RETOUR pour revenir.');
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      if (themeId === 'medindex') {
+        response.message('💊 *MedIndex*\n\nOuvrez la base de médicaments marocains :\nhttps://medindex.ma');
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      // Payload non résolu → renvoyer l'explorer
+      const sent = await explorer.sendExplorerCarousel(context.phone, lang);
+      if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+      response.message(explorer.buildExplorerFallbackText());
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
     if (controlValue === 'retour') {
+      // FSE / Conformité question states → revenir à l'explorer
+      const aiQuestionStates = [STATES.AWAITING_FSE_QUESTION, STATES.AWAITING_CONFORMITE_QUESTION];
+      if (aiQuestionStates.includes(user.current_state)) {
+        const sent = await explorer.sendExplorerCarousel(context.phone, lang);
+        if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
+        response.message(explorer.buildExplorerFallbackText());
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
       // Software sub-FAQ states → revenir au carrousel Blink Premium
       const swSubStates = [STATES.BROWSING_SW_CALLBACK_SUB, STATES.BROWSING_SW_BENEFITS_FAQ, STATES.BROWSING_SW_DATA_FAQ];
       if (swSubStates.includes(user.current_state)) {
@@ -1471,6 +1557,44 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     // ── Module Monitoring ─────────────────────────────────────────────────
     if (user.current_state === STATES.AWAITING_MONITORING_CHOICE && currentTheme) {
       await handleMonitoringChoice(response, user, currentTheme, context.normalizedMessage);
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── FSE CNSS — réponse IA + page web ─────────────────────────────────
+    if (user.current_state === STATES.AWAITING_FSE_QUESTION) {
+      try {
+        const answer = await cnss.answerQuestion(context.message, 'fse', lang);
+        if (answerPages.isEnabled()) {
+          const id  = await answerPages.saveAnswer({ topic: 'fse', userPhone: context.phone, question: context.message, answer });
+          const msg = answerPages.buildAnswerReadyMessage('fse', id, lang);
+          response.message(appendTextFooter(msg, lang, { includeBack: true }));
+        } else {
+          response.message(appendTextFooter(answer, lang, { includeBack: true }));
+        }
+      } catch (err) {
+        console.error('[fse_question]', err.message);
+        response.message('Une erreur est survenue. Veuillez réessayer.');
+      }
+      res.type('text/xml').send(response.toString());
+      return;
+    }
+
+    // ── Conformité Pharma — réponse IA + page web ─────────────────────────
+    if (user.current_state === STATES.AWAITING_CONFORMITE_QUESTION) {
+      try {
+        const answer = await cnss.answerQuestion(context.message, 'conformites', lang);
+        if (answerPages.isEnabled()) {
+          const id  = await answerPages.saveAnswer({ topic: 'conformites', userPhone: context.phone, question: context.message, answer });
+          const msg = answerPages.buildAnswerReadyMessage('conformites', id, lang);
+          response.message(appendTextFooter(msg, lang, { includeBack: true }));
+        } else {
+          response.message(appendTextFooter(answer, lang, { includeBack: true }));
+        }
+      } catch (err) {
+        console.error('[conformite_question]', err.message);
+        response.message('Une erreur est survenue. Veuillez réessayer.');
+      }
       res.type('text/xml').send(response.toString());
       return;
     }
