@@ -129,6 +129,70 @@ test('hybrid retrieval favors exact legal reference matches', async () => {
   assert.equal(retrieval.results[0].chunk.chunk_id, 'chunk_article_12');
 });
 
+test('equivalence queries do not get hijacked by unrelated practical inspection guides', async () => {
+  const chunks = [
+    {
+      chunk_id: 'chunk_equivalence_decret',
+      doc_id: 'decret_2_01_333_du_21_juin_2001_equivalences',
+      official_title: 'Décret n° 2-01-333 relatif aux equivalences des diplômes de l enseignement supérieur',
+      short_title: 'Décret 2-01-333 du 21 juin 2001',
+      structure_path: 'Article 1 > Article 3',
+      section_path: 'Autorité compétente, dépôt du dossier et principe de la décision',
+      article_number: null,
+      document_type: 'decret',
+      language: 'fr',
+      clean_text: 'Les demandes d équivalence sont adressées à l autorité gouvernementale chargée de l enseignement supérieur et l équivalence est prononcée par arrêté après avis de la commission compétente.',
+      legal_summary: 'L autorité chargée de l enseignement supérieur prononce l équivalence après avis de la commission.',
+      topics: ['equivalence de diplomes', 'enseignement superieur', 'diplomes etrangers'],
+      topic_tags: ['equivalence', 'diplome'],
+      retrieval_keywords: ['equivalence diplome', 'demande equivalence', 'enseignement superieur', 'commission equivalence'],
+      user_questions: ['Comment demander l équivalence d un diplôme étranger ?', 'Qui prononce l équivalence ?'],
+      citations: ['decret n 2 01 333'],
+      obligations: [],
+      sanctions: [],
+      deadlines: [],
+      confidence: 'high',
+      manual_review_required: false,
+    },
+    {
+      chunk_id: 'chunk_inspection_guide',
+      doc_id: 'guide_pratique_inspection_ammps',
+      official_title: 'Guide pratique inspection officinale',
+      short_title: 'Guide inspection AMMPS',
+      structure_path: 'Checklist avant la visite',
+      section_path: 'Checklist avant la visite',
+      article_number: null,
+      document_type: 'guide_pratique',
+      language: 'fr',
+      clean_text: 'Avant une inspection, préparez le diplôme, les registres, les factures et vérifiez la conformité des locaux.',
+      legal_summary: 'Checklist pratique avant une inspection officinale.',
+      topics: ['inspection', 'officine'],
+      topic_tags: ['inspection'],
+      retrieval_keywords: ['inspection', 'checklist', 'conformité', 'locaux'],
+      user_questions: ['J ai une inspection, que dois je faire ?'],
+      citations: [],
+      obligations: [],
+      sanctions: [],
+      deadlines: [],
+      confidence: 'high',
+      manual_review_required: false,
+    },
+  ];
+
+  const corpus = buildCorpus(chunks);
+  const retrieval = await legalKb.retrieveLegalResults(
+    'Comment obtenir l équivalence d un diplôme étranger ?',
+    {
+      scope: 'conformites',
+      topK: 2,
+      corpus,
+      queryEmbedding: null,
+    },
+  );
+
+  assert.equal(retrieval.results[0].chunk.chunk_id, 'chunk_equivalence_decret');
+});
+
 test('reranking boosts sanctions and deadlines when the query asks for them', async () => {
   const chunks = [
     {

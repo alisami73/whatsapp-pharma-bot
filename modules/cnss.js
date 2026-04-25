@@ -537,8 +537,11 @@ function buildLegalAnswerStyleInstruction(langCode, legalRetrieval) {
     return lines.join('\n');
 }
 
-function buildPracticalShortLines(chunks = []) {
+function buildPracticalShortLines(chunks = [], question = '') {
     const candidates = [];
+    const normalizedQuestion = normalizeText(question);
+    const isEquivalenceQuery = /equival|diplom/.test(normalizedQuestion);
+    const asksAboutAuthorization = /autoris|exerc|cnop|ordre/.test(normalizedQuestion);
 
     chunks.forEach((chunk) => {
         const citation = normalizeText(legalKb.buildCitationLabel(chunk));
@@ -552,6 +555,14 @@ function buildPracticalShortLines(chunks = []) {
         if (citation.includes('inspection')) chunkScore += 2;
         if (chunk.confidence === 'high') chunkScore += 1;
 
+        if (isEquivalenceQuery) {
+            if (chunk.document_type === 'decret') chunkScore += 3;
+            if (citation.includes('decret 2 01 333') || citation.includes('equivalence')) chunkScore += 6;
+            if (!asksAboutAuthorization && chunk.document_type === 'guide_pratique' && /cnop|autorisation|ordre/.test(citation)) {
+                chunkScore -= 4;
+            }
+        }
+
         (chunk.key_rules || []).forEach((line, index) => {
             let score = chunkScore - (index * 0.2);
             const normalizedLine = normalizeText(line);
@@ -560,6 +571,8 @@ function buildPracticalShortLines(chunks = []) {
             if (/ordre de mission|carte professionnelle|rapport|signer/.test(normalizedLine)) score += 2;
             if (/stupefiants|ordonnancier|alcool/.test(normalizedLine)) score += 1.5;
             if (/refrigerateur|thermometre|armoire|preparatoire/.test(normalizedLine)) score += 1.5;
+            if (isEquivalenceQuery && /autorite gouvernementale|commission sectorielle|commission superieure|soixante jours|formation complementaire|arrete/.test(normalizedLine)) score += 3;
+            if (isEquivalenceQuery && !asksAboutAuthorization && /autorisation|cnop/.test(normalizedLine)) score -= 1.5;
 
             candidates.push({ line, score });
         });
@@ -596,7 +609,7 @@ function getLegalSearchUnavailableLine(langCode) {
 
 function formatStructuredLegalAnswerFromChunks(chunks, langCode, labelOptions = {}, extraLimitLines = []) {
     const shortAnswer = chunks[0]?.legal_summary || (chunks[0]?.clean_text || chunks[0]?.text || '').slice(0, 400);
-    const shortLines = labelOptions.practical ? buildPracticalShortLines(chunks) : null;
+    const shortLines = labelOptions.practical ? buildPracticalShortLines(chunks, labelOptions.query) : null;
     const foundationLines = chunks.slice(0, 3).map((chunk) => {
         const excerpt = (chunk.legal_summary || chunk.clean_text || chunk.text || '').replace(/\s+/g, ' ').trim().slice(0, 240);
         return `${excerpt} (${legalKb.buildCitationLabel(chunk)})`;
@@ -1097,7 +1110,7 @@ function fallbackKeywordSearch(question, scope) {
 async function fallbackLegalSearch(question, scope) {
     const lang = detectLanguage(question);
     const parsedQuery = legalKb.parseQueryFeatures(question);
-    const labelOptions = { practical: Boolean(parsedQuery.asksAboutPractical), legal: true };
+    const labelOptions = { practical: Boolean(parsedQuery.asksAboutPractical), legal: true, query: question };
     const labels = getStructuredLabels(lang.code, labelOptions);
 
     try {
@@ -1264,7 +1277,7 @@ Question : ${question}`;
                 const fallbackAnswer = formatStructuredLegalAnswerFromChunks(
                     legalContext.results.map((r) => r.chunk),
                     lang.code,
-                    { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true },
+                    { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true, query: question },
                 );
                 console.log(`[CNSS] Réponse fallback chunks (${fallbackAnswer.length} chars)`);
                 return fallbackAnswer;
@@ -1320,7 +1333,7 @@ Question : ${question}`;
             return formatStructuredLegalAnswerFromChunks(
                 legalContext.results.map((r) => r.chunk),
                 lang.code,
-                { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true },
+                { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true, query: question },
             );
         }
         const fallback = useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);

@@ -152,13 +152,13 @@
     },
     {
       "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
-      "official_title": "Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux equivalences de diplomes",
+      "official_title": "Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux conditions et a la procedure de l'octroi des equivalences des diplomes de l'enseignement superieur",
       "language": "fr",
       "document_type": "decret",
       "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
-      "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
-      "source_sha256": "d491c95264330f9be12132cbcf69e8e934545bcc4154c26d6ad8e4eaa2021d9b",
-      "content_sha256": "9c5be1aa3870e23dfaed96f86c2b36677435f47d721de08e3fb6fa03bba5b724",
+      "referenced_source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
+      "source_sha256": "a73fef8650700363204d5c483bebc01b58e22d6bd50bae02ca9eefa6e018defb",
+      "content_sha256": "f8e27d67edaa0ffe6737befb804114702fa4f6e330d53b55cb4be296bf0cd78a",
       "normalized_file": "data/legal_kb/normalized/decret_2_01_333_du_21_juin_2001_equivalences.json",
       "chunks_file": "data/legal_kb/chunks/decret_2_01_333_du_21_juin_2001_equivalences.chunks.json",
       "parallel_version_of": null,
@@ -266,19 +266,6 @@
       "content_sha256": "915a88a4699dbe7e3a8125d038d6c38b282e963d910246253169918f7a41d6a4",
       "normalized_file": "data/legal_kb/normalized/tiers_payant_2016.json",
       "chunks_file": "data/legal_kb/chunks/tiers_payant_2016.chunks.json",
-      "parallel_version_of": null,
-      "parallel_version_confidence": null,
-      "duplicate_of": null
-    },
-    {
-      "doc_id": "guide_inspection_pratique_ammps",
-      "official_title": "Guide pratique — Se préparer à une inspection AMMPS / Ministère de la Santé",
-      "language": "fr",
-      "document_type": "guide_pratique",
-      "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
-      "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
-      "normalized_file": "data/legal_kb/normalized/guide_inspection_pratique_ammps.json",
-      "chunks_file": "data/legal_kb/chunks/guide_inspection_pratique_ammps.chunks.json",
       "parallel_version_of": null,
       "parallel_version_confidence": null,
       "duplicate_of": null
@@ -10133,46 +10120,71 @@
         "enseignement superieur",
         "diplomes etrangers",
         "commissions sectorielles",
-        "evaluation",
+        "commission superieure",
+        "recours",
+        "conditions complementaires",
         "autorisation d'exercice"
       ],
       "confidence": "high",
       "manual_review_required": false,
-      "content_sha256": "f82bae8cddc480c2bd6be562738106ebcf0c2fa475aebabc64de9861def5eb87"
+      "content_sha256": "c244f38d98557785cc2b35aa55b07b479c6a9f9c3a1fc80bdeb13af425dba579"
     },
     {
       "chunk_id": "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
       "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
-      "citation_label": "Decret 2-01-333 du 21 juin 2001, Article 5, art. 5, p. 2-3",
+      "citation_label": "Decret 2-01-333 du 21 juin 2001, Article 4, art. 4, p. 2-3",
       "language": "fr",
       "topic_tags": [
         "equivalence de diplomes",
         "enseignement superieur",
         "diplomes etrangers",
         "commissions sectorielles",
-        "evaluation",
+        "commission superieure",
+        "recours",
+        "conditions complementaires",
         "autorisation d'exercice"
       ],
       "confidence": "high",
       "manual_review_required": false,
-      "content_sha256": "88bdda9254305114345fac59cf1f2964ac0d369c61ed4915f06b6913f8705dab"
+      "content_sha256": "7e8d414b1367e14d93c5a75181c9aaa84ee505fcda4a7a991bee8a975d3eaed1"
     },
     {
       "chunk_id": "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
       "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
-      "citation_label": "Decret 2-01-333 du 21 juin 2001, Article 8, art. 8, p. 3",
+      "citation_label": "Decret 2-01-333 du 21 juin 2001, Article 6, art. 6, p. 3-4",
       "language": "fr",
       "topic_tags": [
         "equivalence de diplomes",
         "enseignement superieur",
         "diplomes etrangers",
         "commissions sectorielles",
-        "evaluation",
+        "commission superieure",
+        "recours",
+        "conditions complementaires",
         "autorisation d'exercice"
       ],
       "confidence": "high",
       "manual_review_required": false,
-      "content_sha256": "41b135a233195486ab36aa029f3675165c3cb1829b1e60a05d02c68b7ac4754e"
+      "content_sha256": "d519840631610b3b826468ef7f5dde183502a98a342510fd56e6d949c48e7b39"
+    },
+    {
+      "chunk_id": "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004",
+      "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
+      "citation_label": "Decret 2-01-333 du 21 juin 2001, Article 8, art. 8, p. 4",
+      "language": "fr",
+      "topic_tags": [
+        "equivalence de diplomes",
+        "enseignement superieur",
+        "diplomes etrangers",
+        "commissions sectorielles",
+        "commission superieure",
+        "recours",
+        "conditions complementaires",
+        "autorisation d'exercice"
+      ],
+      "confidence": "high",
+      "manual_review_required": false,
+      "content_sha256": "38a2da85db2efff8fb41ed7c88e667f5929d1716c9f0bab49721ff46e5bb7198"
     },
     {
       "chunk_id": "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_001",
@@ -17398,7 +17410,19 @@
       "chunks": [
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
+      ]
+    },
+    "commission superieure": {
+      "documents": [
+        "decret_2_01_333_du_21_juin_2001_equivalences"
+      ],
+      "chunks": [
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
       ]
     },
     "commissions sectorielles": {
@@ -17408,7 +17432,19 @@
       "chunks": [
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
+      ]
+    },
+    "conditions complementaires": {
+      "documents": [
+        "decret_2_01_333_du_21_juin_2001_equivalences"
+      ],
+      "chunks": [
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
       ]
     },
     "conformites": {
@@ -17586,7 +17622,8 @@
       "chunks": [
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
       ]
     },
     "discipline ordinale": {
@@ -18426,7 +18463,8 @@
       "chunks": [
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
       ]
     },
     "equivalence de diplome": {
@@ -18447,7 +18485,8 @@
       "chunks": [
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
       ]
     },
     "etablissements hospitaliers publics": {
@@ -18491,16 +18530,6 @@
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_022",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_023",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_024"
-      ]
-    },
-    "evaluation": {
-      "documents": [
-        "decret_2_01_333_du_21_juin_2001_equivalences"
-      ],
-      "chunks": [
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
-        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003"
       ]
     },
     "exercice de la pharmacie": {
@@ -21927,6 +21956,17 @@
         "bo_7026_ar_inspection__chunk_026"
       ]
     },
+    "recours": {
+      "documents": [
+        "decret_2_01_333_du_21_juin_2001_equivalences"
+      ],
+      "chunks": [
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004"
+      ]
+    },
     "remplacement": {
       "documents": [
         "absence_des_pharmaciens_d_officnecirculaire_022202_dr_30_31_du_12_06_1995",
@@ -22996,6 +23036,7 @@
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_001",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_002",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_003",
@@ -24235,6 +24276,7 @@
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_001",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_002",
         "decret_2_01_333_du_21_juin_2001_equivalences__chunk_003",
+        "decret_2_01_333_du_21_juin_2001_equivalences__chunk_004",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_001",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_002",
         "decret_2_18_878_du_8_septembre_2021_controle_pharmaciens_inspecteurs__chunk_003",
@@ -25007,47 +25049,6 @@
       ],
       "confidence": "low",
       "notes": "Les deux documents semblent concerner l’ordre / الهيئة الوطنية للصيادلة en 2024, mais l’alignement n’a pas été vérifié manuellement."
-    }
-  ],
-    {
-      "chunk_id": "guide_inspection_pratique_ammps_001",
-      "doc_id": "guide_inspection_pratique_ammps",
-      "citation_label": "Guide pratique inspection officinale — AMMPS / Ministère de la Santé Maroc, Locaux et matériel",
-      "language": "fr",
-      "topic_tags": ["inspection", "conformites", "locaux", "matériel", "affichage", "réfrigérateur", "armoire", "préparatoire", "AMMPS"],
-      "confidence": "high",
-      "manual_review_required": false,
-      "content_sha256": "guide_inspection_pratique_ammps_001_manual"
-    },
-    {
-      "chunk_id": "guide_inspection_pratique_ammps_002",
-      "doc_id": "guide_inspection_pratique_ammps",
-      "citation_label": "Guide pratique inspection officinale — AMMPS / Ministère de la Santé Maroc, Registres et traçabilité",
-      "language": "fr",
-      "topic_tags": ["inspection", "conformites", "ordonnancier", "registre alcool", "registre stupéfiants", "matières premières", "traçabilité", "AMMPS"],
-      "confidence": "high",
-      "manual_review_required": false,
-      "content_sha256": "guide_inspection_pratique_ammps_002_manual"
-    },
-    {
-      "chunk_id": "guide_inspection_pratique_ammps_003",
-      "doc_id": "guide_inspection_pratique_ammps",
-      "citation_label": "Guide pratique inspection officinale — AMMPS / Ministère de la Santé Maroc, Checklist avant visite",
-      "language": "fr",
-      "topic_tags": ["inspection", "conformites", "checklist", "dossier inspection", "préparation", "produits périmés", "chaîne du froid", "AMMPS"],
-      "confidence": "high",
-      "manual_review_required": false,
-      "content_sha256": "guide_inspection_pratique_ammps_003_manual"
-    },
-    {
-      "chunk_id": "guide_inspection_pratique_ammps_004",
-      "doc_id": "guide_inspection_pratique_ammps",
-      "citation_label": "Guide pratique inspection officinale — AMMPS / Ministère de la Santé Maroc, Pendant la visite et infractions fréquentes",
-      "language": "fr",
-      "topic_tags": ["inspection", "conformites", "pendant inspection", "points sensibles", "infractions fréquentes", "AMMPS", "Maroc"],
-      "confidence": "high",
-      "manual_review_required": false,
-      "content_sha256": "guide_inspection_pratique_ammps_004_manual"
     }
   ],
   "low_quality_documents": [

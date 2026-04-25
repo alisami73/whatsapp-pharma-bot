@@ -57,6 +57,34 @@ test('getStructuredLabels adapte les intitulés pour une question pratique jurid
   assert.equal(labels.sources, 'Sources utiles');
 });
 
+test('buildPracticalShortLines priorise le decret d equivalence avant les formalites CNOP pour une question d equivalence pure', () => {
+  const lines = cnss._test.buildPracticalShortLines(
+    [
+      {
+        document_type: 'guide_pratique',
+        confidence: 'high',
+        citation_label: "Autorisation d'exercer - CNOP, unnamed_section, p. 2",
+        key_rules: [
+          "Le dossier doit aussi comprendre une copie certifiee conforme a l'original de la carte d'identite nationale.",
+          "Il est precise que toute certification de plus de trois mois est systematiquement rejetee.",
+        ],
+      },
+      {
+        document_type: 'decret',
+        confidence: 'high',
+        citation_label: 'Decret 2-01-333 du 21 juin 2001, unnamed_section, p. 1-2',
+        key_rules: [
+          "Article 1 : l'autorite gouvernementale chargee de l'enseignement superieur est seule habilitee a prononcer l'equivalence.",
+          "Article 3 : l'equivalence est prononcee par arrete apres avis d'une commission sectorielle.",
+        ],
+      },
+    ],
+    "Comment obtenir l'equivalence d'un diplome ?",
+  );
+
+  assert.match(lines[0], /autorite gouvernementale|commission sectorielle|arrete/i);
+});
+
 test('extractAssistantText reconstruit le texte si le contenu est renvoye en parties', () => {
   const output = cnss._test.extractAssistantText({
     content: [

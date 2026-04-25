@@ -208,22 +208,23 @@
   {
     "doc_id": "decret_2_01_333_du_21_juin_2001_equivalences",
     "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
-    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/decret_2_01_333_du_21_juin_2001_equivalences.json",
-    "source_sha256": "d491c95264330f9be12132cbcf69e8e934545bcc4154c26d6ad8e4eaa2021d9b",
-    "content_sha256": "9c5be1aa3870e23dfaed96f86c2b36677435f47d721de08e3fb6fa03bba5b724",
-    "detected_title": "Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux equivalences de diplomes",
+    "referenced_source_file": "/Users/Lenovo/Documents/2026/Chatbot Whatsapp/decret_2-01-333_du_21 juin 2001 equivalences.pdf",
+    "source_sha256": "a73fef8650700363204d5c483bebc01b58e22d6bd50bae02ca9eefa6e018defb",
+    "content_sha256": "f8e27d67edaa0ffe6737befb804114702fa4f6e330d53b55cb4be296bf0cd78a",
+    "detected_title": "Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux conditions et a la procedure de l'octroi des equivalences des diplomes de l'enseignement superieur",
     "source_document_kind": "manual",
     "document_type": "decret",
     "language": "fr",
     "is_scan": false,
     "ocr_quality": "high",
-    "page_count": 3,
+    "page_count": 4,
     "needs_manual_review": false,
     "notes": [
-      "ratios pages: 3 high / 0 medium / 0 low",
-      "metadata title=Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux equivalences de diplomes",
-      "source textuelle fournie manuellement par l'utilisateur",
-      "texte retranscrit en francais, nettoye des erreurs OCR sans changer le sens juridique"
+      "ratios pages: 4 high / 0 medium / 0 low",
+      "metadata title=Decret n 2-01-333 du 28 rabii I 1422 (21 juin 2001) relatif aux conditions et a la procedure de l'octroi des equivalences des diplomes de l'enseignement superieur",
+      "source reconstruite a partir du PDF officiel cite par l'utilisateur",
+      "structure reorganisee en blocs pratiques pour le retrieval et l'explication utilisateur",
+      "les pieces precises du dossier doivent etre reverifiees dans les arretes d'application et les procedures administratives en vigueur"
     ]
   },
   {
@@ -372,25 +373,6 @@
       "source textuelle fournie manuellement par l'utilisateur",
       "source secondaire / operationnelle non verifiee contre une publication officielle consolidee",
       "plusieurs liens sont des placeholders [lien] et doivent etre resolves manuellement"
-    ]
-  },
-  {
-    "doc_id": "guide_inspection_pratique_ammps",
-    "source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
-    "referenced_source_file": "/Users/Lenovo/whatsapp-pharma-bot/data/legal_sources/manual_sources/guide_inspection_pratique_ammps.json",
-    "detected_title": "Guide pratique — Se préparer à une inspection AMMPS / Ministère de la Santé",
-    "source_document_kind": "manual",
-    "document_type": "guide_pratique",
-    "language": "fr",
-    "is_scan": false,
-    "ocr_quality": "high",
-    "page_count": 4,
-    "needs_manual_review": false,
-    "notes": [
-      "guide pratique opérationnel rédigé par Blink Pharma",
-      "basé sur les pratiques AMMPS et Ministère de la Santé Maroc",
-      "validé contre Loi 17-04, Dahir 1922, circulaire MSP n°77 1987",
-      "4 chunks : locaux/matériel, registres/traçabilité, checklist pré-inspection, conduite pendant la visite"
     ]
   }
 ]

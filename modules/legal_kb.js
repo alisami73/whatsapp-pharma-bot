@@ -13,6 +13,64 @@ const BM25_K1 = 1.5;
 const BM25_B = 0.75;
 const RRF_K = 60;
 const DEFAULT_TOP_K = Math.max(1, Number(process.env.TOP_K) || 4);
+const TOPICAL_QUERY_STOPWORDS = new Set([
+  'a',
+  'ai',
+  'au',
+  'aux',
+  'avec',
+  'cas',
+  'ce',
+  'ces',
+  'comment',
+  'dans',
+  'de',
+  'des',
+  'dois',
+  'doit',
+  'du',
+  'elle',
+  'en',
+  'est',
+  'et',
+  'etre',
+  'fais',
+  'faire',
+  'faut',
+  'il',
+  'je',
+  'l',
+  'la',
+  'le',
+  'les',
+  'ma',
+  'mes',
+  'mon',
+  'nous',
+  'obtenir',
+  'on',
+  'ou',
+  'par',
+  'pas',
+  'pour',
+  'qu',
+  'que',
+  'quel',
+  'quelle',
+  'quelles',
+  'quels',
+  'quoi',
+  'sa',
+  'ses',
+  'son',
+  'sur',
+  'ta',
+  'tes',
+  'ton',
+  'un',
+  'une',
+  'vous',
+]);
 
 let _corpusCache = null;
 let _hybridIndexCache = null;
@@ -51,6 +109,12 @@ function tokenize(value) {
     .split(/\s+/)
     .map((token) => token.trim())
     .filter((token) => token.length > 1);
+}
+
+function buildTopicalQueryTokens(tokens) {
+  return Array.from(new Set(
+    (tokens || []).filter((token) => token.length > 2 && !TOPICAL_QUERY_STOPWORDS.has(token)),
+  ));
 }
 
 function extractArticleRefs(value) {
@@ -122,6 +186,7 @@ function expandQueryTokens(tokens, text) {
     { pattern: /inspect/, add: ['inspection', 'locaux', 'affichage', 'registre', 'armoire', 'materiel', 'diplome'] },
     { pattern: /stupefiant|narcot|morphin/, add: ['stupefiants', 'registre', 'armoire', 'carnet', 'ordonnance'] },
     { pattern: /autoris|exerc|cnop|inscription/, add: ['autorisation', 'cnop', 'inscription', 'pharmacien', 'diplome'] },
+    { pattern: /equival|diplom|etranger|universit|enseignement.?superieur/, add: ['equivalence', 'equivalences', 'diplome', 'diplomes', 'etranger', 'etrangers', 'enseignement', 'superieur', 'commission', 'commissions', 'recours'] },
     { pattern: /absence|conge|remplac/, add: ['absence', 'remplacement', 'pharmacien', 'officine'] },
     { pattern: /fse|tiers.?payant|amm|assurance/, add: ['fse', 'assurance', 'tiers', 'payant'] },
     { pattern: /cndp|donnees.?personnelles|protection/, add: ['cndp', 'protection', 'donnees', 'personnelles'] },
@@ -161,6 +226,7 @@ function parseQueryFeatures(question) {
     text,
     normalizedQuestion,
     tokens,
+    topicTokens: buildTopicalQueryTokens(tokens),
     articleRefs,
     documentRefs,
     dateRefs,
@@ -421,8 +487,68 @@ function exactMatchBoost(chunk, queryFeatures) {
   return score;
 }
 
+function buildChunkTopicTokens(chunk) {
+  const topicalText = uniqueNonEmpty([
+    chunk.doc_id,
+    chunk.official_title,
+    chunk.short_title,
+    chunk.citation_label,
+    chunk.section_path,
+    chunk.structure_path,
+    ...(chunk.topics || []),
+    ...(chunk.topic_tags || []),
+    ...(chunk.retrieval_keywords || []),
+    ...(chunk.keywords || []),
+    ...(chunk.user_questions || []),
+    chunk.legal_summary,
+  ]).join('\n');
+
+  return new Set(buildTopicalQueryTokens(tokenize(topicalText)));
+}
+
+function computeTopicOverlap(chunk, queryFeatures) {
+  const queryTokens = Array.isArray(queryFeatures.topicTokens) && queryFeatures.topicTokens.length
+    ? queryFeatures.topicTokens
+    : buildTopicalQueryTokens(queryFeatures.tokens);
+
+  if (!queryTokens.length) {
+    return { count: 0, matches: [] };
+  }
+
+  const chunkTokens = buildChunkTopicTokens(chunk);
+  const matches = queryTokens.filter((token) => chunkTokens.has(token));
+  return { count: matches.length, matches };
+}
+
 function topicalBoost(chunk, queryFeatures) {
   let score = 0;
+  const topicOverlap = computeTopicOverlap(chunk, queryFeatures);
+  const normalizedDocumentType = normalizeText(chunk.document_type || '');
+  const normalizedTopicText = normalizeText([
+    chunk.official_title,
+    chunk.short_title,
+    ...(chunk.topics || []),
+    ...(chunk.topic_tags || []),
+  ].join(' '));
+  const isEquivalenceQuery = (queryFeatures.topicTokens || []).some((token) => token.startsWith('equival') || token.startsWith('diplom'));
+  const asksAboutAuthorization = (queryFeatures.topicTokens || []).some((token) => /autoris|exerc|cnop|ordre/.test(token));
+
+  if (topicOverlap.count) {
+    score += Math.min(topicOverlap.count, 4) * 1.4;
+  }
+
+  if (isEquivalenceQuery && topicOverlap.count >= 2 && ['decret', 'loi', 'arrete'].includes(normalizedDocumentType)) {
+    score += 1.5;
+  }
+
+  if (
+    isEquivalenceQuery &&
+    !asksAboutAuthorization &&
+    chunk.document_type === 'guide_pratique' &&
+    /autorisation|cnop|ordre des pharmaciens|exercice/.test(normalizedTopicText)
+  ) {
+    score -= 1.5;
+  }
 
   if (queryFeatures.asksAboutSanctions && Array.isArray(chunk.sanctions) && chunk.sanctions.length) {
     score += 2;
@@ -436,12 +562,21 @@ function topicalBoost(chunk, queryFeatures) {
 
   // Boost practical guides when user asks "que faire / comment / preparer"
   if (queryFeatures.asksAboutPractical && chunk.document_type === 'guide_pratique') {
-    score += 6;
+    if (topicOverlap.count >= 2) {
+      score += 5;
+    } else if (topicOverlap.count === 1) {
+      score += 1;
+    } else {
+      score -= 1;
+    }
   }
 
   // Boost chunks whose doc_id tokens overlap strongly with query tokens
   const docIdTokens = tokenize(normalizeText(chunk.doc_id || chunk.chunk_id || ''));
-  const docIdOverlap = docIdTokens.filter((t) => queryFeatures.tokens.includes(t)).length;
+  const docIdReferenceTokens = Array.isArray(queryFeatures.topicTokens) && queryFeatures.topicTokens.length
+    ? queryFeatures.topicTokens
+    : queryFeatures.tokens;
+  const docIdOverlap = docIdTokens.filter((t) => docIdReferenceTokens.includes(t)).length;
   if (docIdOverlap >= 2) {
     score += docIdOverlap * 1.5;
   }
