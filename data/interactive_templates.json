@@ -3,22 +3,6 @@
     "sid": "HXa1cba32a420e8bc4ccabc30de9cf4a5d",
     "created_at": "2026-04-25T22:10:00.000Z"
   },
-  "software_carousel_v5_fr": {
-    "sid": "HX057d8f5c71b4287014c3f15c5d19f1c9",
-    "created_at": "2026-04-25T20:40:00.000Z"
-  },
-  "software_carousel_v5_ar": {
-    "sid": "HX1dfdf3ceb1b0de32e8e39aa3eb22b055",
-    "created_at": "2026-04-25T20:40:00.000Z"
-  },
-  "software_carousel_v5_es": {
-    "sid": "HXfbc12df4f20185306429739a4f6a04a3",
-    "created_at": "2026-04-25T20:40:00.000Z"
-  },
-  "software_carousel_v5_ru": {
-    "sid": "HX8ff122efdbf28147f314abfaa47403da",
-    "created_at": "2026-04-25T20:40:00.000Z"
-  },
   "software_carousel_v6_fr": {
     "sid": "HX994b050b45ed1881ed62de880ae317b3",
     "created_at": "2026-04-25T22:24:00.000Z"
@@ -34,5 +18,21 @@
   "software_carousel_v6_ru": {
     "sid": "HXe25c8085e87a3d2d08dc0c2c5aec173c",
     "created_at": "2026-04-25T22:24:00.000Z"
+  },
+  "explorer_carousel_v1_fr": {
+    "sid": "HX217ed09bad6568ecce9db2e2d6456206",
+    "created_at": "2026-04-25T23:00:00.000Z"
+  },
+  "explorer_carousel_v1_ar": {
+    "sid": "HXedbc23639ddbabe413dd08d002f9883d",
+    "created_at": "2026-04-25T23:00:00.000Z"
+  },
+  "explorer_carousel_v1_es": {
+    "sid": "HX490622766c02ef782a65366669b4cc51",
+    "created_at": "2026-04-25T23:00:00.000Z"
+  },
+  "explorer_carousel_v1_ru": {
+    "sid": "HXbd3859440e9c0d38aa5ccd3f419bddbd",
+    "created_at": "2026-04-25T23:00:00.000Z"
   }
 }

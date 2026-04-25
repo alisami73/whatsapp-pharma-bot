@@ -868,30 +868,14 @@ async function handleOnboardingStep(response, res, user, context) {
     await storage.savePharmacist({ ...updatedPharmacist, onboarding_completed: true });
     if (role) await storage.updateConsentRole(user.phone, role);
 
-    // Onboarding terminé → Écran 3 (menu des thèmes)
-    console.log(`[state] ${user.phone} → MAIN_MENU (onboarding rôle terminé, lang: ${lang})`);
-    await setMainMenuState(user);
-
-    // Tentative interactive
-    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
-    try {
-      const menuResult = await interactive.sendMenuScreen(user.phone, activeThemes, lang);
-      if (menuResult) {
-        await storage.appendMessageLog({
-          direction: 'outbound', phone: user.phone,
-          body: '[interactive:main_menu]',
-          status: menuResult.status || 'queued',
-          provider_message_sid: menuResult.sid,
-          metadata: { source: 'onboarding_complete', lang },
-        });
-        res.type('text/xml').send(buildEmptyTwiml());
-        return true;
-      }
-    } catch (err) {
-      console.error('[interactive] sendMenuScreen after role failed:', err.message);
-    }
+    // Onboarding terminé → Explorer carousel
+    console.log(`[state] ${user.phone} → BROWSING_EXPLORER_CAROUSEL (onboarding terminé, lang: ${lang})`);
+    const completionMsg = t('onboarding_complete', lang);
+    const sentExplorer = await tryRespondWithMainMenuInteractive(user.phone, res, user, completionMsg);
+    if (sentExplorer) return true;
     // Fallback texte
-    response.message(`${t('onboarding_complete', lang)}\n\n${buildMainMenu(activeThemes)}`);
+    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
+    response.message(`${completionMsg}\n\n${buildMainMenu(activeThemes)}`);
     return false;
   }
 
@@ -1607,6 +1591,16 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         res.type('text/xml').send(buildEmptyTwiml());
       } else {
         response.message(appendTextFooter(answer, lang, { includeBack: true }));
+        res.type('text/xml').send(response.toString());
+      }
+      return;
+    }
+
+    // ── Explorer carousel — texte libre dans cet état → renvoyer le carousel ─
+    if (user.current_state === STATES.BROWSING_EXPLORER_CAROUSEL) {
+      const sent = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+      if (!sent) {
+        response.message(explorer.buildExplorerFallbackText());
         res.type('text/xml').send(response.toString());
       }
       return;
