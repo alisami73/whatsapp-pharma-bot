@@ -176,7 +176,7 @@ async function sendExplorerCarousel(to, lang = 'fr') {
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
-  const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid, contentVariables: '{}' };
+  const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid };
 
   if (config.whatsappFrom) payload.from = config.whatsappFrom;
   else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
