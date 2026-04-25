@@ -136,14 +136,15 @@
 </head>
 <body>
   <script src="assets/logo-data.js"></script>
+  <script src="i18n.js"></script>
   <script src="blink-components.js"></script>
   <script>injectNavbar('premium');</script>
 
   <!-- PAGE HERO -->
   <div class="page-hero">
-    <p class="section-label" style="justify-content:center;display:flex;">8 fonctionnalités clés</p>
-    <h1>Tout ce que Blink Premium<br>vous offre</h1>
-    <p>De la migration initiale à l'innovation continue — découvrez comment Blink transforme votre quotidien.</p>
+    <p class="section-label" id="premLabel" style="justify-content:center;display:flex;"></p>
+    <h1 id="premH1"></h1>
+    <p id="premSub"></p>
     <div class="anchor-links" id="anchorLinks"></div>
   </div>
 
@@ -152,89 +153,85 @@
 
   <!-- CTA -->
   <section class="cta-banner">
-    <p class="section-label" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;margin-bottom:0.75rem;">Passez à l'action</p>
-    <h2 class="fade-up">Prêt à moderniser votre pharmacie ?</h2>
-    <p class="fade-up">Rejoignez les pharmaciens qui font confiance à Blink Premium.</p>
-    <a href="contact.html" class="btn btn-white btn-lg fade-up">Demander une démo gratuite</a>
+    <p class="section-label" id="premCtaLabel" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;margin-bottom:0.75rem;"></p>
+    <h2 class="fade-up" id="premCtaH2"></h2>
+    <p class="fade-up" id="premCtaP"></p>
+    <a id="premCtaBtn" href="contact.html" class="btn btn-white btn-lg fade-up"></a>
   </section>
 
   <script>
   const BASE = "https://whatsapp-pharma-bot-production.up.railway.app/public/carousel/";
+  const t = BI18N.t;
+  const lang = BI18N.lang;
+  const lq = (p, hash) => (lang === 'fr' ? p : p + '?lang=' + lang) + (hash ? '#' + hash : '');
 
-  const FEATURES = [
-    {
-      title: "Migration simplifiée",
-      anchor: "migration",
-      color: "#3F51B5",
-      icon: "🔄",
-      media: "blink-carte-01.jpg",
-      body: "Passez à Blink Premium sans perdre votre historique. Nous importons vos clients, vos fournisseurs et toutes vos données avec un accompagnement personnalisé de notre équipe. La transition est fluide, rapide, et sans interruption de votre activité.",
-      details: ["Import clients & fournisseurs", "Historique complet préservé", "Accompagnement Blink dédié", "Migration en quelques jours"],
-    },
-    {
-      title: "Prise en main rapide",
-      anchor: "prise-en-main",
-      color: "#26C6DA",
-      icon: "⚡",
-      media: "blink-carte-02.jpg",
-      body: "Une interface pensée pour les pharmaciens, pas pour les informaticiens. Votre équipe sera opérationnelle dès le premier jour. Navigation claire, actions directes, et formation intégrée pour que chaque collaborateur soit autonome rapidement.",
-      details: ["Interface intuitive", "Formation en ligne incluse", "Support réactif 7j/7", "Démarrage en 48h"],
-    },
-    {
-      title: "Contrôle des stocks",
-      anchor: "stocks",
-      color: "#9C27B0",
-      icon: "📦",
-      media: "blink-carte-03.jpg",
-      body: "Visualisez vos stocks en temps réel et identifiez immédiatement les écarts. Blink Premium synchronise automatiquement vos entrées et sorties, génère des alertes de réapprovisionnement et vous offre une vue d'ensemble de votre inventaire à tout moment.",
-      details: ["Stock en temps réel", "Alertes de rupture", "Historique des mouvements", "Rapports automatisés"],
-    },
-    {
-      title: "Inventaire mobile",
-      anchor: "inventaire-mobile",
-      color: "#4CAF50",
-      icon: "📱",
-      media: "blink-carte-04.jpg",
-      body: "Réalisez vos inventaires sans rester derrière votre comptoir. Avec l'application mobile Blink, scannez vos produits en rayon directement depuis votre smartphone ou tablette. Rapide, précis, et sans ressaisie manuelle.",
-      details: ["Scan code-barres mobile", "Synchronisation instantanée", "Mode hors-ligne disponible", "Compatible iOS & Android"],
-    },
-    {
-      title: "Scan intelligent",
-      anchor: "scan-ia",
-      color: "#26C6DA",
-      icon: "🔍",
-      media: "blink-carte-05.jpg",
-      body: "Accélérez la saisie de vos livraisons grâce à la reconnaissance assistée. Blink identifie automatiquement les produits, pré-remplit les quantités et détecte les anomalies — réduisant les erreurs de saisie et le temps passé sur chaque bon de livraison.",
-      details: ["Reconnaissance automatique", "Pré-remplissage intelligent", "Détection d'anomalies", "Gain de temps significatif"],
-    },
-    {
-      title: "Achats groupés",
-      anchor: "achats-groupes",
-      color: "#FFC107",
-      icon: "🛒",
-      media: "blink-carte-06.jpg",
-      body: "Optimisez votre pouvoir d'achat en regroupant vos commandes. Blink Premium vous permet de consolider vos achats auprès de vos fournisseurs, d'obtenir de meilleures conditions tarifaires et de réduire vos coûts logistiques.",
-      details: ["Consolidation des commandes", "Négociation facilitée", "Suivi fournisseurs centralisé", "Historique des achats"],
-    },
-    {
-      title: "Application mobile",
-      anchor: "app-mobile",
-      color: "#FF7043",
-      icon: "📊",
-      media: "blink-carte-07.jpg",
-      body: "Gardez un œil sur votre pharmacie où que vous soyez. L'application mobile Blink Premium vous donne accès à vos ventes du jour, indicateurs clés, alertes stock et activité en temps réel — depuis n'importe quel appareil.",
-      details: ["Tableau de bord mobile", "Ventes en temps réel", "Indicateurs clés", "Notifications push"],
-    },
-    {
-      title: "Innovation continue",
-      anchor: "innovation",
-      color: "#4CAF50",
-      icon: "🚀",
-      media: "blink-carte-08.jpg",
-      body: "Blink Premium évolue avec votre métier. Notre équipe déploie régulièrement de nouvelles fonctionnalités, améliorations et intégrations — sans frais supplémentaires. Vous bénéficiez toujours de la version la plus avancée, automatiquement.",
-      details: ["Mises à jour automatiques", "Roadmap partagée", "Suggestions communauté", "0 coût supplémentaire"],
-    },
-  ];
+  // Static text
+  document.getElementById('premLabel').textContent   = t.prem_label;
+  document.getElementById('premH1').innerHTML        = t.prem_h1;
+  document.getElementById('premSub').textContent     = t.prem_sub;
+  document.getElementById('premCtaLabel').textContent = t.prem_cta_label;
+  document.getElementById('premCtaH2').textContent   = t.prem_cta_h2;
+  document.getElementById('premCtaP').textContent    = t.prem_cta_p;
+  document.getElementById('premCtaBtn').textContent  = t.cta_btn;
+  document.getElementById('premCtaBtn').href         = lq('contact.html');
+
+  // Extended per-language feature data (body + details)
+  const FEAT_EXTRA = {
+    fr: [
+      { body: "Passez à Blink Premium sans perdre votre historique. Nous importons vos clients, vos fournisseurs et toutes vos données avec un accompagnement personnalisé. La transition est fluide, rapide, et sans interruption de votre activité.", details: ["Import clients & fournisseurs", "Historique complet préservé", "Accompagnement Blink dédié", "Migration en quelques jours"] },
+      { body: "Une interface pensée pour les pharmaciens, pas pour les informaticiens. Votre équipe sera opérationnelle dès le premier jour. Navigation claire, actions directes, et formation intégrée.", details: ["Interface intuitive", "Formation en ligne incluse", "Support réactif 7j/7", "Démarrage en 48h"] },
+      { body: "Visualisez vos stocks en temps réel et identifiez immédiatement les écarts. Blink Premium synchronise automatiquement vos entrées et sorties, génère des alertes de réapprovisionnement.", details: ["Stock en temps réel", "Alertes de rupture", "Historique des mouvements", "Rapports automatisés"] },
+      { body: "Réalisez vos inventaires sans rester derrière votre comptoir. Avec l'application mobile Blink, scannez vos produits en rayon directement depuis votre smartphone ou tablette.", details: ["Scan code-barres mobile", "Synchronisation instantanée", "Mode hors-ligne disponible", "Compatible iOS & Android"] },
+      { body: "Accélérez la saisie de vos livraisons grâce à la reconnaissance assistée. Blink identifie automatiquement les produits, pré-remplit les quantités et détecte les anomalies.", details: ["Reconnaissance automatique", "Pré-remplissage intelligent", "Détection d'anomalies", "Gain de temps significatif"] },
+      { body: "Optimisez votre pouvoir d'achat en regroupant vos commandes. Blink Premium vous permet de consolider vos achats auprès de vos fournisseurs et d'obtenir de meilleures conditions tarifaires.", details: ["Consolidation des commandes", "Négociation facilitée", "Suivi fournisseurs centralisé", "Historique des achats"] },
+      { body: "Gardez un œil sur votre pharmacie où que vous soyez. L'application mobile Blink Premium vous donne accès à vos ventes du jour, indicateurs clés, alertes stock et activité en temps réel.", details: ["Tableau de bord mobile", "Ventes en temps réel", "Indicateurs clés", "Notifications push"] },
+      { body: "Blink Premium évolue avec votre métier. Notre équipe déploie régulièrement de nouvelles fonctionnalités, améliorations et intégrations — sans frais supplémentaires.", details: ["Mises à jour automatiques", "Roadmap partagée", "Suggestions communauté", "0 coût supplémentaire"] },
+    ],
+    ar: [
+      { body: "انتقل إلى بلينك بريميوم دون فقدان أي بيانات. نقوم باستيراد عملائك ومورديك وجميع بياناتك بمرافقة فريق متخصص. الانتقال سلس وسريع ودون أي انقطاع في نشاطك.", details: ["استيراد العملاء والموردين", "الحفاظ الكامل على السجل", "مرافقة فريق بلينك", "ترحيل في أيام قليلة"] },
+      { body: "واجهة مصممة للصيادلة وليس للمعلوميين. سيكون فريقك جاهزاً للعمل من اليوم الأول. تنقل واضح وإجراءات مباشرة وتدريب مدمج لكل متعاون.", details: ["واجهة بديهية", "تدريب إلكتروني مشمول", "دعم فوري 7/7", "بداية خلال 48 ساعة"] },
+      { body: "تابع مخزونك في الوقت الفعلي وتعرف على الانحرافات فوراً. يزامن بلينك بريميوم مداخلك ومخارجك تلقائياً ويولّد تنبيهات إعادة التموين.", details: ["مخزون في الوقت الفعلي", "تنبيهات نفاد المخزون", "تاريخ الحركات", "تقارير تلقائية"] },
+      { body: "أجرِ جردك دون مغادرة الرف. مع تطبيق بلينك المحمول، امسح منتجاتك مباشرة من هاتفك أو جهازك اللوحي. سريع ودقيق وبدون إعادة إدخال يدوي.", details: ["مسح الباركود عبر الجوال", "مزامنة فورية", "وضع عمل بدون إنترنت", "متوافق مع iOS وAndroid"] },
+      { body: "سرّع إدخال تسليماتك بالتعرف المدعوم بالذكاء الاصطناعي. يتعرف بلينك تلقائياً على المنتجات ويملأ الكميات مسبقاً ويكتشف الانحرافات.", details: ["تعرف تلقائي", "ملء مسبق ذكي", "اكتشاف الانحرافات", "توفير وقت ملحوظ"] },
+      { body: "حسّن قوتك الشرائية بتجميع طلباتك. يتيح لك بلينك بريميوم توحيد مشترياتك لدى مورديك والحصول على أسعار وشروط أفضل.", details: ["توحيد الطلبات", "تيسير التفاوض", "متابعة الموردين مركزياً", "سجل المشتريات"] },
+      { body: "راقب صيدليتك من أي مكان. يتيح لك تطبيق بلينك المحمول الوصول إلى مبيعاتك اليومية والمؤشرات الرئيسية وتنبيهات المخزون في الوقت الفعلي.", details: ["لوحة قيادة جوالة", "مبيعات في الوقت الفعلي", "مؤشرات رئيسية", "إشعارات فورية"] },
+      { body: "يتطور بلينك بريميوم مع مهنتك. يوزع فريقنا بانتظام ميزات جديدة وتحسينات وتكاملات — بدون أي تكاليف إضافية.", details: ["تحديثات تلقائية", "خارطة طريق مشتركة", "اقتراحات المجتمع", "صفر تكاليف إضافية"] },
+    ],
+    es: [
+      { body: "Pasa a Blink Premium sin perder tu historial. Importamos tus clientes, proveedores y todos tus datos con acompañamiento personalizado. La transición es fluida, rápida y sin interrupciones.", details: ["Importación de clientes y proveedores", "Historial completo preservado", "Acompañamiento Blink dedicado", "Migración en pocos días"] },
+      { body: "Una interfaz pensada para farmacéuticos, no para informáticos. Tu equipo estará operativo desde el primer día. Navegación clara, acciones directas y formación integrada.", details: ["Interfaz intuitiva", "Formación online incluida", "Soporte reactivo 7/7", "Arranque en 48h"] },
+      { body: "Visualiza tu stock en tiempo real e identifica desviaciones inmediatamente. Blink Premium sincroniza entradas y salidas automáticamente y genera alertas de reabastecimiento.", details: ["Stock en tiempo real", "Alertas de rotura", "Historial de movimientos", "Informes automatizados"] },
+      { body: "Realiza tus inventarios sin quedarte detrás del mostrador. Con la app móvil Blink, escanea tus productos directamente desde tu smartphone o tablet.", details: ["Escaneo de código de barras", "Sincronización instantánea", "Modo sin conexión", "Compatible iOS y Android"] },
+      { body: "Acelera la entrada de entregas con reconocimiento asistido por IA. Blink identifica automáticamente los productos, prerellena cantidades y detecta anomalías.", details: ["Reconocimiento automático", "Relleno previo inteligente", "Detección de anomalías", "Ahorro de tiempo significativo"] },
+      { body: "Optimiza tu poder adquisitivo agrupando pedidos. Blink Premium te permite consolidar compras con proveedores y obtener mejores condiciones tarifarias.", details: ["Consolidación de pedidos", "Negociación facilitada", "Seguimiento centralizado", "Historial de compras"] },
+      { body: "Mantén el control de tu farmacia desde cualquier lugar. La app Blink Premium te da acceso a ventas diarias, indicadores clave, alertas de stock y actividad en tiempo real.", details: ["Panel de control móvil", "Ventas en tiempo real", "Indicadores clave", "Notificaciones push"] },
+      { body: "Blink Premium evoluciona con tu negocio. Nuestro equipo despliega regularmente nuevas funcionalidades, mejoras e integraciones — sin coste adicional.", details: ["Actualizaciones automáticas", "Hoja de ruta compartida", "Sugerencias de la comunidad", "0 coste adicional"] },
+    ],
+    ru: [
+      { body: "Перейдите на Blink Premium без потери истории. Мы импортируем ваших клиентов, поставщиков и все данные с персональным сопровождением. Переход плавный, быстрый и без перебоев в работе.", details: ["Импорт клиентов и поставщиков", "Полное сохранение истории", "Поддержка команды Blink", "Миграция за несколько дней"] },
+      { body: "Интерфейс создан для фармацевтов, а не для IT-специалистов. Ваша команда будет готова к работе с первого дня. Чёткая навигация, прямые действия и встроенное обучение.", details: ["Интуитивный интерфейс", "Онлайн-обучение включено", "Поддержка 7/7", "Запуск за 48 часов"] },
+      { body: "Отслеживайте запасы в реальном времени и мгновенно выявляйте расхождения. Blink Premium автоматически синхронизирует приходы и расходы, генерирует оповещения.", details: ["Склад в реальном времени", "Оповещения о нехватке", "История движений", "Автоматические отчёты"] },
+      { body: "Проводите инвентаризацию, не выходя из торгового зала. С мобильным приложением Blink сканируйте товары прямо со смартфона или планшета.", details: ["Сканирование штрих-кода", "Мгновенная синхронизация", "Оффлайн-режим", "Совместимо с iOS и Android"] },
+      { body: "Ускорьте ввод поставок с помощью ИИ-распознавания. Blink автоматически определяет товары, заполняет количества и обнаруживает отклонения.", details: ["Автоматическое распознавание", "Умное предзаполнение", "Обнаружение отклонений", "Значительная экономия времени"] },
+      { body: "Оптимизируйте закупки, объединяя заказы. Blink Premium позволяет консолидировать покупки у поставщиков и получать лучшие условия.", details: ["Консолидация заказов", "Упрощённые переговоры", "Централизованное управление", "История закупок"] },
+      { body: "Следите за аптекой из любого места. Мобильное приложение Blink Premium даёт доступ к дневным продажам, ключевым показателям и уведомлениям о запасах.", details: ["Мобильная панель управления", "Продажи в реальном времени", "Ключевые показатели", "Push-уведомления"] },
+      { body: "Blink Premium развивается вместе с вашим бизнесом. Наша команда регулярно выпускает новые функции, улучшения и интеграции — без дополнительных затрат.", details: ["Автоматические обновления", "Общая дорожная карта", "Предложения сообщества", "0 дополнительных затрат"] },
+    ],
+  };
+
+  const mediaFiles = ["blink-carte-01.jpg","blink-carte-02.jpg","blink-carte-03.jpg","blink-carte-04.jpg","blink-carte-05.jpg","blink-carte-06.jpg","blink-carte-07.jpg","blink-carte-08.jpg"];
+  const icons      = ["🔄","⚡","📦","📱","🔍","🛒","📊","🚀"];
+
+  const baseFeats = BI18N.features;
+  const extra = FEAT_EXTRA[lang] || FEAT_EXTRA.fr;
+
+  const FEATURES = baseFeats.map((f, i) => ({
+    ...f,
+    media: mediaFiles[i],
+    icon:  icons[i],
+    body:  extra[i].body,
+    details: extra[i].details,
+  }));
 
   // Anchor links
   const anchorLinks = document.getElementById('anchorLinks');
@@ -275,11 +272,8 @@
               <div class="feature-card-dot" style="background:color-mix(in srgb,${f.color} 40%,#ddd);"></div>
               <span class="title">${f.title}</span>
             </div>
-            <img
-              src="${BASE}${f.media}"
-              alt="Blink Premium — ${f.title}"
-              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-            />
+            <img src="${BASE}${f.media}" alt="Blink Premium — ${f.title}"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
             <div class="feature-card-placeholder" style="display:none;">
               <div class="ph-icon">${f.icon}</div>
               <span>${f.title}</span>
@@ -292,8 +286,8 @@
           <p>${f.body}</p>
           <div style="margin-bottom:1.75rem;">${detailsHTML}</div>
           <div class="feature-actions">
-            <a href="contact.html" class="feat-btn feat-btn-primary">Demander une démo</a>
-            <a href="contact.html" class="feat-btn feat-btn-secondary">En savoir plus →</a>
+            <a href="${lq('contact.html')}" class="feat-btn feat-btn-primary">${t.feat_btn1}</a>
+            <a href="${lq('contact.html')}" class="feat-btn feat-btn-secondary">${t.feat_btn2}</a>
           </div>
         </div>
       </div>
@@ -301,7 +295,6 @@
     container.appendChild(section);
   });
 
-  // Init animations
   if (typeof initScrollAnimations === 'function') initScrollAnimations();
   </script>
 

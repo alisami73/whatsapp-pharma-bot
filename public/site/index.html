@@ -236,6 +236,7 @@
 </head>
 <body>
   <script src="assets/logo-data.js"></script>
+  <script src="i18n.js"></script>
   <script src="blink-components.js"></script>
   <script>injectNavbar('home');</script>
 
@@ -243,27 +244,25 @@
   <section>
     <div class="hero">
       <div class="hero-content">
-        <div class="hero-badge fade-up" data-delay="0">Nouveau · Blink Premium 2025</div>
-        <h1 class="fade-up" data-delay="80">La gestion de votre pharmacie, <em>réinventée.</em></h1>
-        <p class="hero-sub fade-up" data-delay="160">
-          Blink Premium modernise chaque aspect de votre quotidien, de la vente au stock, en passant par vos fournisseurs.
-        </p>
+        <div class="hero-badge fade-up" data-delay="0" id="heroBadgeText"></div>
+        <h1 class="fade-up" data-delay="80" id="heroH1"></h1>
+        <p class="hero-sub fade-up" data-delay="160" id="heroSub"></p>
         <div class="hero-actions fade-up" data-delay="240">
-          <a href="contact.html" class="btn btn-primary btn-lg">Demander une démo</a>
-          <a href="premium.html" class="btn btn-outline btn-lg">Voir les fonctionnalités</a>
+          <a id="heroCta1" href="contact.html" class="btn btn-primary btn-lg"></a>
+          <a id="heroCta2" href="premium.html" class="btn btn-outline btn-lg"></a>
         </div>
         <div class="hero-stats fade-up" data-delay="320">
           <div class="hero-stat">
             <strong>13+</strong>
-            <span>Modules intégrés</span>
+            <span id="stat1"></span>
           </div>
           <div class="hero-stat">
             <strong>100%</strong>
-            <span>Cloud &amp; mobile</span>
+            <span id="stat2"></span>
           </div>
           <div class="hero-stat">
-            <strong>Maroc</strong>
-            <span>Conçu localement</span>
+            <strong id="stat3v"></strong>
+            <span id="stat3"></span>
           </div>
         </div>
       </div>
@@ -288,9 +287,9 @@
   <section class="section">
     <div class="section-inner">
       <div class="section-header">
-        <p class="section-label">Fonctionnalités</p>
-        <h2>Tout ce dont votre pharmacie a besoin</h2>
-        <p>Huit modules clés pour piloter votre activité avec précision et simplicité.</p>
+        <p class="section-label" id="featLabel"></p>
+        <h2 id="featH2"></h2>
+        <p id="featP"></p>
       </div>
       <div class="cards-grid" id="cardsGrid"></div>
     </div>
@@ -300,9 +299,9 @@
   <section class="modules-section">
     <div class="section-inner" style="max-width:1200px;margin:0 auto;">
       <div class="section-header">
-        <p class="section-label">Modules de l'application</p>
-        <h2>Une solution complète, module par module</h2>
-        <p>Naviguez entre les espaces de gestion depuis une interface claire et cohérente.</p>
+        <p class="section-label" id="modLabel"></p>
+        <h2 id="modH2"></h2>
+        <p id="modP"></p>
       </div>
     </div>
     <div class="modules-track" id="modulesTrack"></div>
@@ -311,40 +310,42 @@
   <!-- CTA BANNER -->
   <section class="cta-banner">
     <div class="section-inner">
-      <p class="section-label" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;">Rejoignez Blink Premium</p>
-      <h2 class="fade-up">Prêt à moderniser votre pharmacie ?</h2>
-      <p class="fade-up">Rejoignez les pharmaciens qui font confiance à Blink Premium.</p>
-      <a href="contact.html" class="btn btn-white btn-lg fade-up">Demander une démo gratuite</a>
+      <p class="section-label" id="ctaLabel" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;"></p>
+      <h2 class="fade-up" id="ctaH2"></h2>
+      <p class="fade-up" id="ctaP"></p>
+      <a id="ctaBtn" href="contact.html" class="btn btn-white btn-lg fade-up"></a>
     </div>
   </section>
 
   <script>
-  const FEATURES = [
-    { title: "Migration simplifiée",  claim: "Passage sans friction vers Blink — zéro perte de données.", category: "LOGISTIQUE",  color: "#3F51B5", bg: "#1a237e", icon: "📦", anchor: "migration",        badge: "Données importées",       badgeIcon: "📦" },
-    { title: "Prise en main rapide",  claim: "Interface intuitive — votre équipe opérationnelle dès J+1.", category: "INTERFACE",   color: "#26C6DA", bg: "#004d5e", icon: "⚡", anchor: "prise-en-main",    badge: "Formation terminée",      badgeIcon: "⚡" },
-    { title: "Contrôle des stocks",   claim: "Stocks en temps réel, écarts identifiés automatiquement.",  category: "STOCK",       color: "#9C27B0", bg: "#2a003f", icon: "📊", anchor: "stocks",            badge: "Stock mis à jour",         badgeIcon: "📊" },
-    { title: "Inventaire mobile",     claim: "Inventaires depuis smartphone — scan rapide, zéro erreur.",  category: "MOBILE",      color: "#4CAF50", bg: "#1b3a1b", icon: "📱", anchor: "inventaire-mobile", badge: "Inventaire synchronisé",   badgeIcon: "📱" },
-    { title: "Scan intelligent",      claim: "Saisie des livraisons par reconnaissance assistée.",          category: "SAISIE IA",   color: "#26C6DA", bg: "#00363f", icon: "🔍", anchor: "scan-ia",           badge: "Livraison scannée",        badgeIcon: "🔍" },
-    { title: "Achats groupés",        claim: "Regroupez commandes, optimisez achats et réduisez coûts.",   category: "ACHATS",      color: "#FFC107", bg: "#3d2900", icon: "🛒", anchor: "achats-groupes",    badge: "Commande groupée",         badgeIcon: "🛒" },
-    { title: "Application mobile",    claim: "Ventes, activité et indicateurs — partout, en temps réel.",  category: "MOBILITÉ",    color: "#FF7043", bg: "#3e0f00", icon: "📲", anchor: "app-mobile",        badge: "Ventes en temps réel",     badgeIcon: "📲" },
-    { title: "Innovation continue",   claim: "Nouvelles fonctionnalités déployées régulièrement, incluses.", category: "MISE À JOUR", color: "#4CAF50", bg: "#0a2e0a", icon: "🚀", anchor: "innovation",        badge: "Nouvelle fonctionnalité",  badgeIcon: "🚀" },
-  ];
+  const t = BI18N.t;
+  const FEATURES = BI18N.features;
+  const MODULES = BI18N.modules;
+  const lq = (p, hash) => (BI18N.lang === 'fr' ? p : p + '?lang=' + BI18N.lang) + (hash ? '#' + hash : '');
 
-  const MODULES = [
-    { name: "Accueil",             color: "#3F51B5", icon: "🏠" },
-    { name: "Mes ventes",          color: "#26C6DA", icon: "💊" },
-    { name: "Commandes remisées",  color: "#9C27B0", icon: "🏷️" },
-    { name: "Bons de commande",    color: "#FF7043", icon: "📋" },
-    { name: "Mes produits",        color: "#26C6DA", icon: "🧪" },
-    { name: "Mes avoirs",          color: "#EF5350", icon: "↩️" },
-    { name: "Mon stock",           color: "#9C27B0", icon: "📦" },
-    { name: "Mes confrères",       color: "#FFC107", icon: "🤝" },
-    { name: "Mes clients",         color: "#3F51B5", icon: "👤" },
-    { name: "Ma caisse",           color: "#4CAF50", icon: "💰" },
-    { name: "Mes fournisseurs",    color: "#FFC107", icon: "🚚" },
-    { name: "Mes rapports",        color: "#3F51B5", icon: "📈" },
-    { name: "Réglages",            color: "#94A3B8", icon: "⚙️" },
-  ];
+  // Fill static text
+  document.getElementById('heroBadgeText').textContent = t.hero_badge;
+  document.getElementById('heroH1').innerHTML = t.hero_h1a + ' <em>' + t.hero_h1b + '</em>';
+  document.getElementById('heroSub').textContent = t.hero_sub;
+  document.getElementById('heroCta1').textContent = t.hero_cta1;
+  document.getElementById('heroCta1').href = lq('contact.html');
+  document.getElementById('heroCta2').textContent = t.hero_cta2;
+  document.getElementById('heroCta2').href = lq('premium.html');
+  document.getElementById('stat1').textContent = t.stat1;
+  document.getElementById('stat2').textContent = t.stat2;
+  document.getElementById('stat3v').textContent = t.stat3v;
+  document.getElementById('stat3').textContent = t.stat3;
+  document.getElementById('featLabel').textContent = t.feat_label;
+  document.getElementById('featH2').textContent = t.feat_h2;
+  document.getElementById('featP').textContent = t.feat_p;
+  document.getElementById('modLabel').textContent = t.mod_label;
+  document.getElementById('modH2').textContent = t.mod_h2;
+  document.getElementById('modP').textContent = t.mod_p;
+  document.getElementById('ctaLabel').textContent = t.cta_label;
+  document.getElementById('ctaH2').textContent = t.cta_h2;
+  document.getElementById('ctaP').textContent = t.cta_p;
+  document.getElementById('ctaBtn').textContent = t.cta_btn;
+  document.getElementById('ctaBtn').href = lq('contact.html');
 
   // ─── BUILD HERO CARD CAROUSEL ───
   const heroCard = document.getElementById('heroCard');
@@ -429,7 +430,7 @@
       <div class="benefit-card-icon" style="font-size:1.5rem;">${f.icon}</div>
       <h3>${f.title}</h3>
       <p>${f.claim}</p>
-      <a href="premium.html#${f.anchor}">Découvrir →</a>
+      <a href="${lq('premium.html', f.anchor)}">${t.feat_link}</a>
     `;
     grid.appendChild(card);
   });
@@ -444,7 +445,7 @@
       <div class="module-card-icon" style="--mod-color:${m.color}">${m.icon}</div>
       <span>${m.name}</span>
     `;
-    card.addEventListener('click', () => window.location.href = 'premium.html');
+    card.addEventListener('click', () => window.location.href = lq('premium.html'));
     track.appendChild(card);
   });
 

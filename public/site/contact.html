@@ -169,15 +169,16 @@
 </head>
 <body>
   <script src="assets/logo-data.js"></script>
+  <script src="i18n.js"></script>
   <script>document.addEventListener('DOMContentLoaded',()=>{const el=document.getElementById('contactSidebarLogo');if(el&&typeof BLINK_LOGO_DATA_URL!=='undefined')el.src=BLINK_LOGO_DATA_URL;});</script>
   <script src="blink-components.js"></script>
   <script>injectNavbar('contact');</script>
 
   <!-- PAGE HERO -->
   <div class="page-hero">
-    <p class="section-label" style="justify-content:center;display:flex;">Démo gratuite</p>
-    <h1>Parlons de votre pharmacie</h1>
-    <p>Remplissez le formulaire ci-dessous. Un conseiller Blink vous contacte sous 24h pour organiser une démonstration personnalisée.</p>
+    <p class="section-label" id="contLabel" style="justify-content:center;display:flex;"></p>
+    <h1 id="contH1"></h1>
+    <p id="contP"></p>
   </div>
 
   <!-- CONTACT LAYOUT -->
@@ -338,47 +339,100 @@
   </div>
 
   <script>
+  const t = BI18N.t;
+  const lq = (p) => BI18N.lang === 'fr' ? p : p + '?lang=' + BI18N.lang;
+
+  // Apply translations to hero
+  document.getElementById('contLabel').textContent = t.cont_label;
+  document.getElementById('contH1').textContent    = t.cont_h1;
+  document.getElementById('contP').textContent     = t.cont_p;
+
+  // Apply translations to form
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  function setHtml(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
+  function setAttr(id, attr, val) { const el = document.getElementById(id); if (el) el[attr] = val; }
+
+  // Form card
+  const formCard = document.querySelector('.form-card');
+  formCard.querySelector('h2').textContent = t.form_h2;
+  formCard.querySelector('.form-subtitle').textContent = t.form_sub;
+
+  // Labels
+  const labels = formCard.querySelectorAll('label');
+  const labelKeys = ['f_nom','f_pharmacie','f_tel','f_ville','f_logiciel','f_message'];
+  const reqMark = ' <span class="req">*</span>';
+  [[0,true],[1,true],[2,true],[3,false],[4,false],[5,false]].forEach(([i, req]) => {
+    if (labels[i]) labels[i].innerHTML = t[labelKeys[i]] + (req ? reqMark : '');
+  });
+
+  // Inputs
+  document.getElementById('message').placeholder = t.f_msg_ph;
+
+  // Select placeholder & aucun
+  const sel = document.getElementById('logiciel');
+  if (sel) {
+    sel.options[0].text = t.f_log_ph;
+    sel.options[1].text = t.f_aucun;
+  }
+
+  // Submit button
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.querySelector('span')
+    ? submitBtn.querySelector('span').textContent = t.f_submit
+    : (submitBtn.childNodes[submitBtn.childNodes.length - 1].textContent = ' ' + t.f_submit);
+
+  // Disclaimer
+  formCard.querySelector('.form-disclaimer').textContent = t.f_disclaimer;
+
+  // Success state
+  const succ = document.getElementById('formSuccess');
+  succ.querySelector('h3').textContent = t.f_ok_h3;
+  succ.querySelector('p').textContent  = t.f_ok_p;
+  const okLink = succ.querySelector('a');
+  okLink.textContent = t.f_ok_link;
+  okLink.href = lq('premium.html');
+
+  // Reassurance badges
+  const ri = document.querySelectorAll('.reassurance-item');
+  if (ri.length >= 4) {
+    [[t.ri1s, t.ri1p],[t.ri2s, t.ri2p],[t.ri3s, t.ri3p],[t.ri4s, t.ri4p]].forEach(([s, p], i) => {
+      ri[i].querySelector('strong').textContent = s;
+      ri[i].querySelector('span').textContent   = p;
+    });
+  }
+
+  // Info card
+  document.querySelector('.info-card h3').textContent = t.info_h3;
+  document.querySelector('.whatsapp-btn').childNodes[document.querySelector('.whatsapp-btn').childNodes.length - 1].textContent = ' ' + t.wa_btn;
+
+  // Demo recap
+  const demoCard = document.querySelectorAll('.info-card')[1];
+  if (demoCard) {
+    demoCard.querySelector('h3').textContent = t.demo_h3;
+    const items = demoCard.querySelectorAll('span:last-child');
+    t.demo_items.forEach((txt, i) => { if (items[i]) items[i].textContent = txt; });
+  }
+
+  // Form submit logic
   const form = document.getElementById('contactForm');
   const formContent = document.getElementById('formContent');
   const formSuccess = document.getElementById('formSuccess');
-  const submitBtn = document.getElementById('submitBtn');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const required = form.querySelectorAll('[required]');
     let valid = true;
     required.forEach(el => {
       el.style.borderColor = '';
-      if (!el.value.trim()) {
-        el.style.borderColor = '#EF5350';
-        valid = false;
-      }
+      if (!el.value.trim()) { el.style.borderColor = '#EF5350'; valid = false; }
     });
     if (!valid) return;
-
-    submitBtn.textContent = 'Envoi en cours…';
     submitBtn.disabled = true;
-
-    const data = {
-      nom:       form.nom.value,
-      pharmacie: form.pharmacie.value,
-      telephone: form.telephone.value,
-      ville:     form.ville.value,
-      logiciel:  form.logiciel.value,
-      message:   form.message.value,
-    };
-
-    console.log('[Blink Demo Request]', data);
-
-    // Stub — replace with real API call
     await new Promise(r => setTimeout(r, 800));
-
     formContent.style.display = 'none';
     formSuccess.style.display = 'flex';
   });
 
-  // Init animations
   if (typeof initScrollAnimations === 'function') initScrollAnimations();
   </script>
 
