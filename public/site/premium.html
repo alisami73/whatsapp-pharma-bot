@@ -219,7 +219,8 @@
     ],
   };
 
-  const mediaFiles = ["blink-carte-01.jpg","blink-carte-02.jpg","blink-carte-03.jpg","blink-carte-04.jpg","blink-carte-05.jpg","blink-carte-06.jpg","blink-carte-07.jpg","blink-carte-08.jpg"];
+  const langSuffix = (lang === 'fr') ? '' : '-' + lang;
+  const mediaFiles = [1,2,3,4,5,6,7,8].map(n => `blink-carte-0${n}${langSuffix}.jpg`);
   const icons      = ["🔄","⚡","📦","📱","🔍","🛒","📊","🚀"];
 
   const baseFeats = BI18N.features;
