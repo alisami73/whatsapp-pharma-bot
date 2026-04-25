@@ -7,7 +7,7 @@
  * Chaque template est créé une fois puis mis en cache dans data/interactive_templates.json.
  *
  * Screens :
- *   1. sendLanguageScreen(to)          — list-picker 4 langues (même pour tous)
+ *   1. sendLanguageScreen(to)          — carousel 4 langues (même pour tous)
  *   2. sendConsentScreen(to, lang)     — quick-reply CGU (1 template par langue)
  *   3. sendRoleScreen(to, lang)        — list-picker rôle (1 template par langue)
  *   4. sendMenuScreen(to, themes, lang) — list-picker thèmes actifs
@@ -24,6 +24,7 @@ const { t } = require('./i18n');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
+const DEFAULT_PUBLIC_BASE_URL = 'https://whatsapp-pharma-bot-production.up.railway.app';
 
 function isInteractiveEnabled() {
   return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
@@ -53,20 +54,67 @@ function isFresh(entry) {
 
 // ─── Template specs ───────────────────────────────────────────────────────────
 
+function getPublicBaseUrl() {
+  const configuredBaseUrl = String(twilioService.getTwilioConfig().publicBaseUrl || '').trim();
+  return (configuredBaseUrl || DEFAULT_PUBLIC_BASE_URL).replace(/\/+$/, '');
+}
+
+function buildAbsoluteUrl(relativePath) {
+  return `${getPublicBaseUrl()}/${String(relativePath || '').replace(/^\/+/, '')}`;
+}
+
+function buildLanguageCardSpecs() {
+  return [
+    {
+      id: 'lang_ar',
+      title: '🇲🇦 العربية',
+      body: 'تحدث مع Blink باللغة التي تفضلها',
+      cta: 'اختر',
+      media: buildAbsoluteUrl('public/onboarding/language-ar.png'),
+    },
+    {
+      id: 'lang_fr',
+      title: '🇫🇷 Français',
+      body: 'Discutez avec Blink dans la langue que vous préférez',
+      cta: 'Choisir',
+      media: buildAbsoluteUrl('public/onboarding/language-fr.png'),
+    },
+    {
+      id: 'lang_es',
+      title: '🇪🇸 Español',
+      body: 'Habla con Blink en el idioma que prefieras',
+      cta: 'Elegir',
+      media: buildAbsoluteUrl('public/onboarding/language-es.png'),
+    },
+    {
+      id: 'lang_ru',
+      title: '🇷🇺 Русский',
+      body: 'Общайтесь с Blink на языке, который вы предпочитаете',
+      cta: 'Выбрать',
+      media: buildAbsoluteUrl('public/onboarding/language-ru.png'),
+    },
+  ];
+}
+
 function buildLanguageSpec() {
   return {
-    friendlyName: 'blink_language_v2',
+    friendlyName: 'blink_language_v3',
     language: 'fr',
     types: {
-      'twilio/list-picker': {
+      'twilio/carousel': {
         body: t('language_body', 'fr'),
-        button: t('language_button', 'fr'),
-        items: [
-          { id: 'lang_ar', item: t('lang_ar', 'fr') },
-          { id: 'lang_fr', item: t('lang_fr', 'fr') },
-          { id: 'lang_es', item: t('lang_es', 'fr') },
-          { id: 'lang_ru', item: t('lang_ru', 'fr') },
-        ],
+        cards: buildLanguageCardSpecs().map((card) => ({
+          title: card.title,
+          body: card.body,
+          media: card.media,
+          actions: [
+            {
+              type: 'QUICK_REPLY',
+              title: card.cta.slice(0, 25),
+              id: card.id,
+            },
+          ],
+        })),
       },
     },
   };
@@ -213,7 +261,7 @@ async function sendInteractive(to, contentSid) {
  */
 async function sendLanguageScreen(to) {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('language_v2', buildLanguageSpec);
+  const sid = await resolveTemplate('language_v3', buildLanguageSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
@@ -255,6 +303,7 @@ async function sendMenuScreen(to, activeThemes, lang = 'fr') {
 }
 
 module.exports = {
+  buildLanguageSpec,
   sendLanguageScreen,
   sendConsentScreen,
   sendRoleScreen,

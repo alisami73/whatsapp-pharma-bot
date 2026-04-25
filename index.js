@@ -1212,7 +1212,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         if (langResult) {
           await storage.appendMessageLog({
             direction: 'outbound', phone: context.phone,
-            body: '[interactive:language_picker]',
+            body: '[interactive:language_carousel]',
             status: langResult.status || 'queued',
             provider_message_sid: langResult.sid,
             metadata: { source: 'interactive_language' },
