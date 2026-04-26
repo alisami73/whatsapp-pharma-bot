@@ -4,7 +4,6 @@
  * modules/explorer/index.js
  *
  * Explorer carousel — menu principal 5 rubriques.
- * Remplace la list-picker "Explorer" actuelle par un carousel WhatsApp avec images.
  *
  * Rubriques :
  *   explore_blink_premium       → Blink Premium (logique software existante)
@@ -14,17 +13,9 @@
  *   explore_medindex            → MedIndex (URL directe https://medindex.ma)
  */
 
-const fs   = require('fs');
-const path = require('path');
-
 const twilioService = require('../../twilio_service');
-const { t }         = require('../i18n');
-
-const CACHE_PATH     = path.join(__dirname, '..', '..', 'data', 'interactive_templates.json');
-const TEMPLATE_TTL   = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // ── Card definitions ─────────────────────────────────────────────────────────
-// Edit titles, bodies, image filenames and button labels here freely.
 const EXPLORER_CARDS = [
   {
     id:          'explore_blink_premium',
@@ -83,53 +74,13 @@ const PAYLOAD_TO_THEME = {
   '5': 'medindex',
 };
 
-// ── Cache helpers ─────────────────────────────────────────────────────────────
-
-function readCache() {
-  try {
-    if (fs.existsSync(CACHE_PATH)) return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-  } catch (_) {}
-  return {};
-}
-
-function writeCache(cache) {
-  try { fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8'); } catch (_) {}
-}
-
-// ── Template builder ──────────────────────────────────────────────────────────
-
-function getBaseUrl() {
-  return String(
-    process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app'
-  ).replace(/\/+$/, '');
-}
-
-function buildExplorerCarouselSpec(lang) {
-  const base  = getBaseUrl();
-  const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
-
-  const cards = EXPLORER_CARDS.map((card) => {
-    const actions = [{ type: 'QUICK_REPLY', title: card.buttonLabel.slice(0, 20), id: card.id }];
-
-    return {
-      title:  card.title,
-      body:   card.body,
-      media:  `${base}/public/carousel/${card.image}`,
-      actions,
-    };
-  });
-
-  return {
-    friendlyName: `blink_explorer_carousel_v1_${lcode}`,
-    language:     lcode,
-    types: {
-      'twilio/carousel': {
-        body:  '✨ Explorer',
-        cards,
-      },
-    },
-  };
-}
+// Approved Meta carousel SIDs (fr/ar submitted 2026-04-25 pending; es/ru approved 2026-04-25)
+const APPROVED_CAROUSEL_SIDS = {
+  fr: 'HXd9eb17cff40280a0f7ad94978d2625ee',
+  ar: 'HX0f8860dfebafb971e29f12fb28a8ae2e',
+  es: 'HX72b8a6ba16a01b5056eb27c0323b2feb',
+  ru: 'HX80bc43cb8ec1cae4da7da24f0157fac2',
+};
 
 // ── Send carousel ─────────────────────────────────────────────────────────────
 
@@ -137,53 +88,19 @@ async function sendExplorerCarousel(to, lang = 'fr') {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
-  const lcode    = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
-  const cacheKey = `explorer_carousel_v1_${lcode}`;
-  const cache    = readCache();
-  const entry    = cache[cacheKey];
-  const isFresh  = entry && entry.sid && entry.created_at &&
-    (Date.now() - new Date(entry.created_at).getTime() < TEMPLATE_TTL);
-
-  let sid = isFresh ? entry.sid : null;
-  console.log(`[explorer] cacheKey=${cacheKey} isFresh=${isFresh} sid=${sid}`);
+  const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+  const sid   = APPROVED_CAROUSEL_SIDS[lcode];
 
   if (!sid) {
-    const spec   = buildExplorerCarouselSpec(lcode);
-    const client = twilioService.getTwilioClient();
-    try {
-      const created = await client.content.v1.contents.create(spec);
-      sid = created.sid;
-      cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-      writeCache(cache);
-      console.log(`[explorer] Template créé: ${cacheKey} → ${sid}`);
-    } catch (err) {
-      console.warn(`[explorer] Création échouée: ${err.message} — recherche existant…`);
-      try {
-        const all   = await client.content.v1.contents.list({ limit: 100 });
-        const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
-        if (match) {
-          sid = match.sid;
-          cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-          writeCache(cache);
-          console.log(`[explorer] Template existant trouvé: ${cacheKey} → ${sid}`);
-        } else {
-          console.error(`[explorer] Template introuvable pour ${cacheKey}`);
-        }
-      } catch (listErr) {
-        console.error(`[explorer] Liste templates échouée: ${listErr.message}`);
-      }
-    }
-  }
-
-  if (!sid) {
-    console.error(`[explorer] Aucun SID disponible pour ${cacheKey} — abandon`);
+    console.error(`[explorer] Aucun SID approuvé pour la langue ${lcode}`);
     return null;
   }
+
+  console.log(`[explorer] Envoi carousel sid=${sid} to=${to}`);
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
   const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid };
-  console.log(`[explorer] Envoi carousel sid=${sid} to=${to}`);
 
   if (config.whatsappFrom) payload.from = config.whatsappFrom;
   else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
