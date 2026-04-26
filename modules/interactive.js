@@ -8,7 +8,7 @@
  *
  * Screens :
  *   1. sendLanguageScreen(to)          — carousel 4 langues (même pour tous)
- *   2. sendConsentScreen(to, lang)     — quick-reply CGU (1 template par langue)
+ *   2. sendConsentScreen(to, lang)     — carte CGU (2 quick replies + 1 bouton URL)
  *   3. sendRoleScreen(to, lang)        — list-picker rôle (1 template par langue)
  *   4. sendMenuScreen(to, themes, lang) — list-picker thèmes actifs
  *
@@ -61,6 +61,25 @@ function getPublicBaseUrl() {
 
 function buildAbsoluteUrl(relativePath) {
   return `${getPublicBaseUrl()}/${String(relativePath || '').replace(/^\/+/, '')}`;
+}
+
+function normalizeInteractiveLang(lang = 'fr') {
+  return lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr';
+}
+
+function buildCguUrl(lang = 'fr') {
+  const safeLang = normalizeInteractiveLang(lang);
+  const fallbackBaseUrl = buildAbsoluteUrl('site/cgu.html');
+  const configuredUrl = String(process.env.CGU_URL || fallbackBaseUrl).trim() || fallbackBaseUrl;
+
+  try {
+    const url = new URL(configuredUrl);
+    url.searchParams.set('lang', safeLang);
+    return url.toString();
+  } catch (_) {
+    const separator = configuredUrl.includes('?') ? '&' : '?';
+    return `${configuredUrl}${separator}lang=${encodeURIComponent(safeLang)}`;
+  }
 }
 
 function buildLanguageCardSpecs() {
@@ -121,17 +140,21 @@ function buildLanguageSpec() {
 }
 
 function buildConsentSpec(lang) {
+  const safeLang = normalizeInteractiveLang(lang);
   return {
-    friendlyName: `blink_consent_v2_${lang}`,
-    language: lang === 'ar' ? 'ar' : lang === 'es' ? 'es' : lang === 'ru' ? 'ru' : 'fr',
+    friendlyName: `blink_consent_v3_${safeLang}`,
+    language: safeLang,
     types: {
-      'twilio/quick-reply': {
+      'whatsapp/card': {
         body: t('cgu_body', lang),
         actions: [
-          { id: 'cgu_accept', title: t('cgu_accept', lang).slice(0, 20) },
-          { id: 'cgu_decline', title: t('cgu_decline', lang).slice(0, 20) },
-          { id: 'cgu_full', title: t('cgu_full', lang).slice(0, 20) },
+          { type: 'QUICK_REPLY', id: 'cgu_accept', title: t('cgu_accept', lang).slice(0, 20) },
+          { type: 'QUICK_REPLY', id: 'cgu_decline', title: t('cgu_decline', lang).slice(0, 20) },
+          { type: 'URL', title: t('cgu_full', lang).slice(0, 20), url: buildCguUrl(lang) },
         ],
+      },
+      'twilio/text': {
+        body: `${t('cgu_body', lang)}\n\n${t('cgu_link', lang, { url: buildCguUrl(lang) })}`,
       },
     },
   };
@@ -267,13 +290,13 @@ async function sendLanguageScreen(to) {
 }
 
 /**
- * Écran 2 — CGU dans la langue de l'utilisateur (3 boutons).
+ * Écran 2 — CGU dans la langue de l'utilisateur (2 quick replies + 1 bouton URL).
  * @param {string} to
  * @param {string} lang  — 'fr'|'ar'|'es'|'ru'
  */
 async function sendConsentScreen(to, lang = 'fr') {
   if (!isInteractiveEnabled()) return null;
-  const cacheKey = `consent_v2_${lang}`;
+  const cacheKey = `consent_v3_${normalizeInteractiveLang(lang)}`;
   const sid = await resolveTemplate(cacheKey, () => buildConsentSpec(lang));
   if (!sid) return null;
   return sendInteractive(to, sid);
@@ -303,6 +326,8 @@ async function sendMenuScreen(to, activeThemes, lang = 'fr') {
 }
 
 module.exports = {
+  buildCguUrl,
+  buildConsentSpec,
   buildLanguageSpec,
   sendLanguageScreen,
   sendConsentScreen,

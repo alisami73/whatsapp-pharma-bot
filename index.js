@@ -1300,7 +1300,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
       } else if (isCguFull) {
         // Envoyer le lien CGU puis renvoyer l'écran CGU
-        const cguUrl = String(process.env.CGU_URL || 'https://blinkpharma.ma/cgu.html');
+        const cguUrl = interactive.buildCguUrl(lang);
         response.message(t('cgu_link', lang, { url: cguUrl }));
         // Re-envoyer l'écran CGU en message séparé (outbound asynchrone)
         let consentScreenSent = false;
@@ -1393,41 +1393,33 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    // ── Explorer carousel payload → route immediately regardless of state ─────
+    // ── Explorer carousel payload → open web page (URL-button architecture) ─────
     if (explorer.isExplorerPayload(controlValue)) {
       const themeId = explorer.resolveExplorerPayload(controlValue);
+      const base    = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
 
-      if (themeId === 'software') {
-        const swTheme = activeThemes.find((th) => th.id === 'software');
-        if (swTheme) await startThemePrimaryAction(response, user, swTheme);
-        else response.message('Rubrique Blink Premium indisponible.');
-        res.type('text/xml').send(response.toString());
-        return;
-      }
+      const WEB_URLS = {
+        'software':              `${base}/site/index.html${langSuffix}`,
+        'nouveautes-medicaments':`${base}/site/actu.html${langSuffix}`,
+        'fse':                   `${base}/site/fse.html${langSuffix}`,
+        'conformites':           `${base}/site/conformite.html${langSuffix}`,
+        'medindex':              'https://medindex.ma',
+      };
 
-      if (themeId === 'nouveautes-medicaments') {
-        const msg = `🔔 *Actu Médicaments*\n\nCette rubrique arrive bientôt !\nVous serez informé dès qu'un carousel dédié aux nouveautés médicaments, rappels de lots et mises à jour du marché pharma sera disponible.\n\nEnvoyez RETOUR pour revenir au menu.`;
-        response.message(msg);
-        res.type('text/xml').send(response.toString());
-        return;
-      }
+      const WEB_LABELS = {
+        fr: { software: '💎 Blink Premium', actu: '🔔 Actualités Pharma', fse: '📋 FSE CNSS', conformites: '⚖️ Conformité Pharma', medindex: '💊 MedIndex' },
+        ar: { software: '💎 بلينك بريميوم', actu: '🔔 أخبار الصيدلة', fse: '📋 FSE CNSS', conformites: '⚖️ الامتثال الصيدلي', medindex: '💊 ميدإندكس' },
+        es: { software: '💎 Blink Premium', actu: '🔔 Actualidades', fse: '📋 FSE CNSS', conformites: '⚖️ Conformidad', medindex: '💊 MedIndex' },
+        ru: { software: '💎 Blink Premium', actu: '🔔 Новости', fse: '📋 FSE CNSS', conformites: '⚖️ Соответствие', medindex: '💊 MedIndex' },
+      };
 
-      if (themeId === 'fse') {
-        user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_FSE_QUESTION, current_theme: 'fse' });
-        response.message('📋 *Soins Électroniques — FSE CNSS*\n\nPosez votre question sur la Feuille de Soins Électronique.\nEx : "Comment fonctionne la facturation FSE ?" ou "Quels médicaments sont pris en charge ?"\n\nEnvoyez RETOUR pour revenir.');
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      if (themeId === 'conformites') {
-        user = await storage.saveUser({ ...user, current_state: STATES.AWAITING_CONFORMITE_QUESTION, current_theme: 'conformites' });
-        response.message('⚖️ *Conformité Pharma*\n\nPosez votre question sur la conformité et réglementation pharmaceutique.\nEx : "Quelles sont les règles pour les stupéfiants ?" ou "Comment préparer une inspection DMP ?"\n\nEnvoyez RETOUR pour revenir.');
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      if (themeId === 'medindex') {
-        response.message('💊 *MedIndex*\n\nOuvrez la base de médicaments marocains :\nhttps://medindex.ma');
+      const url = WEB_URLS[themeId];
+      if (url) {
+        const labels = WEB_LABELS[lang] || WEB_LABELS.fr;
+        const key    = themeId === 'nouveautes-medicaments' ? 'actu' : themeId;
+        const label  = labels[key] || themeId;
+        response.message(`${label}\n\n${url}`);
         res.type('text/xml').send(response.toString());
         return;
       }
@@ -1435,7 +1427,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       // Payload non résolu → renvoyer l'explorer
       const sent = await explorer.sendExplorerCarousel(context.phone, lang);
       if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(explorer.buildExplorerFallbackText());
+      response.message(explorer.buildExplorerFallbackText(lang));
       res.type('text/xml').send(response.toString());
       return;
     }
@@ -1555,74 +1547,18 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    // ── FSE CNSS — réponse IA + page web ─────────────────────────────────
-    if (user.current_state === STATES.AWAITING_FSE_QUESTION) {
-      try {
-        const answer = await cnss.answerQuestion(context.message, 'fse', lang);
-        if (answerPages.isEnabled()) {
-          const id = await answerPages.saveAnswer({
-            topic: 'fse',
-            userPhone: context.phone,
-            question: context.message,
-            answer,
-            lang,
-          });
-          const card = await answerCards.sendAnswerCard(context.phone, {
-            topic: 'fse',
-            id,
-            lang,
-            question: context.message,
-            answer,
-          });
-          if (card) {
-            res.type('text/xml').send(buildEmptyTwiml());
-            return;
-          }
-          const msg = answerPages.buildAnswerReadyMessage('fse', id, lang);
-          response.message(appendTextFooter(msg, lang, { includeBack: true }));
-        } else {
-          response.message(appendTextFooter(answer, lang, { includeBack: true }));
-        }
-      } catch (err) {
-        console.error('[fse_question]', err.message);
-        response.message('Une erreur est survenue. Veuillez réessayer.');
-      }
-      res.type('text/xml').send(response.toString());
-      return;
-    }
-
-    // ── Conformité Pharma — réponse IA + page web ─────────────────────────
-    if (user.current_state === STATES.AWAITING_CONFORMITE_QUESTION) {
-      try {
-        const answer = await cnss.answerQuestion(context.message, 'conformites', lang);
-        if (answerPages.isEnabled()) {
-          const id = await answerPages.saveAnswer({
-            topic: 'conformites',
-            userPhone: context.phone,
-            question: context.message,
-            answer,
-            lang,
-          });
-          const card = await answerCards.sendAnswerCard(context.phone, {
-            topic: 'conformites',
-            id,
-            lang,
-            question: context.message,
-            answer,
-          });
-          if (card) {
-            res.type('text/xml').send(buildEmptyTwiml());
-            return;
-          }
-          const msg = answerPages.buildAnswerReadyMessage('conformites', id, lang);
-          response.message(appendTextFooter(msg, lang, { includeBack: true }));
-        } else {
-          response.message(appendTextFooter(answer, lang, { includeBack: true }));
-        }
-      } catch (err) {
-        console.error('[conformite_question]', err.message);
-        response.message('Une erreur est survenue. Veuillez réessayer.');
-      }
+    // ── FSE / Conformité — legacy state: redirect to web page ────────────────
+    // These states are no longer entered (web pages handle Q&A via /api/ask).
+    // Users stuck here from old sessions receive the web page URL.
+    if (user.current_state === STATES.AWAITING_FSE_QUESTION ||
+        user.current_state === STATES.AWAITING_CONFORMITE_QUESTION) {
+      const base      = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
+      const isFse     = user.current_state === STATES.AWAITING_FSE_QUESTION;
+      const url       = isFse ? `${base}/site/fse.html${langSuffix}` : `${base}/site/conformite.html${langSuffix}`;
+      const label     = isFse ? '📋 FSE CNSS' : '⚖️ Conformité Pharma';
+      await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+      response.message(`${label}\n\n${url}`);
       res.type('text/xml').send(response.toString());
       return;
     }
