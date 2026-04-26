@@ -56,6 +56,7 @@ function injectNavbar(activePage) {
   const links = [
     { label: t ? t.nav_home     : 'Accueil',          href: lq('index.html'),   id: 'home' },
     { label: t ? t.nav_features : 'Fonctionnalités',  href: lq('premium.html'), id: 'premium' },
+    { label: t ? t.nav_actu     : 'Actu',             href: 'actu.html',        id: 'actu' },
     { label: t ? t.nav_contact  : 'Contact',          href: lq('contact.html'), id: 'contact' },
   ];
   const ctaLabel = t ? t.nav_cta : 'Demander une démo';

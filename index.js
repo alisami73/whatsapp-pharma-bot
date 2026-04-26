@@ -90,6 +90,34 @@ app.get('/history/:phoneHash', (req, res) => {
   res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
 });
 
+// POST /api/ask — Web Q&A endpoint for FSE and Conformité pages
+const _askRateMap = new Map();
+app.post('/api/ask', async (req, res) => {
+  // Simple in-memory rate limit: 20 req/min per IP
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const bucket = _askRateMap.get(ip) || { count: 0, reset: now + 60_000 };
+  if (now > bucket.reset) { bucket.count = 0; bucket.reset = now + 60_000; }
+  bucket.count++;
+  _askRateMap.set(ip, bucket);
+  if (bucket.count > 20) return res.status(429).json({ error: 'Trop de requêtes. Réessayez dans une minute.' });
+
+  const { rubrique, question, lang } = req.body || {};
+  if (!question || typeof question !== 'string' || question.trim().length < 3) {
+    return res.status(400).json({ error: 'Question manquante ou trop courte.' });
+  }
+  if (!['fse', 'conformites'].includes(rubrique)) {
+    return res.status(400).json({ error: 'Rubrique invalide.' });
+  }
+  try {
+    const answer = await cnss.answerQuestion(question.trim(), rubrique, lang || 'fr');
+    res.json({ answer });
+  } catch (err) {
+    console.error('[api/ask]', err.message);
+    res.status(500).json({ error: 'Erreur lors du traitement. Veuillez réessayer.' });
+  }
+});
+
 function normalizeText(value) {
   return String(value || '')
     .normalize('NFD')

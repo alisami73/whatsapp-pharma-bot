@@ -1,6 +1,9 @@
 .vercel
 .env
 node_modules/
+.venv/
+__pycache__/
+*.py[cod]
 
 # KB build artifacts (only chunks/ and indexes/ are needed by the app)
 data/legal_kb/raw_text/
@@ -9,6 +12,8 @@ data/legal_kb/normalized/
 data/legal_kb/audit/
 data/legal_kb/qa_assets/
 data/legal_sources/
+data/legal_kb_backups/
+data/legal_kb/indexes/reindex_report.json
 
 # Scripts & docs not needed in production
 scripts/__pycache__/

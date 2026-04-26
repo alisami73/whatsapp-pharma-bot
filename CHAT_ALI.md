@@ -1,5 +1,75 @@
 # CHAT ALI — whatsapp-pharma-bot
 
+## [2026-04-26] — Suppression étape rôle de l'onboarding + fix carousel Explorer
+
+### Résumé
+Deux sujets principaux ce jour :
+
+**1. Carousel Explorer (session précédente)**
+- Root cause : images carousel 1.2–1.6 MB → erreur 63019 (WhatsApp rejette silencieusement)
+- Fix : compression images à 37-52 KB (même filenames/URLs) via `sips`
+- Les SIDs v1 approuvés par Meta (`APPROVED_CAROUSEL_SIDS`) sont conservés en dur dans `modules/explorer/index.js`
+- Résultat confirmé : `status: read`, carousel 5 cartes reçu par l'utilisateur ✅
+
+**2. Suppression de l'étape rôle (ce sujet)**
+- L'écran "Quel est votre rôle ?" (list-picker 3 choix) a été supprimé du parcours onboarding
+- Nouveau flux : Langue → CGU → **Explorer carousel directement**
+- L'utilisateur n'a plus à choisir "Titulaire / Adjoint / Autre"
+
+### Décisions / Priorités
+- Ne plus jamais proposer de list-picker comme alternative à un carousel
+- Onboarding simplifié : 2 étapes seulement (langue + CGU) puis carousel
+- Les messages `onboarding_complete` mis à jour dans les 4 langues (suppression "Profil enregistré")
+
+### Fichiers modifiés
+- `index.js` : bloc CGU accept → remplacé `ONBOARDING_ROLE` par saut direct vers l'Explorer carousel
+- `locales/fr.json`, `ar.json`, `es.json`, `ru.json` : message `onboarding_complete` simplifié
+
+### À retenir pour la prochaine session
+- Le handler `ONBOARDING_ROLE` existe encore dans `handleOnboardingStep` (safety net pour users bloqués) — peut être nettoyé plus tard
+- Les templates Twilio v2/v3 créés pendant le debug du carousel sont inutilisés (peuvent être supprimés de la console Twilio)
+- Table Supabase `chatbot_answer_history` toujours en attente de création
+
+---
+
+## [2026-04-24] — Fix Azure OpenAI : gpt-4o-mini ne répondait plus (Conformité + FSE)
+
+### Résumé
+Après rollback `gpt-5.4-mini` → `gpt-4o-mini`, les deux modules (FSE et Conformité) retournaient des réponses fallback au lieu de réponses Azure. Deux bugs distincts identifiés et corrigés.
+
+**Bug 1 — `max_completion_tokens` au lieu de `max_tokens`**
+- `max_completion_tokens` est le paramètre o-series (o1, o3). `gpt-4o-mini` utilise `max_tokens`.
+- Avec le mauvais paramètre, Azure échoue silencieusement → fallback local.
+- Fix : `modules/cnss.js` — renommé `max_completion_tokens` → `max_tokens`. Commité `a0250bf`.
+
+**Bug 2 — `AZURE_OPENAI_API_VERSION=2024-07-18` invalide**
+- L'utilisateur avait mis la **version du modèle** (snapshot Azure portal) à la place de la **version de l'API REST**.
+- `2024-07-18` n'est pas un API version valide → SDK échoue silencieusement.
+- Fix : Changé vers `2024-08-01-preview` dans Railway + Vercel + `.env`.
+
+**Bug 3 (session précédente) — Supabase free tier pause → TCP hang**
+- Supabase inactive → connexion TCP bloquée indéfiniment → timeout Twilio.
+- Fix : `Promise.race` avec 5s cap sur `supabaseKb.searchChunks()` dans `legal_kb.js`.
+
+**Bug 4 (session précédente) — `gpt-5.4-mini` refuse les questions légales**
+- Ce modèle applique une politique contenu restrictive sur les questions réglementaires.
+- `message.content = null`, `message.refusal` set, mais ça répondait pour "bonjour".
+- Fix : Rollback vers `gpt-4o-mini`.
+
+### Décisions
+- `AZURE_OPENAI_API_VERSION` = `2024-08-01-preview` pour `gpt-4o-mini` (à ne pas confondre avec la version snapshot du modèle dans Azure portal)
+- Température fixée à `0.7`, `top_p` supprimé
+- Logging ajouté : `finish_reason` + `refusal` loggé si non "stop"
+
+### À retenir pour la prochaine session
+- Il y a DEUX versions Azure distinctes :
+  1. **Version snapshot modèle** (dans Azure portal, ex: `2024-07-18`) → ne pas mettre en env var
+  2. **API version** (`AZURE_OPENAI_API_VERSION`) → doit être `2024-08-01-preview` pour gpt-4o-mini
+- `gpt-5.4-mini` ne répond pas aux questions légales (content filter) → ne pas utiliser
+- Si Azure échoue silencieusement → vérifier d'abord ces deux valeurs avant tout debug
+
+---
+
 ## [2026-04-24] — Fix FSE "obligatoire" : mauvaise section retournée
 
 ### Résumé
