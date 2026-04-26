@@ -27,7 +27,7 @@ const EXPLORER_CARDS = [
   },
   {
     id:          'explore_actu_medicaments',
-    title:       '🔔 Actu Médicaments',
+    title:       '🔔 Actualités Pharma',
     body:        'Nouveautés, rappels de lots & mises à jour du marché pharma',
     image:       'actu-medicaments.jpg',
     buttonLabel: 'Explorer',
@@ -100,7 +100,7 @@ async function sendExplorerCarousel(to, lang = 'fr') {
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
-  const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid };
+  const payload = { to: twilioService.normalizeWhatsAppAddress(to), contentSid: sid, contentVariables: '{}' };
 
   if (config.whatsappFrom) payload.from = config.whatsappFrom;
   else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
