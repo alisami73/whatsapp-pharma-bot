@@ -27,6 +27,35 @@ const DEPRECATED_SIDS = new Set([
   'HXe96feee33bef32e03c97e08260c17ace', // blink_benefits_faq_v1_es
   'HXe9949cebe0b68cfbebaec095d00ab434', // blink_benefits_faq_v1_ru
 
+  // Nameless CGU consent quick-reply drafts (created 2026-04-25/26 without friendlyName)
+  'HXf9b7e08130ddc7d708ee2190ec8bab7c',
+  'HXa15c0478e732fcdd4394e3f46bb0ac07',
+  'HX06088b3fb5160b0e00d6375f0d49651f',
+  'HX3ec61f4473acb2addeedb7f6e7065532',
+  'HXbc6ac18e8ccf46a3384952685610441c',
+  'HXe548ae1d5fd56f136aaebad3ceb6fd0f',
+  'HXfbebd6379399080fa4dc490de9101339',
+  'HX2d25eb43ff6cc88a93f94921082af9e9',
+  'HX64c050d2b2ea783cda4f010c9ca46366',
+  'HX28783fde06991d1f8656715d4335271c',
+  'HX2b307f7f1f9c0f62ecfd311d1aca0c36',
+  'HX2a4c9a245f75814843f03901a9dc6ebb',
+
+  // Nameless role list-picker drafts (created 2026-04-25/26 — role step removed)
+  'HX7305ac1dc57ca6a3299bcacb87e63d64',
+  'HXf423906d7d73d743a6efcf4e160cca21',
+  'HX0a2608569c0e61b8a461930f9d9599e0',
+  'HXa0d1d880deae34c5ea1eb0758977b13c',
+  'HX70c4aca931dfe8ddfaae86479a166420',
+  'HXe46af540542aabb659a49b29a036441c',
+  'HX3f9614e60eac85241e1b4e90ee26f373',
+  'HXb0e4f41e67a80b7abd79a760ec459db5',
+  'HXee2a5143cc8a1c255e2584e35746905e',
+  'HX63ae26d984d59b291fc7d8204b2ff9e9',
+
+  // Nameless benefits answer card draft (2026-04-26 — answer card flow removed)
+  'HX9173e4b9ee4f0ddb3b7ddee825d7c241',
+
   // Explorer v1 — replaced by v2 (URL buttons). UNCOMMENT after v2 approved by Meta:
   // 'HXd9eb17cff40280a0f7ad94978d2625ee', // blink_explorer_carousel_v1_fr
   // 'HX0f8860dfebafb971e29f12fb28a8ae2e', // blink_explorer_carousel_v1_ar
@@ -50,6 +79,16 @@ const DEPRECATED_PREFIXES = [
 ];
 
 // ── Templates that must NEVER be deleted ──────────────────────────────────────
+// Note: Twilio Content API v1 returns friendlyName=null for carousel templates
+// created via the SDK — protect those by SID explicitly.
+const PROTECTED_SIDS = new Set([
+  // Explorer v2 — URL buttons (created 2026-04-26, pending Meta UTILITY approval)
+  'HXf07be4f91efcdfcaa9f48e29b1be13ae', // blink_explorer_v2_fr
+  'HXec08eb2df6106cc4ca151ea4705809fb', // blink_explorer_v2_ar
+  'HX23fee4f3b6b9280116e1535306faf77d', // blink_explorer_v2_es
+  'HX13d6016efdd0229423d336ca5f93ec3e', // blink_explorer_v2_ru
+]);
+
 const PROTECTED_PREFIXES = [
   'blink_language_v3',              // language selection — stays in WhatsApp
   'blink_consent_v2_',              // CGU consent — stays in WhatsApp
@@ -61,6 +100,7 @@ const PROTECTED_PREFIXES = [
 ];
 
 function isProtected(tmpl) {
+  if (PROTECTED_SIDS.has(tmpl.sid)) return true;
   const name = tmpl.friendlyName || '';
   return PROTECTED_PREFIXES.some((p) => name.startsWith(p));
 }

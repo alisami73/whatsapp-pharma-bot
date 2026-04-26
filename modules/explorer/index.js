@@ -105,12 +105,12 @@ const APPROVED_V1_SIDS = {
   ru: 'HX80bc43cb8ec1cae4da7da24f0157fac2',
 };
 
-// v2 — URL buttons (fill in after Meta approval)
+// v2 — URL buttons (submitted for Meta UTILITY approval 2026-04-26)
 const APPROVED_V2_SIDS = {
-  fr: null,
-  ar: null,
-  es: null,
-  ru: null,
+  fr: 'HXf07be4f91efcdfcaa9f48e29b1be13ae',
+  ar: 'HXec08eb2df6106cc4ca151ea4705809fb',
+  es: 'HX23fee4f3b6b9280116e1535306faf77d',
+  ru: 'HX13d6016efdd0229423d336ca5f93ec3e',
 };
 
 // ── Send carousel ─────────────────────────────────────────────────────────────
