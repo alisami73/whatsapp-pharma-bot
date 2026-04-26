@@ -1246,51 +1246,23 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
           source: 'interactive_button',
           lang,
         });
-        const existingPharmacist = await storage.getPharmacist(context.phone);
-        const shouldSkipRoleStep = Boolean(
-          existingPharmacist && (existingPharmacist.onboarding_completed || existingPharmacist.role)
+        // Consentement accepté → Explorer carousel directement (sans étape rôle)
+        const pharmacistRecord = (await storage.getPharmacist(context.phone)) || { phone: context.phone };
+        await storage.savePharmacist({ ...pharmacistRecord, onboarding_completed: true });
+        const completionMsg = t('onboarding_complete', lang);
+        const sentExplorer = await tryRespondWithMainMenuInteractive(
+          context.phone,
+          res,
+          { ...user, authenticated: false },
+          completionMsg,
         );
-
-        if (shouldSkipRoleStep) {
-          const confirmation = consent.buildConsentConfirmation(existingPharmacist.role);
-          const sentInteractive = await tryRespondWithMainMenuInteractive(
-            context.phone,
-            res,
-            { ...user, authenticated: false },
-            confirmation,
-          );
-
-          if (!sentInteractive) {
-            const activeThemes = (await storage.getThemes()).filter((theme) => theme.active);
-            await setMainMenuState({ ...user, authenticated: false });
-            response.message(`${confirmation}\n\n${buildMainMenu(activeThemes)}`);
-            res.type('text/xml').send(response.toString());
-          }
-          return;
+        if (!sentExplorer) {
+          const activeThemes = (await storage.getThemes()).filter((theme) => theme.active);
+          await setMainMenuState({ ...user, authenticated: false });
+          response.message(`${completionMsg}\n\n${buildMainMenu(activeThemes)}`);
+          res.type('text/xml').send(response.toString());
         }
-
-        // Démarrer l'onboarding par le rôle
-        user = await setOnboardingState({ ...user, authenticated: false }, STATES.ONBOARDING_ROLE);
-        console.log(`[state] ${context.phone} → ONBOARDING_ROLE`);
-        // Écran rôle interactif
-        try {
-          const roleResult = await interactive.sendRoleScreen(context.phone, lang);
-          if (roleResult) {
-            await storage.appendMessageLog({
-              direction: 'outbound', phone: context.phone,
-              body: '[interactive:role_list_picker]',
-              status: roleResult.status || 'queued',
-              provider_message_sid: roleResult.sid,
-              metadata: { source: 'interactive_role', lang },
-            });
-            res.type('text/xml').send(buildEmptyTwiml());
-            return;
-          }
-        } catch (err) {
-          console.error('[interactive] sendRoleScreen failed:', err.message);
-        }
-        // Fallback texte
-        response.message(buildActivationMessage());
+        return;
 
       } else if (isCguDecline) {
         await storage.refuseConsent(context.phone);

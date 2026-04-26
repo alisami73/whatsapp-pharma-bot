@@ -367,42 +367,57 @@ function handleCallbackSubAction(action, phone, lang) {
 
 // ── FAQ "Pourquoi Blink ?" ───────────────────────────────────────────────────
 
+const FAQ_CARDS = [
+  { key: 'sw_faq_q1',       bodyKey: 'sw_card_body_q1',       imgNum: 1 },
+  { key: 'sw_faq_q2',       bodyKey: 'sw_card_body_q2',       imgNum: 2 },
+  { key: 'sw_faq_q3',       bodyKey: 'sw_card_body_q3',       imgNum: 3 },
+  { key: 'sw_faq_q4',       bodyKey: 'sw_card_body_q4',       imgNum: 4 },
+  { key: 'sw_faq_q5',       bodyKey: 'sw_card_body_q5',       imgNum: 5 },
+  { key: 'sw_faq_q6',       bodyKey: 'sw_card_body_q6',       imgNum: 6 },
+  { key: 'sw_faq_q7',       bodyKey: 'sw_card_body_q7',       imgNum: 7 },
+  { key: 'sw_faq_q8',       bodyKey: 'sw_card_body_q8',       imgNum: 8 },
+  { key: 'sw_faq_medindex', bodyKey: 'sw_card_body_medindex', imgNum: 9 },
+  { key: 'sw_faq_ia',       bodyKey: 'sw_card_body_ia',       imgNum: 10 },
+];
+
+function buildFAQImageUrl(cardNumber, lang) {
+  const normalizedLang = normalizeLang(lang);
+  // Cards 09+ have no localized variants — fall back to French image
+  const hasLangVariant = cardNumber <= 8 && normalizedLang !== 'fr';
+  const suffix = hasLangVariant ? `-${normalizedLang}` : '';
+  return buildAbsoluteUrl(`public/carousel/blink-carte-${String(cardNumber).padStart(2, '0')}${suffix}.jpg`);
+}
+
+function buildBenefitsFAQCarouselSpec(lang) {
+  const normalizedLang = normalizeLang(lang);
+  const btnTitle = t('sw_faq_btn_more', normalizedLang).slice(0, 25);
+  return {
+    friendlyName: `blink_benefits_faq_v2_${normalizedLang}`,
+    language: normalizedLang,
+    types: {
+      'twilio/carousel': {
+        body: t('sw_benefits_carousel_body', normalizedLang),
+        cards: FAQ_CARDS.map(({ key, bodyKey, imgNum }) => ({
+          title: t(key, normalizedLang),
+          body: t(bodyKey, normalizedLang),
+          media: buildFAQImageUrl(imgNum, normalizedLang),
+          actions: [{ type: 'QUICK_REPLY', title: btnTitle, id: key }],
+        })),
+      },
+    },
+  };
+}
+
 async function sendBenefitsFAQMenu(to, lang) {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
-  // Approved Meta carousel SIDs — one per language (fr approved 2026-04-25)
-  const CAROUSEL_SIDS = {
-    fr: 'HX01bacb94b4484ccf7a268865439accdb',
-    ar: 'HXd94ea788e7dc9b37f33a9b5e1a1e5074',
-    es: 'HXe96feee33bef32e03c97e08260c17ace',
-    ru: 'HXe9949cebe0b68cfbebaec095d00ab434',
-  };
-
-  const sid = CAROUSEL_SIDS[lang] || CAROUSEL_SIDS.fr;
+  const normalizedLang = normalizeLang(lang);
+  const cacheKey = `benefits_faq_v2_${normalizedLang}`;
+  const sid = await createOrFetchContentTemplate(cacheKey, buildBenefitsFAQCarouselSpec(normalizedLang));
   if (!sid) return null;
 
-  const config = twilioService.getTwilioConfig();
-  const client = twilioService.getTwilioClient();
-
-  const payload = {
-    to: twilioService.normalizeWhatsAppAddress(to),
-    contentSid: sid,
-    contentVariables: '{}',
-  };
-  if (config.whatsappFrom) payload.from = config.whatsappFrom;
-  else if (config.messagingServiceSid) payload.messagingServiceSid = config.messagingServiceSid;
-  else return null;
-
-  const statusCallback = twilioService.buildStatusCallbackUrl();
-  if (statusCallback) payload.statusCallback = statusCallback;
-
-  try {
-    return await client.messages.create(payload);
-  } catch (err) {
-    console.error(`[software] sendBenefitsFAQMenu failed: ${err.message}`);
-    return null;
-  }
+  return sendContentTemplateMessage(to, sid);
 }
 
 function buildBenefitsFAQText(lang) {
