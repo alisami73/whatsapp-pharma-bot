@@ -1,5 +1,58 @@
 # CHAT ALI — whatsapp-pharma-bot
 
+## [2026-04-26] — Architecture URL-button : Explorer ouvre des pages web + endpoint /api/ask
+
+### Résumé
+Migration complète vers l'architecture "URL viewer" :
+
+**1. Explorer carousel v2 (URL buttons)**
+- Chaque carte du carousel ouvre maintenant une page web dans le browser in-app WhatsApp (bouton URL), pas de QUICK_REPLY
+- 4 templates Twilio à créer : `blink_explorer_v2_fr/ar/es/ru` via `node scripts/create_explorer_v2_templates.js`
+- `APPROVED_V2_SIDS` dans `modules/explorer/index.js` à remplir après approbation Meta (fallback v1 actif en attendant)
+
+**2. Pages web pour FSE et Conformité**
+- `public/site/fse.html` — chat Q&A FSE, 4 langues, appelle `/api/ask`
+- `public/site/conformite.html` — chat Q&A Conformité, 4 langues, appelle `/api/ask`
+- `public/site/actu.html` — page actualités pharma
+- Plus aucune question posée dans WhatsApp → tout se passe dans le browser
+
+**3. Endpoint `/api/ask`**
+- `POST /api/ask` dans `index.js` — rate-limited 20 req/min/IP
+- Reçoit `{ rubrique, question, lang }`, appelle `cnss.answerQuestion()`, retourne `{ answer }`
+
+**4. CGU consent v3**
+- Template `blink_consent_v3_*` (whatsapp/card) avec 2 QUICK_REPLY + 1 bouton URL vers la page CGU
+- `buildCguUrl(lang)` exporte l'URL CGU avec `?lang=XX`
+
+**5. Nettoyage templates**
+- `scripts/cleanup_deprecated_templates.js` — Phase 1 prête (Benefits FAQ v1 + role/menu/debug)
+- Phase 2 commentée : à décommenter après approbation v2 + confirmation web flow live
+
+### Décisions / Priorités
+- Architecture : carousel → URL viewer, Q&A dans le browser (plus dans WhatsApp)
+- Templates v2 à soumettre en catégorie **UTILITY** (pas MARKETING)
+- Explorer v1 conservé comme fallback jusqu'à approbation v2 par Meta
+- Cleanup Phase 1 peut être exécuté maintenant : `node scripts/cleanup_deprecated_templates.js`
+
+### Actions en attente (utilisateur)
+1. `node scripts/create_explorer_v2_templates.js` — crée les 4 templates Twilio
+2. Dans Twilio Console : soumettre `blink_explorer_v2_fr/ar/es/ru` pour approbation → catégorie **UTILITY**
+3. Après approbation : copier les SIDs dans `APPROVED_V2_SIDS` dans `modules/explorer/index.js`
+4. `node scripts/cleanup_deprecated_templates.js` — Phase 1 cleanup (safe maintenant)
+5. Après v2 approuvé + web flow confirmé : décommenter les blocs Phase 2 dans cleanup_deprecated_templates.js et re-exécuter
+
+### Fichiers modifiés (commit d032cab)
+- `index.js` : `/api/ask` endpoint, explorer handler → web URLs, FSE/Conformité legacy states → redirect
+- `modules/interactive.js` : consent v3, buildCguUrl()
+- `scripts/cleanup_deprecated_templates.js` : Phase 1/2 split
+
+### Fichiers modifiés (commit ae762ba)
+- `public/site/fse.html`, `conformite.html`, `actu.html` — pages web Q&A
+- `modules/explorer/index.js` — CARD_CONTENT multilangue, buildExplorerV2Spec(), APPROVED_V2_SIDS
+- `scripts/create_explorer_v2_templates.js` — script création templates Twilio
+
+---
+
 ## [2026-04-26] — Suppression étape rôle de l'onboarding + fix carousel Explorer
 
 ### Résumé
