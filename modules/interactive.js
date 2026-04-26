@@ -8,7 +8,7 @@
  *
  * Screens :
  *   1. sendLanguageScreen(to)          — carousel 4 langues (même pour tous)
- *   2. sendConsentScreen(to, lang)     — carte CGU (2 quick replies + 1 bouton URL)
+ *   2. sendConsentScreen(to, lang)     — quick-reply CGU (3 boutons : accepter, refuser, voir CGU)
  *   3. sendRoleScreen(to, lang)        — list-picker rôle (1 template par langue)
  *   4. sendMenuScreen(to, themes, lang) — list-picker thèmes actifs
  *
@@ -141,20 +141,19 @@ function buildLanguageSpec() {
 
 function buildConsentSpec(lang) {
   const safeLang = normalizeInteractiveLang(lang);
+  // twilio/quick-reply does not require Meta pre-approval and delivers instantly.
+  // "Voir CGU" sends cgu_full payload → bot replies with URL text → WhatsApp auto-links it.
   return {
-    friendlyName: `blink_consent_v3_${safeLang}`,
+    friendlyName: `blink_consent_v2_${safeLang}`,
     language: safeLang,
     types: {
-      'whatsapp/card': {
+      'twilio/quick-reply': {
         body: t('cgu_body', lang),
         actions: [
-          { type: 'QUICK_REPLY', id: 'cgu_accept', title: t('cgu_accept', lang).slice(0, 20) },
-          { type: 'QUICK_REPLY', id: 'cgu_decline', title: t('cgu_decline', lang).slice(0, 20) },
-          { type: 'URL', title: t('cgu_full', lang).slice(0, 20), url: buildCguUrl(lang) },
+          { id: 'cgu_accept', title: t('cgu_accept', lang).slice(0, 20) },
+          { id: 'cgu_decline', title: t('cgu_decline', lang).slice(0, 20) },
+          { id: 'cgu_full', title: t('cgu_full', lang).slice(0, 20) },
         ],
-      },
-      'twilio/text': {
-        body: `${t('cgu_body', lang)}\n\n${t('cgu_link', lang, { url: buildCguUrl(lang) })}`,
       },
     },
   };
@@ -296,7 +295,7 @@ async function sendLanguageScreen(to) {
  */
 async function sendConsentScreen(to, lang = 'fr') {
   if (!isInteractiveEnabled()) return null;
-  const cacheKey = `consent_v3_${normalizeInteractiveLang(lang)}`;
+  const cacheKey = `consent_v2_${normalizeInteractiveLang(lang)}`;
   const sid = await resolveTemplate(cacheKey, () => buildConsentSpec(lang));
   if (!sid) return null;
   return sendInteractive(to, sid);
