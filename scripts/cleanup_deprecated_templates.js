@@ -82,11 +82,11 @@ const DEPRECATED_PREFIXES = [
 // Note: Twilio Content API v1 returns friendlyName=null for carousel templates
 // created via the SDK — protect those by SID explicitly.
 const PROTECTED_SIDS = new Set([
-  // Explorer v2 — URL buttons (created 2026-04-26, pending Meta UTILITY approval)
-  'HX40472f02cdbffc6e62b27830dd4fac77', // blink_explorer_v2_fr
-  'HXd4680df211d0e60366edb12972e0bfb7', // blink_explorer_v2_ar
-  'HX797c30f7d5f63052bbb2e9de6a1250a1', // blink_explorer_v2_es
-  'HX173ed12df15897265486ffd5957ee209', // blink_explorer_v2_ru
+  // Explorer v2 — URL buttons, approved by Meta (UTILITY)
+  'HX40472f02cdbffc6e62b27830dd4fac77', // blink_explorer_v2_fr ✅ approved
+  'HXd4680df211d0e60366edb12972e0bfb7', // blink_explorer_v2_ar ✅ approved
+  'HX797c30f7d5f63052bbb2e9de6a1250a1', // blink_explorer_v2_es ✅ approved
+  // blink_explorer_v2_ru was rejected (Carousel+UTILITY not allowed for ru) — deleted
 ]);
 
 const PROTECTED_PREFIXES = [
