@@ -18,10 +18,8 @@ const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
 const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
-const software     = require('./modules/themes/software');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
-const answerCards  = require('./modules/answer_cards');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -809,9 +807,18 @@ async function startThemePrimaryAction(response, user, theme) {
     return;
   }
 
-  if (usesDocumentKnowledge(theme)) {
-    await setCnssQuestionState(user, theme.id);
-    response.message(cnss.buildCnssQuestionPrompt(theme, getUserLang(user)));
+  // FSE, Conformité, Actualités → open web page (in-app browser)
+  const lang = getUserLang(user);
+  const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+  const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
+  const WEB_THEME_URLS = {
+    fse:                    `${base}/site/fse.html${langSuffix}`,
+    conformites:            `${base}/site/conformite.html${langSuffix}`,
+    'nouveautes-medicaments': `${base}/site/actu.html${langSuffix}`,
+  };
+  if (WEB_THEME_URLS[theme.id]) {
+    await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+    response.message(`${theme.title || theme.id}\n\n${WEB_THEME_URLS[theme.id]}`);
     return;
   }
 
