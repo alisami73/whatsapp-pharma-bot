@@ -74,12 +74,12 @@ const PAYLOAD_TO_THEME = {
   '5': 'medindex',
 };
 
-// Approved Meta carousel SIDs (fr/ar submitted 2026-04-25 pending; es/ru approved 2026-04-25)
+// v3 — compressed images (37-52KB), pending Meta approval (created 2026-04-26)
 const APPROVED_CAROUSEL_SIDS = {
-  fr: 'HXd9eb17cff40280a0f7ad94978d2625ee',
-  ar: 'HX0f8860dfebafb971e29f12fb28a8ae2e',
-  es: 'HX72b8a6ba16a01b5056eb27c0323b2feb',
-  ru: 'HX80bc43cb8ec1cae4da7da24f0157fac2',
+  fr: 'HX197cd0660e3dd650948460807061e178',
+  ar: 'HX7569b159ee768ec8462d71d2c5fab18a',
+  es: 'HX74e4e44b2071f9cf7408c0f8129daffb',
+  ru: 'HXafc160f4a5f88120dfe483156c30903d',
 };
 
 // ── Send carousel ─────────────────────────────────────────────────────────────
