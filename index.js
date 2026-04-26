@@ -1062,7 +1062,22 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    const isFirstContact = !(await storage.getUser(context.phone));
     let user = await ensureUser(context.phone);
+
+    // ── Welcome message — sent once on very first contact ───────────────────────
+    if (isFirstContact) {
+      const _wCfg = twilioService.getTwilioConfig();
+      const _wClient = twilioService.getTwilioClient();
+      const _wPayload = {
+        to: twilioService.normalizeWhatsAppAddress(context.phone),
+        body: 'Bienvenue sur l\'assistance Blink Premium ! 👋\n\nVous pouvez poser ici toutes vos questions sur la pharmacie au Maroc : logiciel de gestion officine, stock, inventaire, scan BL, facturation, ou autre.\n\nSélectionnez votre langue et écrivez simplement votre question ✍️',
+      };
+      if (_wCfg.whatsappFrom) _wPayload.from = _wCfg.whatsappFrom;
+      else if (_wCfg.messagingServiceSid) _wPayload.messagingServiceSid = _wCfg.messagingServiceSid;
+      _wClient.messages.create(_wPayload).catch(err => console.error('[welcome]', err.message));
+    }
+
     await storage.appendMessageLog({
       direction: 'inbound',
       phone: context.phone,

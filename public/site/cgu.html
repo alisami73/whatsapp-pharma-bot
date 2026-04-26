@@ -63,6 +63,18 @@
     .hero-actions {
       margin-top: 1.5rem;
     }
+    .legal-disclaimer {
+      max-width: 860px;
+      margin: 1.1rem auto 0;
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: rgba(255, 247, 237, 0.96);
+      color: #9a3412;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      font-weight: 700;
+    }
     .hero-link,
     .hero-button {
       display: inline-flex;
@@ -357,6 +369,22 @@
         padding: 1.25rem;
       }
     }
+    html[dir="rtl"] .page-hero,
+    html[dir="rtl"] .intro-card,
+    html[dir="rtl"] .info-card,
+    html[dir="rtl"] .toc-card,
+    html[dir="rtl"] .legal-card,
+    html[dir="rtl"] .faq-card,
+    html[dir="rtl"] .acceptance-card {
+      text-align: right;
+    }
+    html[dir="rtl"] .legal-list {
+      padding-left: 0;
+      padding-right: 1.2rem;
+    }
+    html[dir="rtl"] .acceptance-row {
+      direction: rtl;
+    }
     @media print {
       .navbar,
       .mobile-nav,
@@ -391,6 +419,7 @@
   <script src="blink-components.js"></script>
   <script>injectNavbar();</script>
 
+  <div id="cgu-content-root">
   <section class="page-hero">
     <p class="section-label" style="justify-content:center;display:flex;">Cadre contractuel Blink Premium</p>
     <h1>Conditions Générales d'Utilisation</h1>
@@ -398,6 +427,10 @@
       Version en vigueur — 2025 | Blink Pharma SA. Ce document encadre l'utilisation de Blink Pharmacie,
       Blink Premium, de l'application mobile, du service WhatsApp, des extensions et des fonctionnalités
       d'intelligence artificielle associées.
+    </p>
+    <p class="legal-disclaimer">
+      Les éventuelles versions traduites de cette page sont fournies à titre informatif uniquement.
+      En cas de divergence d'interprétation, seule la version française des présentes CGU fait foi et sert de base contractuelle.
     </p>
     <div class="hero-badges">
       <span class="hero-badge">Version 2025</span>
@@ -1053,6 +1086,9 @@
             Cette page reprend le texte intégral des Conditions Générales d'Utilisation Blink Pharma / Blink Premium
             actuellement en vigueur. Elle peut être consultée en ligne, imprimée ou enregistrée en PDF pour archivage.
           </p>
+          <p class="legal-disclaimer" style="margin-top:1rem;">
+            Les traductions éventuellement proposées n'ont qu'une valeur d'information. La version française demeure la seule version opposable et de référence.
+          </p>
           <div class="acceptance-row">
             <span class="checkbox-shell">✓</span>
             <span>Je confirme avoir lu et accepté les Conditions Générales d'Utilisation</span>
@@ -1062,7 +1098,29 @@
       </div>
     </section>
   </main>
+  </div>
 
+  <script src="cgu-translations.js"></script>
+  <script>
+    (function applyCguTranslation() {
+      const lang = (window.BI18N && BI18N.lang) || 'fr';
+      if (lang === 'fr') return;
+
+      const root = document.getElementById('cgu-content-root');
+      const pack = window.CGU_PAGE_TRANSLATIONS && window.CGU_PAGE_TRANSLATIONS[lang];
+      if (!root || !pack) return;
+
+      root.innerHTML = pack.rootHtml;
+      document.documentElement.setAttribute('lang', pack.htmlLang || lang);
+      if (pack.dir) document.documentElement.setAttribute('dir', pack.dir);
+      if (pack.title) document.title = pack.title;
+
+      const descriptionMeta = document.querySelector('meta[name="description"]');
+      if (descriptionMeta && pack.description) {
+        descriptionMeta.setAttribute('content', pack.description);
+      }
+    })();
+  </script>
   <script>injectFooter();</script>
 </body>
 </html>

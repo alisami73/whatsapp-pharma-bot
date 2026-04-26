@@ -14,7 +14,7 @@ test('answer_pages saves and retrieves answers using local fallback storage', as
 
   const id = await answerPages.saveAnswer({
     topic: 'fse',
-    userPhone: 'whatsapp:+212600000000',
+    userPhone: 'whatsapp:+212768782598',
     question: 'Qu est ce que la FSE ?',
     answer: 'La FSE est un dispositif numerique CNSS.',
     lang: 'fr',

@@ -165,7 +165,7 @@ function injectFooter() {
         <h4>${ft.contact}</h4>
         <ul>
           <li><a href="mailto:contact@blinkpharmacie.ma">contact@blinkpharmacie.ma</a></li>
-          <li><a href="https://wa.me/212600000000" target="_blank">WhatsApp</a></li>
+          <li><a href="https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium" target="_blank">WhatsApp</a></li>
           <li><a href="#">Casablanca, Maroc</a></li>
         </ul>
       </div>
