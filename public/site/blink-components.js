@@ -130,6 +130,7 @@ function injectFooter() {
     app:     (typeof BI18N !== 'undefined' && BI18N.features) ? BI18N.features[6].title : 'Application mobile',
     navCta:  t ? t.nav_cta        : 'Demander une démo',
     privacyHref: lq('data-cndp.html'),
+    cguHref: lq('cgu.html'),
   };
 
   const footerHTML = `
@@ -172,7 +173,7 @@ function injectFooter() {
       <span>${ft.rights}</span>
       <div style="display:flex;gap:1.5rem">
         <a href="${ft.privacyHref}">${ft.privacy}</a>
-        <a href="#">${ft.cgu}</a>
+        <a href="${ft.cguHref}">${ft.cgu}</a>
       </div>
     </div>
   </footer>`;

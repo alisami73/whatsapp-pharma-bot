@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGU Blink Premium — Blink Pharma</title>
+  <meta
+    name="description"
+    content="Conditions Générales d'Utilisation Blink Premium 2025 : cadre contractuel, données, consentements et responsabilités."
+  />
+  <link rel="stylesheet" href="blink.css" />
+  <style>
+    .page-hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(76, 175, 80, 0.2), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(38, 198, 218, 0.14), transparent 28%),
+        linear-gradient(135deg, #eef6ee 0%, #ffffff 100%);
+      padding: 5.75rem 2rem 4.25rem;
+      border-bottom: 1px solid var(--blink-border);
+      text-align: center;
+    }
+    .page-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto 8% 1.5rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.35), transparent);
+    }
+    .page-hero h1 {
+      font-size: clamp(2.2rem, 4.8vw, 3.5rem);
+      font-weight: 900;
+      margin-bottom: 1rem;
+      letter-spacing: -0.03em;
+    }
+    .page-hero p {
+      max-width: 800px;
+      margin: 0 auto;
+      color: #5f6f82;
+      font-size: 1.03rem;
+    }
+    .hero-badges,
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+    }
+    .hero-badges {
+      margin-top: 1.8rem;
+    }
+    .hero-badge {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--blink-border);
+      border-radius: 999px;
+      padding: 0.62rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #475569;
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+    }
+    .hero-actions {
+      margin-top: 1.5rem;
+    }
+    .hero-link,
+    .hero-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 186px;
+      padding: 0.92rem 1.2rem;
+      border-radius: 999px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      cursor: pointer;
+    }
+    .hero-link:hover,
+    .hero-button:hover {
+      transform: translateY(-1px);
+    }
+    .hero-link {
+      background: linear-gradient(135deg, #4caf50 0%, #26c6da 100%);
+      color: white;
+      box-shadow: 0 14px 28px rgba(76, 175, 80, 0.2);
+    }
+    .hero-button {
+      border: 1px solid var(--blink-border);
+      background: white;
+      color: var(--blink-text);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .legal-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 4rem 2rem 5rem;
+    }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+      gap: 1.35rem;
+      margin-bottom: 1.5rem;
+    }
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(250px, 0.78fr) minmax(0, 2fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .surface-card {
+      background: white;
+      border: 1px solid rgba(226, 232, 240, 0.94);
+      border-radius: 28px;
+      box-shadow: 0 18px 46px rgba(15, 23, 42, 0.06);
+    }
+    .intro-card {
+      padding: 1.85rem;
+    }
+    .intro-card h2,
+    .info-card h3,
+    .toc-card h3,
+    .legal-card h2,
+    .faq-card h2 {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .intro-card h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
+    }
+    .intro-card p,
+    .info-card p,
+    .legal-card p,
+    .legal-card li,
+    .faq-answer {
+      color: #5f6f82;
+      line-height: 1.78;
+      font-size: 0.97rem;
+    }
+    .legal-list {
+      margin: 1rem 0 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 0.72rem;
+    }
+    .info-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .info-card {
+      padding: 1.35rem;
+    }
+    .info-card h3 {
+      font-size: 1.06rem;
+      margin-bottom: 0.6rem;
+    }
+    .definition-list {
+      display: grid;
+      gap: 0.95rem;
+      margin-top: 0.95rem;
+    }
+    .definition-item {
+      border-top: 1px solid var(--blink-border);
+      padding-top: 0.95rem;
+    }
+    .definition-item strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--blink-text);
+      font-size: 0.95rem;
+    }
+
+    .toc-card {
+      position: sticky;
+      top: 96px;
+      padding: 1.35rem;
+    }
+    .toc-card h3 {
+      font-size: 1.08rem;
+      margin-bottom: 0.85rem;
+    }
+    .toc-list {
+      display: grid;
+      gap: 0.55rem;
+    }
+    .toc-list a {
+      display: block;
+      padding: 0.72rem 0.8rem;
+      border-radius: 14px;
+      color: #475569;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid transparent;
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+    .toc-list a:hover {
+      border-color: rgba(76, 175, 80, 0.28);
+      background: color-mix(in srgb, var(--blink-green) 7%, white);
+      color: var(--blink-green);
+    }
+
+    .articles-stack {
+      display: grid;
+      gap: 1.15rem;
+    }
+    .legal-card,
+    .faq-card,
+    .acceptance-card {
+      padding: 1.7rem;
+    }
+    .article-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.7rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--blink-green) 8%, white);
+      color: var(--blink-green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .legal-card h2,
+    .faq-card h2 {
+      font-size: 1.36rem;
+      margin-bottom: 1rem;
+    }
+    .legal-card h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      margin: 1.15rem 0 0.45rem;
+      color: #233246;
+    }
+    .legal-card p + p {
+      margin-top: 0.9rem;
+    }
+
+    .faq-card details {
+      border: 1px solid var(--blink-border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      padding: 1rem 1.1rem;
+    }
+    .faq-card details + details {
+      margin-top: 0.8rem;
+    }
+    .faq-card summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 700;
+      color: #223146;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .faq-card summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq-card summary::after {
+      content: '+';
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--blink-green);
+      background: color-mix(in srgb, var(--blink-green) 10%, white);
+      flex-shrink: 0;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+    .faq-card details[open] summary::after {
+      content: '−';
+    }
+    .faq-answer {
+      margin-top: 0.85rem;
+    }
+
+    .acceptance-card {
+      background: linear-gradient(135deg, #f6faf6 0%, #ffffff 100%);
+      border: 1px dashed rgba(76, 175, 80, 0.36);
+      text-align: center;
+    }
+    .acceptance-card p {
+      color: #475569;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .acceptance-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-top: 1rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 18px;
+      background: white;
+      border: 1px solid var(--blink-border);
+      font-weight: 700;
+      color: var(--blink-text);
+    }
+    .checkbox-shell {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1.8px solid rgba(76, 175, 80, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--blink-green);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .print-note {
+      margin-top: 1.2rem;
+      font-size: 0.86rem;
+      color: #8091a7;
+    }
+
+    @media (max-width: 1040px) {
+      .intro-grid,
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+      .toc-card {
+        position: static;
+      }
+    }
+    @media (max-width: 720px) {
+      .page-hero,
+      .legal-shell {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+      }
+      .surface-card,
+      .legal-card,
+      .faq-card,
+      .acceptance-card {
+        border-radius: 22px;
+      }
+      .intro-card,
+      .info-card,
+      .toc-card,
+      .legal-card,
+      .faq-card,
+      .acceptance-card {
+        padding: 1.25rem;
+      }
+    }
+    @media print {
+      .navbar,
+      .mobile-nav,
+      .hero-actions,
+      .toc-card,
+      footer {
+        display: none !important;
+      }
+      body {
+        background: white;
+      }
+      .page-hero,
+      .legal-shell {
+        padding: 0;
+      }
+      .surface-card,
+      .legal-card,
+      .faq-card,
+      .acceptance-card {
+        box-shadow: none;
+        border: 1px solid #d7dde5;
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <script src="assets/logo-data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="blink-components.js"></script>
+  <script>injectNavbar();</script>
+
+  <section class="page-hero">
+    <p class="section-label" style="justify-content:center;display:flex;">Cadre contractuel Blink Premium</p>
+    <h1>Conditions Générales d'Utilisation</h1>
+    <p>
+      Version en vigueur — 2025 | Blink Pharma SA. Ce document encadre l'utilisation de Blink Pharmacie,
+      Blink Premium, de l'application mobile, du service WhatsApp, des extensions et des fonctionnalités
+      d'intelligence artificielle associées.
+    </p>
+    <div class="hero-badges">
+      <span class="hero-badge">Version 2025</span>
+      <span class="hero-badge">Loi 09-08</span>
+      <span class="hero-badge">Consentements horodatés</span>
+      <span class="hero-badge">Tribunaux de Casablanca</span>
+    </div>
+    <div class="hero-actions">
+      <a class="hero-link" href="#articles">Lire les articles</a>
+      <button class="hero-button" type="button" onclick="window.print()">Télécharger en PDF</button>
+    </div>
+  </section>
+
+  <main class="legal-shell">
+    <section class="intro-grid">
+      <article class="surface-card intro-card fade-up">
+        <p class="section-label">Préambule & engagement de confiance</p>
+        <h2>La confiance comme base de la relation Blink Pharma</h2>
+        <p>
+          Chez Blink Pharma, la confiance est le fondement de la relation avec les pharmaciens utilisateurs.
+          Les données traitées via nos solutions sont encadrées par les présentes CGU, les contrats de service
+          et la réglementation marocaine applicable, notamment la loi 09-08 relative à la protection des données
+          à caractère personnel.
+        </p>
+        <ul class="legal-list">
+          <li>Protéger vos données selon des standards techniques et organisationnels élevés.</li>
+          <li>Conserver la traçabilité horodatée de vos consentements.</li>
+          <li>Vous informer de toute évolution importante des présentes CGU.</li>
+          <li>Ne jamais céder de données nominatives à titre commercial.</li>
+          <li>N'exploiter, le cas échéant, que des données anonymisées ou agrégées, sans risque raisonnable de ré-identification.</li>
+          <li>Respecter l'intégralité de vos droits contractuels et réglementaires.</li>
+          <li>Accomplir les formalités, déclarations ou autorisations préalables requises auprès de la CNDP lorsque la réglementation l'exige.</li>
+        </ul>
+        <p>
+          Les données relatives à votre pharmacie, votre activité et vos opérations restent les vôtres ou sous
+          votre responsabilité en tant qu'utilisateur. Blink Pharma agit en qualité de fournisseur de solutions
+          technologiques, dans les limites prévues contractuellement.
+        </p>
+      </article>
+
+      <div class="info-stack">
+        <aside class="surface-card info-card fade-up" data-delay="60">
+          <p class="section-label">Définitions</p>
+          <h3>Les trois acteurs clés du document</h3>
+          <div class="definition-list">
+            <div class="definition-item">
+              <strong>Le Client</strong>
+              <p>
+                Le Pharmacien qui s'inscrit sur l'Application via le site web, le démarchage physique,
+                un Store d'applications, une application mobile ou une application tierce telle que WhatsApp.
+              </p>
+            </div>
+            <div class="definition-item">
+              <strong>L'Application</strong>
+              <p>
+                La plateforme Blink Pharmacie / Blink Premium, incluant notamment le MGO, l'application mobile,
+                les programmes de fidélité, les applications tierces, les extensions et les plug-ins.
+              </p>
+            </div>
+            <div class="definition-item">
+              <strong>La Société</strong>
+              <p>Blink Pharma SA, société immatriculée au Maroc et éditrice des solutions Blink Pharmacie et Blink Premium.</p>
+            </div>
+          </div>
+        </aside>
+
+        <aside class="surface-card info-card fade-up" data-delay="120">
+          <p class="section-label">Repères rapides</p>
+          <h3>Ce que couvre cette page</h3>
+          <p>
+            Vous retrouvez ici le texte juridique complet structuré par articles, puis une annexe en
+            questions-réponses pour faciliter la lecture et l'impression en PDF.
+          </p>
+          <p class="print-note">Astuce : utilisez le bouton “Télécharger en PDF” pour enregistrer cette version proprement mise en page.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="content-grid" id="articles">
+      <aside class="surface-card toc-card fade-up">
+        <p class="section-label">Sommaire</p>
+        <h3>Accès direct aux sections</h3>
+        <div class="toc-list">
+          <a href="#article-1">Article 1 — Objet des présentes CGU</a>
+          <a href="#article-2">Article 2 — Acceptation des CGU</a>
+          <a href="#article-3">Article 3 — Services et consentements</a>
+          <a href="#article-4">Article 4 — Description détaillée des services</a>
+          <a href="#article-5">Article 5 — Inscription et accès</a>
+          <a href="#article-6">Article 6 — Données, utilisation et confidentialité</a>
+          <a href="#article-7">Article 7 — Propriété intellectuelle</a>
+          <a href="#article-8">Article 8 — Responsabilités du Client</a>
+          <a href="#article-9">Article 9 — Limitations de responsabilité</a>
+          <a href="#article-10">Article 10 — Indemnisation</a>
+          <a href="#article-11">Article 11 — Violation des CGU</a>
+          <a href="#article-12">Article 12 — Force majeure</a>
+          <a href="#article-13">Article 13 — Nullité partielle</a>
+          <a href="#article-14">Article 14 — Droit applicable</a>
+          <a href="#annexe">Annexe — Questions / Réponses</a>
+          <a href="#acceptation">Confirmation de lecture</a>
+        </div>
+      </aside>
+
+      <div class="articles-stack">
+        <article class="surface-card legal-card fade-up" id="article-1">
+          <div class="article-kicker">Article 1</div>
+          <h2>Objet des présentes CGU</h2>
+          <p>
+            Blink Pharma SA propose une plateforme numérique dont l'objectif est d'aider les pharmaciens
+            dans leur gestion quotidienne afin d'améliorer leurs performances. La plateforme se compose
+            des modules et services suivants :
+          </p>
+          <h3>1.1 — Module de Gestion des Opérations (MGO)</h3>
+          <p>
+            Module de base incluant la gestion des commandes, des ventes, des stocks et les statistiques
+            d'officine. Ce module constitue la version socle de l'Application et ne nécessite aucun
+            consentement complémentaire au-delà des présentes CGU.
+          </p>
+          <h3>1.2 — Application mobile</h3>
+          <p>L'application mobile comprend notamment :</p>
+          <ul class="legal-list">
+            <li>Un module de reconnaissance optique et d'intelligence artificielle pour le traitement des documents (scan de bons de livraison, OCR).</li>
+            <li>Une base de données des médicaments.</li>
+            <li>Un module de réalisation d'inventaires par mobile.</li>
+            <li>Une interface de gestion mobile de l'officine et de son équipe.</li>
+          </ul>
+          <p>
+            Cette application mobile requiert des autorisations de lecture et d'écriture sur votre base de données.
+            Seules les données strictement nécessaires au bon fonctionnement du service sont migrées sur les systèmes de Blink Pharma.
+          </p>
+          <h3>1.3 — Module Programmes de fidélité et remises</h3>
+          <p>
+            Module dédié à la gestion des programmes de fidélité permettant aux pharmaciens d'obtenir
+            des remises auprès de leurs fournisseurs partenaires.
+          </p>
+          <h3>1.4 — Service WhatsApp — Assistant Pharmacie</h3>
+          <p>
+            Service complémentaire optionnel, susceptible de collecter votre numéro de téléphone aux seules fins
+            de vous contacter en lien avec les services souscrits. Aucune utilisation de votre numéro de téléphone
+            n'est effectuée pour une finalité distincte de celle à laquelle vous avez expressément consenti.
+          </p>
+          <h3>1.5 — Extension Navigateur</h3>
+          <p>
+            Extension pour navigateur utilisable conjointement avec les autres solutions Blink Pharma ou de manière
+            autonome. Elle vise notamment à sécuriser la prescription médicamenteuse et à offrir un service
+            d'assistance par intelligence artificielle au pharmacien et à son équipe. Elle fait l'objet d'un
+            consentement spécifique lors de son activation.
+          </p>
+          <p>
+            Les présentes CGU ont pour objet d'encadrer l'utilisation de l'ensemble de ces modules et de fixer
+            les droits, obligations et responsabilités des parties.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-2">
+          <div class="article-kicker">Article 2</div>
+          <h2>Acceptation des Conditions Générales d'Utilisation</h2>
+          <p>
+            Les présentes CGU sont réputées acceptées en leur intégralité par tout Client qui valide le bouton
+            « Accepter » lors de leur affichage, préalablement à son inscription sur l'Application et lors de
+            toute opération liée à ses fonctionnalités, sans aucune réserve.
+          </p>
+          <p>
+            La Société conserve le droit de modifier, d'adapter ou de supprimer à tout moment toute disposition
+            des présentes CGU. La version applicable au Client est celle en vigueur au jour et à l'heure de l'opération concernée.
+          </p>
+          <p>
+            Toute modification substantielle des CGU impactant les droits du Client, ses données ou les finalités
+            de traitement donnera lieu à une nouvelle demande de consentement. À défaut d'acceptation de la nouvelle
+            version dans le délai imparti, la Société procèdera à la désactivation du compte.
+          </p>
+          <p>
+            Les présentes CGU sont soumises au Dahir formant Code des Obligations et Contrats, à la loi 53-05
+            relative à l'échange électronique de données juridiques, ainsi qu'à la loi 09-08 relative à la protection
+            des données à caractère personnel.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-3">
+          <div class="article-kicker">Article 3</div>
+          <h2>Description des services et niveaux de consentement</h2>
+          <p>
+            Dans un souci de transparence et de conformité réglementaire, l'utilisation des solutions Blink Pharma
+            repose sur trois niveaux distincts de traitement et de consentement.
+          </p>
+          <h3>Niveau 1 — Traitements nécessaires à l'exécution du contrat (obligatoires)</h3>
+          <p>
+            Le Client reconnaît que l'utilisation du logiciel nécessite la collecte, l'hébergement, la consultation,
+            la sauvegarde, la synchronisation et le traitement des données strictement nécessaires au fonctionnement
+            normal des services souscrits, notamment :
+          </p>
+          <ul class="legal-list">
+            <li>Création et gestion des comptes utilisateurs.</li>
+            <li>Authentification et sécurité des accès.</li>
+            <li>Hébergement Cloud et sauvegarde.</li>
+            <li>Gestion des ventes, achats, stocks, inventaires et historiques.</li>
+            <li>Génération d'états, statistiques internes et journaux techniques.</li>
+            <li>Maintenance, support technique et prévention des incidents.</li>
+            <li>Traçabilité des actions réalisées sur la plateforme.</li>
+          </ul>
+          <p>
+            Ces traitements constituent une condition essentielle d'exécution du contrat. Leur refus rend impossible
+            l'utilisation normale du logiciel. Les données demeurent la propriété du Client ou sous sa responsabilité selon leur nature.
+          </p>
+          <h3>Niveau 2 — Traitements d'amélioration des services (optionnels — consentement par action)</h3>
+          <p>
+            Le consentement au Niveau 2 est recueilli de manière contextuelle, au moment précis où le Client déclenche
+            une fonctionnalité qui le requiert. Il n'est pas demandé globalement à l'inscription, mais au premier usage
+            de chaque service concerné.
+          </p>
+          <p>Sont notamment concernées les fonctionnalités suivantes :</p>
+          <ul class="legal-list">
+            <li>Accès aux données de marché, statistiques sectorielles et benchmarks.</li>
+            <li>Suggestions d'achat, recommandations de réassort ou d'optimisation de stock générées par IA.</li>
+            <li>Tableaux de bord comparatifs et indicateurs de performance marché.</li>
+            <li>Mesure de performance applicative, détection d'erreurs et amélioration ergonomique.</li>
+            <li>Amélioration des modules d'intelligence artificielle et des bases de données produits.</li>
+            <li>Analyses statistiques globales d'utilisation.</li>
+          </ul>
+          <p>
+            De manière générale, toute fonctionnalité future impliquant l'exploitation de données à des fins d'analyse
+            de marché, de benchmarking sectoriel, ou intégrant des mécanismes d'intelligence artificielle ou
+            d'apprentissage automatique, sera automatiquement soumise au régime du Niveau 2.
+          </p>
+          <p>
+            Ces traitements sont réalisés sur des données agrégées, pseudonymisées ou anonymisées. Le refus n'empêche
+            pas l'accès aux fonctionnalités principales du logiciel, mais désactive la fonctionnalité concernée.
+            Le Client peut retirer ce consentement à tout moment depuis les paramètres de l'Application.
+          </p>
+          <h3>Niveau 3 — Services mobiles, extensions et fonctionnalités connectées (optionnels — consentement par action)</h3>
+          <p>
+            Le consentement au Niveau 3 est sollicité au moment précis où le Client tente d'activer l'une des
+            fonctionnalités concernées. Dans chaque cas, une fenêtre de consentement claire et explicite est
+            présentée au Client avant toute collecte ou traitement de données.
+          </p>
+          <p>Sont notamment concernées les fonctionnalités suivantes :</p>
+          <ul class="legal-list">
+            <li>Scan de bons de livraison : demande d'accès à l'appareil photo et au traitement OCR.</li>
+            <li>Inventaire par mobile : demande de lecture/écriture sur la base de données de l'officine via l'application mobile.</li>
+            <li>Assistant IA / extension navigateur : demande d'accès aux données de prescription et de gestion.</li>
+            <li>Service WhatsApp : demande de collecte du numéro de téléphone.</li>
+            <li>Synchronisation mobile et notifications : permissions système correspondantes.</li>
+            <li>Connexion à des plateformes tierces autorisées par le Client.</li>
+          </ul>
+          <p>
+            De manière générale, toute fonctionnalité future nécessitant un accès à des périphériques de l'appareil,
+            une connexion à une application ou plateforme tierce, un traitement de données en dehors du MGO, ou une
+            interaction via un canal de communication externe, sera automatiquement soumise au régime du Niveau 3.
+          </p>
+          <p>
+            Le Client peut accepter ou refuser à ce moment, ou révoquer ultérieurement son consentement depuis la
+            section « Profil » de l'Application. Le refus ou la révocation n'affecte pas l'accès au module de base
+            (MGO — Niveau 1), mais désactive la fonctionnalité concernée.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-4">
+          <div class="article-kicker">Article 4</div>
+          <h2>Description détaillée des services</h2>
+          <h3>A. Gestion de l'officine (MGO)</h3>
+          <ul class="legal-list">
+            <li>Utilisation de la base de données constituée par la Société pour la réalisation des tâches courantes, sans divulgation de données nominatives, sauf consentement spécifique du Client pour des programmes de remboursement ou de fidélité.</li>
+            <li>Les commandes passées ne sont communiquées qu'au fournisseur concerné, et uniquement avec l'accord du Client.</li>
+            <li>Les méta-données (données agrégées) sont utilisées pour l'analyse de marché et l'amélioration du service, sans divulguer d'informations nominatives.</li>
+          </ul>
+          <h3>B. Analyse de performances</h3>
+          <p>
+            L'Application analyse divers paramètres pour proposer des recommandations d'achats et aider le Client à
+            améliorer ses marges. Elle compare les ventes à des données nationales pour offrir des statistiques et
+            suggestions pertinentes, que le Client est libre de suivre ou non.
+          </p>
+          <h3>C. Scan de bon de livraison avec IA</h3>
+          <ul class="legal-list">
+            <li>Le Client doit autoriser l'accès à l'appareil photo pour numériser le bon de livraison.</li>
+            <li>L'application associe les produits scannés avec ceux en stock et génère un brouillon de bon de livraison (produits, quantités, prix, péremptions, fournisseurs, références).</li>
+            <li>Il relève de la responsabilité exclusive du Client de vérifier les quantités et les prix sur le brouillon avant validation, laquelle entraîne la modification du stock.</li>
+          </ul>
+          <h3>D. Programmes de fidélité et de remises</h3>
+          <p>
+            Dans le cadre des programmes de fidélité et de remises offerts par certains laboratoires partenaires,
+            le Client consent explicitement à partager les informations d'achat nécessaires au fonctionnement du programme
+            (volume des achats, fournisseur, dates d'achats, gestion des retours).
+          </p>
+          <p>
+            Les bénéfices de ces programmes sont attribués exclusivement au titulaire de la pharmacie. Il est interdit
+            de transférer ou déléguer ces opérations à d'autres membres du personnel.
+          </p>
+          <h3>E. Marchés — Offres commerciales remisées</h3>
+          <p>
+            Blink Pharma propose, via son Application, des offres promotionnelles fournies par des promoteurs partenaires
+            (laboratoires, grossistes, distributeurs). La Société se limite à relayer la commande du Client sans émettre
+            de facture, en transmettant au promoteur les informations de vente des produits concernés.
+          </p>
+          <p>
+            En cas de non-attribution d'une remise prévue, le Client est invité à contacter le service de réclamation
+            au 05 20 47 37 27 ou à l'adresse contact@blinkpharma.ma.
+          </p>
+          <h3>F. Service WhatsApp — Assistant Pharmacie</h3>
+          <p>
+            Ce service optionnel permet à Blink Pharma de contacter le pharmacien via WhatsApp, exclusivement dans le
+            cadre des services souscrits. Le numéro de téléphone collecté n'est utilisé à aucune autre fin sans
+            consentement explicite préalable.
+          </p>
+          <h3>G. Extension Navigateur</h3>
+          <p>
+            L'extension navigateur est un outil complémentaire, utilisable seul ou en combinaison avec les autres
+            solutions Blink Pharma. Elle vise notamment à sécuriser la prescription médicamenteuse et à proposer un
+            service d'assistance par intelligence artificielle. Son activation est soumise à un consentement spécifique (Niveau 3).
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-5">
+          <div class="article-kicker">Article 5</div>
+          <h2>Inscription et accès</h2>
+          <p>
+            Blink Pharmacie est une Application dédiée exclusivement aux pharmacies justifiant de leur conformité
+            aux dispositions de la législation en vigueur (loi 17-04) et à toute réglementation applicable à leur secteur.
+          </p>
+          <p>
+            L'accès aux services est réservé aux pharmaciens titulaires et à leur personnel. Certaines fonctions,
+            telles que le remboursement de remise, sont strictement limitées au seul pharmacien titulaire.
+          </p>
+          <p>
+            Pour associer le personnel au compte, le pharmacien titulaire doit fournir son Identifiant Commun de
+            l'Entreprise (ICE) lors de l'inscription. Tout membre du personnel utilisant cet ICE est automatiquement
+            lié au compte, en ses droits, obligations et responsabilités.
+          </p>
+          <p>
+            Le pharmacien titulaire reçoit une notification pour chaque nouvelle demande d'accès et peut gérer les
+            autorisations depuis la section « Profil » de l'Application. Les données d'authentification sont cryptées
+            pour prévenir toute faille de sécurité connue au moment de la rédaction des présentes CGU.
+          </p>
+          <p>
+            Pour les Clients disposant d'un logiciel tiers différent du MGO Blink Pharma, certaines fonctionnalités
+            de l'application mobile sont accessibles via une autorisation de connexion sécurisée au logiciel de gestion
+            en Cloud, utilisant les identifiants du pharmacien titulaire.
+          </p>
+          <p>
+            En cas de difficultés d'accès ou de demande de résiliation, le Client peut se désinscrire dans la section
+            « Profil » de l'Application mobile, ou contacter la Société au 0520 47 37 27 ou à l'adresse contact@blinkpharma.ma.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-6">
+          <div class="article-kicker">Article 6</div>
+          <h2>Protection, utilisation et confidentialité des données</h2>
+          <h3>6.1 — Principe général</h3>
+          <p>
+            Blink Pharma SA respecte la confidentialité des données personnelles transmises par le Client,
+            conformément à la loi 09-08. La Société ne partage les données personnelles d'identification qu'avec
+            le consentement explicite du Client ou dans des circonstances exceptionnelles (réclamation fournisseur, pharmacovigilance).
+          </p>
+          <h3>6.2 — Ce que nous ne faisons jamais</h3>
+          <ul class="legal-list">
+            <li>Vendre, louer ou céder à titre commercial des données nominatives permettant d'identifier votre pharmacie, votre personnel ou vos patients.</li>
+            <li>Transmettre vos données à des tiers, administrations ou organismes publics sans base légale valide, votre consentement lorsqu'il est requis, ou obligation réglementaire ou judiciaire applicable.</li>
+            <li>Effectuer toute divulgation discrétionnaire ou commerciale nominative.</li>
+          </ul>
+          <h3>6.3 — Données anonymisées et études économiques</h3>
+          <p>
+            Certaines données peuvent être commercialisées ou partagées avec des tiers, mais exclusivement sous forme
+            anonymisée, agrégée, statistique et non ré-identifiable raisonnablement.
+          </p>
+          <p>À titre d'exemples, ces données peuvent porter sur :</p>
+          <ul class="legal-list">
+            <li>Les tendances de ventes régionales.</li>
+            <li>Les ruptures de stock par zone géographique.</li>
+            <li>Les performances globales de marché.</li>
+            <li>Les statistiques sectorielles pharmaceutiques.</li>
+          </ul>
+          <p>
+            Ces traitements ne permettent en aucun cas d'identifier votre pharmacie, vos patients ou vos clients.
+            Cette valorisation des données anonymisées constitue la contrepartie économique permettant à Blink Pharma
+            de proposer certains services gratuits ou subventionnés.
+          </p>
+          <h3>6.4 — Utilisation des données transactionnelles</h3>
+          <p>Pour optimiser ses services, Blink Pharma exploite les données d'achats et de ventes aux fins suivantes :</p>
+          <ul class="legal-list">
+            <li>Proposer des pistes d'amélioration à l'équipe du Client (optimisation des ventes, rotation des stocks, marges).</li>
+            <li>Anonymiser et partager avec le Client des statistiques comparatives (Top 100 des ventes, recommandations d'achat).</li>
+            <li>Anonymiser et communiquer à des partenaires grossistes et laboratoires pharmaceutiques pour affiner leurs offres commerciales.</li>
+            <li>Comparer la rotation des stocks du Client aux tendances du marché.</li>
+            <li>Intégrer et vérifier les listes de produits fournisseurs.</li>
+            <li>Analyser les transactions et retours pour le calcul des remises et points de fidélité.</li>
+          </ul>
+          <p>
+            Cette utilisation des données n'engage aucune obligation de résultats quant aux ventes ou à l'amélioration
+            du chiffre d'affaires. Le Client reconnaît expressément l'obligation de moyens et non de résultats de Blink Pharma.
+          </p>
+          <h3>6.6 — Responsabilité liée à l'utilisation des Agents IA</h3>
+          <p>
+            Les solutions Blink Pharma intègrent ou peuvent intégrer des agents d'intelligence artificielle susceptibles
+            de formuler des recommandations, suggestions ou conseils dans différents domaines de gestion de l'officine,
+            notamment les décisions d'achat, la gestion des stocks, les aspects financiers, les marges, le management
+            de l'équipe et l'organisation de l'officine.
+          </p>
+          <p>
+            Le pharmacien titulaire est seul et entièrement responsable de l'analyse, de l'interprétation et de l'usage
+            qu'il fait des recommandations formulées par ces agents. Toute décision prise sur la base de ces recommandations
+            relève de son seul jugement professionnel.
+          </p>
+          <ul class="legal-list">
+            <li>Les agents IA génèrent leurs réponses en fonction de modèles d'apprentissage automatique, qui peuvent ne pas refléter l'intégralité des spécificités locales, réglementaires ou conjoncturelles propres à chaque officine.</li>
+            <li>Certains comportements individuels au sein de la pharmacie peuvent influencer les réponses et recommandations de l'agent IA.</li>
+            <li>Les suggestions émises ne constituent en aucun cas un conseil professionnel, financier, juridique ou réglementaire opposable.</li>
+            <li>Blink Pharma ne garantit pas l'exactitude, la pertinence ou l'adéquation des recommandations de ses agents IA à la situation particulière de chaque Client.</li>
+          </ul>
+          <p>
+            En conséquence, Blink Pharma ne saurait être tenue responsable, à quelque titre que ce soit, des décisions
+            prises par le Client ou son personnel sur la base des suggestions formulées par les agents IA, ni des
+            conséquences financières, commerciales, managériales ou réglementaires qui pourraient en résulter.
+          </p>
+          <h3>6.7 — Traçabilité des consentements</h3>
+          <p>
+            Blink Pharma SA conserve la preuve des consentements exprimés, refusés ou retirés, comprenant notamment :
+          </p>
+          <ul class="legal-list">
+            <li>L'identité du compte.</li>
+            <li>La date et l'heure.</li>
+            <li>Le support utilisé (web, mobile, extension, logiciel).</li>
+            <li>La version du texte accepté.</li>
+            <li>L'action réalisée.</li>
+          </ul>
+          <p>
+            Cette preuve peut être utilisée en cas de contestation, protégeant à la fois l'utilisateur et la Société.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-7">
+          <div class="article-kicker">Article 7</div>
+          <h2>Propriété intellectuelle et modèles d'apprentissage</h2>
+          <h3>7.1 — Propriété intellectuelle générale</h3>
+          <p>
+            Le contenu de l'Application, en sa forme et en son fond, demeure la propriété exclusive de Blink Pharma SA,
+            seule titulaire des droits de propriété intellectuelle y afférents. Toute utilisation non autorisée par un tiers
+            constitue un délit de contrefaçon passible de poursuites civiles et pénales. Les logos, enseignes et marques,
+            déposés ou non, ainsi que le code technique, sont la propriété exclusive de la Société. L'accès à l'Application
+            et son utilisation sont accordés exclusivement à des fins professionnelles liées à l'activité pharmaceutique du Client.
+          </p>
+          <h3>7.2 — Propriété des modèles d'apprentissage</h3>
+          <p>
+            Les modèles d'intelligence artificielle et d'apprentissage automatique développés, entraînés ou affinés
+            par Blink Pharma SA, y compris ceux résultant du traitement agrégé et anonymisé des données issues de
+            l'ensemble des pharmacies utilisatrices, constituent des œuvres intellectuelles et des actifs technologiques
+            appartenant exclusivement à Blink Pharma SA.
+          </p>
+          <p>Le Client reconnaît expressément que :</p>
+          <ul class="legal-list">
+            <li>Les données transactionnelles, comportementales et d'usage collectées dans le cadre des Niveaux 1, 2 et 3 peuvent contribuer, sous forme agrégée et anonymisée, à l'entraînement, à l'amélioration et au perfectionnement de ces modèles.</li>
+            <li>Aucun droit de propriété, de redevance ou de partage de valeur sur ces modèles n'est transféré au Client du fait de cette contribution.</li>
+            <li>Ces modèles sont des actifs stratégiques et confidentiels de Blink Pharma SA, protégés au titre du droit d'auteur, du secret des affaires et de tout autre régime de protection applicable.</li>
+          </ul>
+          <h3>7.3 — Consentement au traitement des données dès le Niveau 1 — Condition d'accès au service</h3>
+          <p>
+            Le traitement des données prévu au Niveau 1 constitue une condition contractuelle essentielle et non négociable
+            à l'établissement de la relation commerciale entre Blink Pharma SA et le Client. Ce traitement est indispensable
+            au fonctionnement technique du logiciel et à la viabilité du modèle de service proposé.
+          </p>
+          <ul class="legal-list">
+            <li>Le Client est informé, dès son inscription, que l'acceptation du Niveau 1 conditionne l'accès à l'ensemble des services Blink Pharma.</li>
+            <li>Blink Pharma SA ne peut établir ni maintenir une relation contractuelle avec un Client refusant le Niveau 1.</li>
+            <li>Le refus du Niveau 1, ou son retrait en cours de relation, entraîne de plein droit la désactivation du compte et la cessation de l'accès à l'Application, sans qu'aucune indemnité ne puisse être réclamée de ce chef.</li>
+            <li>Ce refus est un droit du Client, qui peut l'exercer librement, étant entendu qu'il implique la non-souscription ou la résiliation des services Blink Pharma.</li>
+          </ul>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-8">
+          <div class="article-kicker">Article 8</div>
+          <h2>Responsabilités du Client</h2>
+          <p>En utilisant les solutions Blink Pharma, le Client confirme notamment :</p>
+          <ul class="legal-list">
+            <li>Disposer des droits nécessaires sur les données saisies dans l'Application.</li>
+            <li>Respecter la réglementation applicable à son activité (loi 17-04 et textes associés).</li>
+            <li>Vérifier les informations avant validation (stocks, bons de livraison, prix, quantités, etc.).</li>
+            <li>Protéger ses accès, identifiants et mots de passe contre tout accès non autorisé.</li>
+            <li>Utiliser les outils conformément à leur destination et aux présentes CGU.</li>
+          </ul>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-9">
+          <div class="article-kicker">Article 9</div>
+          <h2>Limitations et exclusions de responsabilité de la Société</h2>
+          <p>La Société ne pourra en aucun cas être tenue responsable de toute perte ou dommage occasionné par :</p>
+          <ul class="legal-list">
+            <li>Une interruption ou un dysfonctionnement de l'Application.</li>
+            <li>Toute perte ou corruption de données due à des liens web initiés par des Clients ou des tiers, ou à des virus introduits volontairement ou non.</li>
+            <li>Toute perte ou dommage résultant d'une utilisation inappropriée de l'Application par le Client, y compris les pertes de revenus ou tout autre préjudice indirect.</li>
+          </ul>
+          <h3>Responsabilité concernant les Programmes de Fidélité et Offres Promotionnelles</h3>
+          <p>
+            Blink Pharma sert uniquement de médiateur technique pour faciliter l'accès aux programmes de fidélité gérés
+            par des entreprises tierces partenaires. En conséquence, Blink Pharma ne saurait être recherchée à quelque
+            titre que ce soit en tant que :
+          </p>
+          <ul class="legal-list">
+            <li>Responsable des termes des programmes : les modalités sont définies par les entreprises tierces.</li>
+            <li>Partie aux transactions : toutes les transactions sont des accords directs entre le Client et l'entreprise tierce.</li>
+            <li>Garante de l'exactitude des offres : les Clients doivent se fier aux déclarations fournies par les entreprises tierces.</li>
+            <li>Obligée de compenser l'absence d'avantages promis : toute compensation incombe exclusivement à l'entreprise tierce.</li>
+          </ul>
+          <p>
+            Pour toute réclamation concernant des programmes de fidélité ou des offres promotionnelles, les Clients
+            doivent contacter directement l'entreprise tierce responsable ou le service de réclamation Blink Pharma
+            au 05 20 47 37 27.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-10">
+          <div class="article-kicker">Article 10</div>
+          <h2>Engagement d'indemnisation</h2>
+          <p>
+            Le Pharmacien s'engage à prendre à sa charge et à ses frais toute action judiciaire ou extrajudiciaire
+            diligentée à l'encontre de l'Application et/ou de la Société par un tiers ayant subi un préjudice découlant
+            d'un accès non autorisé ou inapproprié au logiciel en Cloud par le pharmacien ou l'un de ses collaborateurs.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-11">
+          <div class="article-kicker">Article 11</div>
+          <h2>Violation des présentes CGU</h2>
+          <p>
+            La Société se réserve le droit, après un préavis de 8 jours resté sans suite, de suspendre ou d'annuler tout
+            accès à l'Application d'un Pharmacien ou grossiste qui aurait enfreint une ou plusieurs dispositions des présentes CGU.
+          </p>
+          <p>
+            Les Clients déclarent accepter expressément cette condition substantielle et renoncent irrévocablement à
+            toute réclamation relative à une telle suspension ou annulation.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-12">
+          <div class="article-kicker">Article 12</div>
+          <h2>Force majeure</h2>
+          <p>
+            La Société ne pourra être tenue responsable de l'inexécution ou du retard d'exécution de ses obligations si
+            elle est confrontée à un cas de force majeure tel que défini par le Dahir formant Code des Obligations et Contrats,
+            à condition d'aviser l'autre partie dans les meilleurs délais.
+          </p>
+          <p>
+            Constituent notamment des cas de force majeure : les phénomènes naturels (inondations, sécheresse, orage,
+            incendie), les grèves, explosions, cyberattaques, ou tout fait imprévisible hors du contrôle des parties
+            affectant l'utilisation de l'Application.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-13">
+          <div class="article-kicker">Article 13</div>
+          <h2>Nullité partielle</h2>
+          <p>
+            Si une ou plusieurs stipulations des présentes CGU sont tenues pour non valides ou déclarées comme telles en
+            application d'une loi, d'un règlement ou d'une décision définitive d'une juridiction compétente, les autres
+            stipulations conservent toute leur force et leur portée.
+          </p>
+        </article>
+
+        <article class="surface-card legal-card fade-up" id="article-14">
+          <div class="article-kicker">Article 14</div>
+          <h2>Droit applicable et compétence</h2>
+          <p>
+            Les présentes CGU sont régies par le Droit marocain. En cas de litige né à l'occasion de leur interprétation
+            ou de leur exécution, les Tribunaux compétents seront ceux de Casablanca, nonobstant l'adresse ou le siège
+            de l'autre partie.
+          </p>
+        </article>
+
+        <section class="surface-card faq-card fade-up" id="annexe">
+          <div class="article-kicker">Annexe</div>
+          <h2>Questions / Réponses Utilisateurs</h2>
+          <details open>
+            <summary>1. Mes données appartiennent-elles à Blink Pharma ?</summary>
+            <div class="faq-answer">
+              Non. Les données relatives à votre pharmacie, votre activité et vos opérations restent les vôtres ou
+              sous votre responsabilité. Blink Pharma agit comme fournisseur de solutions technologiques, dans les
+              seules limites prévues contractuellement.
+            </div>
+          </details>
+          <details>
+            <summary>2. Mes données sont-elles protégées ?</summary>
+            <div class="faq-answer">
+              Oui. Blink Pharma met en place des mesures techniques, organisationnelles et contractuelles pour assurer
+              la confidentialité, l'intégrité et la disponibilité des données traitées.
+            </div>
+          </details>
+          <details>
+            <summary>3. Avez-vous effectué les démarches CNDP ?</summary>
+            <div class="faq-answer">
+              Oui. Blink Pharma SA s'engage à respecter les obligations applicables en matière de protection des données
+              personnelles, y compris les formalités, déclarations ou autorisations préalables requises auprès de la CNDP
+              lorsque la réglementation l'exige.
+            </div>
+          </details>
+          <details>
+            <summary>4. Revendez-vous mes données ?</summary>
+            <div class="faq-answer">
+              Jamais sous forme nominative. Certaines données peuvent être commercialisées ou partagées avec des tiers,
+              mais exclusivement sous forme anonymisée, agrégée, statistique et non ré-identifiable. Ces traitements ne
+              permettent en aucun cas d'identifier votre pharmacie, vos patients ou vos clients. Cette valorisation
+              constitue la contrepartie économique permettant de proposer certains services gratuits ou subventionnés.
+            </div>
+          </details>
+          <details>
+            <summary>5. Pouvez-vous transmettre mes données aux impôts, CNSS, Ministère de la Santé ?</summary>
+            <div class="faq-answer">
+              Blink Pharma ne communique pas vos données nominatives à des tiers ou organismes publics sans base légale
+              valable, votre consentement lorsqu'il est requis, ou obligation réglementaire ou judiciaire applicable.
+              Il n'existe aucune transmission discrétionnaire ni divulgation commerciale nominative.
+            </div>
+          </details>
+          <details>
+            <summary>6. Comment prouvez-vous mon consentement ?</summary>
+            <div class="faq-answer">
+              Chaque acceptation des CGU ou autorisation donnée via nos applications est horodatée et journalisée avec :
+              la date et l'heure, le canal utilisé (mobile, web, logiciel), la version acceptée, l'identifiant du compte
+              et l'action réalisée. Cela protège à la fois l'utilisateur et Blink Pharma.
+            </div>
+          </details>
+          <details>
+            <summary>7. Que se passe-t-il si les CGU changent ?</summary>
+            <div class="faq-answer">
+              Lorsqu'un changement important impacte vos droits, vos données ou les finalités d'utilisation, une nouvelle
+              version vous est présentée, votre consentement peut être redemandé, et la version acceptée est conservée
+              dans nos registres.
+            </div>
+          </details>
+          <details>
+            <summary>8. Quelles sont mes responsabilités en acceptant les CGU ?</summary>
+            <div class="faq-answer">
+              En utilisant nos solutions, vous confirmez notamment : disposer des droits nécessaires sur les données
+              saisies ; respecter la réglementation applicable à votre activité ; vérifier les informations avant validation ;
+              protéger vos accès et mots de passe ; utiliser les outils conformément à leur destination.
+            </div>
+          </details>
+          <details>
+            <summary>9. Quand j'utilise l'inventaire, le scan BL ou l'IA, est-ce que je partage des données ?</summary>
+            <div class="faq-answer">
+              Oui, dans certains cas. L'utilisation de fonctionnalités avancées implique le traitement de données techniques
+              ou transactionnelles nécessaires au fonctionnement du service. Certaines données peuvent aussi être exploitées
+              de manière anonymisée à des fins d'amélioration des algorithmes, de statistiques sectorielles ou de benchmarks de marché.
+            </div>
+          </details>
+          <details>
+            <summary>10. Puis-je refuser certaines fonctionnalités ?</summary>
+            <div class="faq-answer">
+              Oui. Les fonctionnalités optionnelles (Niveaux 2 et 3) nécessitent votre accord spécifique. Le refus peut
+              simplement limiter l'accès aux services dépendants de ces traitements, sans affecter l'accès au module de base (MGO).
+            </div>
+          </details>
+        </section>
+
+        <section class="surface-card acceptance-card fade-up" id="acceptation">
+          <div class="article-kicker">Confirmation</div>
+          <h2 style="font-size:1.34rem;margin-bottom:0.7rem;">Lecture et acceptation des CGU</h2>
+          <p>
+            Cette page reprend le texte intégral des Conditions Générales d'Utilisation Blink Pharma / Blink Premium
+            actuellement en vigueur. Elle peut être consultée en ligne, imprimée ou enregistrée en PDF pour archivage.
+          </p>
+          <div class="acceptance-row">
+            <span class="checkbox-shell">✓</span>
+            <span>Je confirme avoir lu et accepté les Conditions Générales d'Utilisation</span>
+          </div>
+          <p class="print-note">Blink Pharma SA — SafeRx</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>injectFooter();</script>
+</body>
+</html>
