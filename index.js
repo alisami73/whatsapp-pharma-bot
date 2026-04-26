@@ -16,6 +16,7 @@ const consent = require('./modules/consent');
 const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
+const contactLeads = require('./modules/contact_leads');
 const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
@@ -113,6 +114,46 @@ app.post('/api/ask', async (req, res) => {
   } catch (err) {
     console.error('[api/ask]', err.message);
     res.status(500).json({ error: 'Erreur lors du traitement. Veuillez réessayer.' });
+  }
+});
+
+const _contactRateMap = new Map();
+app.post('/api/contact', async (req, res) => {
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const bucket = _contactRateMap.get(ip) || { count: 0, reset: now + 60_000 };
+  if (now > bucket.reset) { bucket.count = 0; bucket.reset = now + 60_000; }
+  bucket.count++;
+  _contactRateMap.set(ip, bucket);
+  if (bucket.count > 5) {
+    return res.status(429).json({ error: 'CONTACT_RATE_LIMITED' });
+  }
+
+  const validation = contactLeads.validateContactLead(req.body || {});
+  if (!validation.valid) {
+    return res.status(400).json({
+      error: 'CONTACT_VALIDATION_FAILED',
+      fieldErrors: validation.fieldErrors,
+    });
+  }
+
+  try {
+    await contactLeads.sendContactLead(validation.lead, {
+      ip,
+      referer: req.get('referer') || '',
+      userAgent: req.get('user-agent') || '',
+      submittedAt: new Date().toISOString(),
+    });
+
+    res.json({ ok: true });
+  } catch (error) {
+    if (contactLeads.isContactEmailConfigError(error)) {
+      console.error('[api/contact] email transport not configured');
+      return res.status(503).json({ error: 'CONTACT_EMAIL_NOT_CONFIGURED' });
+    }
+
+    console.error('[api/contact]', error);
+    res.status(500).json({ error: 'CONTACT_SEND_FAILED' });
   }
 });
 
@@ -1754,6 +1795,9 @@ if (require.main === module) {
         console.log(`WhatsApp pharmacy assistant running on port ${PORT}`);
         console.log(`Admin : http://localhost:${PORT}/admin`);
         console.log(`Webhook principal : http://localhost:${PORT}/webhook/whatsapp`);
+        console.log(`[env] TWILIO_ACCOUNT_SID: ${process.env.TWILIO_ACCOUNT_SID ? 'SET(' + String(process.env.TWILIO_ACCOUNT_SID).slice(0,6) + '…)' : 'MISSING'}`);
+        console.log(`[env] TWILIO_AUTH_TOKEN: ${process.env.TWILIO_AUTH_TOKEN ? 'SET' : 'MISSING'}`);
+        console.log(`[env] TWILIO_WHATSAPP_FROM: ${process.env.TWILIO_WHATSAPP_FROM || 'MISSING'}`);
       });
     })
     .catch((error) => {
