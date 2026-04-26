@@ -779,13 +779,10 @@ async function startThemePrimaryAction(response, user, theme) {
 
   if (theme.id === 'software') {
     const lang = getUserLang(user);
-    await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL, current_theme: 'software' });
-    const carouselResult = await software.sendSoftwareCarousel(user.phone, lang);
-    if (carouselResult) {
-      response.message('Consultez les options Blink Premium envoyees ci-dessus.');
-      return;
-    }
-    response.message(software.buildSoftwareCarouselText(lang));
+    const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+    const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
+    await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+    response.message(`💎 Blink Premium\n\n${base}/site/index.html${langSuffix}`);
     return;
   }
 
@@ -1438,19 +1435,20 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       if (aiQuestionStates.includes(user.current_state)) {
         const sent = await explorer.sendExplorerCarousel(context.phone, lang);
         if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(explorer.buildExplorerFallbackText());
+        response.message(explorer.buildExplorerFallbackText(lang));
         res.type('text/xml').send(response.toString());
         return;
       }
 
-      // Software sub-FAQ states → revenir au carrousel Blink Premium
-      const swSubStates = [STATES.BROWSING_SW_CALLBACK_SUB, STATES.BROWSING_SW_BENEFITS_FAQ, STATES.BROWSING_SW_DATA_FAQ];
+      // Software sub-states → redirect to Explorer carousel (web-page architecture)
+      const swSubStates = [STATES.BROWSING_SW_CALLBACK_SUB, STATES.BROWSING_SW_BENEFITS_FAQ, STATES.BROWSING_SW_DATA_FAQ, STATES.BROWSING_SOFTWARE_CAROUSEL];
       if (swSubStates.includes(user.current_state)) {
-        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL });
-        const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
-        if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(software.buildSoftwareCarouselText(lang));
-        res.type('text/xml').send(response.toString());
+        await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+        const sent = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
+        if (!sent) {
+          response.message(explorer.buildExplorerFallbackText(lang));
+          res.type('text/xml').send(response.toString());
+        }
         return;
       }
       if (user.current_state === STATES.AWAITING_FREE_QUESTION && currentTheme) {
@@ -1580,101 +1578,31 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (user.current_state === STATES.BROWSING_EXPLORER_CAROUSEL) {
       const sent = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
       if (!sent) {
-        response.message(explorer.buildExplorerFallbackText());
+        response.message(explorer.buildExplorerFallbackText(lang));
         res.type('text/xml').send(response.toString());
       }
       return;
     }
 
-    // ── Sous-menu "Appelez-moi" (démo / renseignement) ───────────────────
-    if (user.current_state === STATES.BROWSING_SW_CALLBACK_SUB) {
-      const actionResult = software.handleCallbackSubAction(controlValue, context.phone, lang);
-      if (actionResult) {
-        user = await storage.saveUser({ ...user, current_state: STATES.BROWSING_SOFTWARE_CAROUSEL });
-        const footerResult = await sendAIResponseWithFooter(context.phone, lang, actionResult.text);
-        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(appendTextFooter(actionResult.text, lang));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-      const subResult = await software.sendCallbackSubMenu(context.phone, lang);
-      if (subResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(software.buildCallbackSubMenuText(lang));
+    // ── Legacy software states — all redirect to web pages ───────────────
+    // These states are no longer entered (web-page architecture).
+    // Users stuck here from old sessions receive the relevant web URL.
+    if (user.current_state === STATES.BROWSING_SW_CALLBACK_SUB ||
+        user.current_state === STATES.BROWSING_SW_BENEFITS_FAQ ||
+        user.current_state === STATES.BROWSING_SOFTWARE_CAROUSEL) {
+      const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
+      await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+      response.message(`💎 Blink Premium\n\n${base}/site/index.html${langSuffix}`);
       res.type('text/xml').send(response.toString());
       return;
     }
 
-    // ── FAQ "Pourquoi Blink ?" ────────────────────────────────────────────
-    if (user.current_state === STATES.BROWSING_SW_BENEFITS_FAQ) {
-      const answerResult = software.handleBenefitsFAQAction(controlValue, lang);
-      if (answerResult) {
-        const footerResult = await sendAIResponseWithFooter(context.phone, lang, answerResult.text);
-        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(appendTextFooter(answerResult.text, lang, { includeBack: true }));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-      const faqResult = await software.sendBenefitsFAQMenu(context.phone, lang);
-      if (faqResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(software.buildBenefitsFAQText(lang));
-      res.type('text/xml').send(response.toString());
-      return;
-    }
-
-    // ── FAQ "Mes données & CNDP" ──────────────────────────────────────────
     if (user.current_state === STATES.BROWSING_SW_DATA_FAQ) {
-      const answerResult = software.handleDataFAQAction(controlValue, lang);
-      if (answerResult) {
-        const footerResult = await sendAIResponseWithFooter(context.phone, lang, answerResult.text);
-        if (footerResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(appendTextFooter(answerResult.text, lang, { includeBack: true }));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-      const dataResult = await software.sendDataFAQMenu(context.phone, lang);
-      if (dataResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(software.buildDataFAQText(lang));
-      res.type('text/xml').send(response.toString());
-      return;
-    }
-
-    // ── Carrousel Software Blink Premium ──────────────────────────────────
-    if (user.current_state === STATES.BROWSING_SOFTWARE_CAROUSEL) {
-      const action = controlValue;
-
-      if (action === 'sw_call_me' || action === '1') {
-        try {
-          await software.handleCallMeRequest(context.phone, lang);
-          res.type('text/xml').send(buildEmptyTwiml());
-          return;
-        } catch (error) {
-          console.error('[software] callback confirmation failed', error);
-        }
-
-        response.message(appendTextFooter(t('sw_callback_confirm', lang), lang));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      if (action === 'sw_benefits' || action === '2') {
-        await storage.saveUser({ ...user, current_state: STATES.BROWSING_SW_BENEFITS_FAQ });
-        const faqResult = await software.sendBenefitsFAQMenu(context.phone, lang);
-        if (faqResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(software.buildBenefitsFAQText(lang));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      if (action === 'sw_data_protection' || action === '3') {
-        response.message(appendTextFooter(software.buildDataCndpLinkText(lang), lang));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      // Action non reconnue → renvoyer le carrousel
-      const carouselResult = await software.sendSoftwareCarousel(context.phone, lang);
-      if (carouselResult) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(software.buildSoftwareCarouselText(lang));
+      const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
+      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
+      await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
+      response.message(`🔒 Mes données & CNDP\n\n${base}/site/data-cndp.html${langSuffix}`);
       res.type('text/xml').send(response.toString());
       return;
     }
