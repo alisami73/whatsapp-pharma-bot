@@ -4,23 +4,54 @@
  * scripts/create_explorer_v2_templates.js
  *
  * Creates the 4 Explorer v2 carousel templates (URL buttons) in Twilio.
- * Run once, then submit each template for Meta UTILITY approval.
+ * Run once, then submit each template for Meta UTILITY approval via the Twilio Console.
  *
  * After approval, copy the SIDs into APPROVED_V2_SIDS in modules/explorer/index.js.
  *
  * Usage:
  *   node scripts/create_explorer_v2_templates.js [--dry-run]
+ *
+ * Note: uses raw HTTPS instead of the Twilio SDK because the SDK serializes
+ * friendlyName incorrectly for carousel templates (camelCase vs snake_case JSON).
  */
 
 require('dotenv').config();
-const twilio = require('twilio');
+const https = require('https');
 const { buildExplorerV2Spec } = require('../modules/explorer/index');
 
 const DRY_RUN = process.argv.includes('--dry-run');
-const client  = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+function api(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const auth = Buffer.from(
+      process.env.TWILIO_ACCOUNT_SID + ':' + process.env.TWILIO_AUTH_TOKEN
+    ).toString('base64');
+    const bodyStr = body ? JSON.stringify(body) : '';
+    const req = https.request({
+      hostname: 'content.twilio.com',
+      path, method,
+      headers: {
+        'Authorization': 'Basic ' + auth,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(bodyStr),
+      },
+    }, res => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => resolve({ status: res.statusCode, body: d ? JSON.parse(d) : {} }));
+    });
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
 
 async function main() {
   console.log(`Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}\n`);
+
+  // Fetch existing templates to allow idempotent re-runs
+  const listRes = await api('GET', '/v1/Content?PageSize=500', null);
+  const existing = listRes.body.contents || [];
 
   for (const lang of ['fr', 'ar', 'es', 'ru']) {
     const spec = buildExplorerV2Spec(lang);
@@ -33,18 +64,25 @@ async function main() {
 
     if (DRY_RUN) { console.log('  [DRY RUN — skipped]'); continue; }
 
-    try {
-      // Delete existing v2 if present (idempotent re-run)
-      const existing = await client.content.v1.contents.list({ limit: 500 });
-      const old = existing.find(t => t.friendlyName === spec.friendlyName);
-      if (old) {
-        await client.content.v1.contents(old.sid).remove();
-        console.log(`  ♻️  Deleted existing ${old.sid}`);
-      }
+    // Delete existing if present (idempotent re-run)
+    const old = existing.find(t => t.friendly_name === spec.friendlyName);
+    if (old) {
+      await api('DELETE', `/v1/Content/${old.sid}`, null);
+      console.log(`  ♻️  Deleted existing ${old.sid}`);
+    }
 
-      const created = await client.content.v1.contents.create(spec);
-      console.log(`  ✅ Created: ${created.sid}`);
-      console.log(`  👉 Submit for approval as UTILITY — name: ${spec.friendlyName}`);
+    try {
+      const r = await api('POST', '/v1/Content', {
+        friendly_name: spec.friendlyName,
+        language:      spec.language,
+        types:         spec.types,
+      });
+      if (r.status === 201) {
+        console.log(`  ✅ Created: ${r.body.sid}  (friendly_name: ${r.body.friendly_name})`);
+        console.log(`  👉 Submit for approval as UTILITY — name: ${spec.friendlyName}`);
+      } else {
+        console.error(`  ❌ Error ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+      }
     } catch (err) {
       console.error(`  ❌ Error: ${err.message}`);
     }
