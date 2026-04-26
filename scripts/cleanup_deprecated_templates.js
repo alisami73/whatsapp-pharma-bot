@@ -83,10 +83,10 @@ const DEPRECATED_PREFIXES = [
 // created via the SDK — protect those by SID explicitly.
 const PROTECTED_SIDS = new Set([
   // Explorer v2 — URL buttons (created 2026-04-26, pending Meta UTILITY approval)
-  'HXf07be4f91efcdfcaa9f48e29b1be13ae', // blink_explorer_v2_fr
-  'HXec08eb2df6106cc4ca151ea4705809fb', // blink_explorer_v2_ar
-  'HX23fee4f3b6b9280116e1535306faf77d', // blink_explorer_v2_es
-  'HX13d6016efdd0229423d336ca5f93ec3e', // blink_explorer_v2_ru
+  'HX40472f02cdbffc6e62b27830dd4fac77', // blink_explorer_v2_fr
+  'HXd4680df211d0e60366edb12972e0bfb7', // blink_explorer_v2_ar
+  'HX797c30f7d5f63052bbb2e9de6a1250a1', // blink_explorer_v2_es
+  'HX173ed12df15897265486ffd5957ee209', // blink_explorer_v2_ru
 ]);
 
 const PROTECTED_PREFIXES = [
