@@ -21,6 +21,7 @@ const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared
 const software     = require('./modules/themes/software');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
+const answerCards  = require('./modules/answer_cards');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -62,6 +63,10 @@ app.use('/admin', adminRoutes);
 
 // ── Answer pages (FSE + Conformité) ─────────────────────────────────────────
 // GET /answers/:topic/:id → serve the answer HTML page
+app.get('/answers/:topic/:lang/:id', (req, res) => {
+  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+});
+
 app.get('/answers/:topic/:id', (req, res) => {
   res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
 });
@@ -1555,7 +1560,24 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       try {
         const answer = await cnss.answerQuestion(context.message, 'fse', lang);
         if (answerPages.isEnabled()) {
-          const id  = await answerPages.saveAnswer({ topic: 'fse', userPhone: context.phone, question: context.message, answer });
+          const id = await answerPages.saveAnswer({
+            topic: 'fse',
+            userPhone: context.phone,
+            question: context.message,
+            answer,
+            lang,
+          });
+          const card = await answerCards.sendAnswerCard(context.phone, {
+            topic: 'fse',
+            id,
+            lang,
+            question: context.message,
+            answer,
+          });
+          if (card) {
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          }
           const msg = answerPages.buildAnswerReadyMessage('fse', id, lang);
           response.message(appendTextFooter(msg, lang, { includeBack: true }));
         } else {
@@ -1574,7 +1596,24 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       try {
         const answer = await cnss.answerQuestion(context.message, 'conformites', lang);
         if (answerPages.isEnabled()) {
-          const id  = await answerPages.saveAnswer({ topic: 'conformites', userPhone: context.phone, question: context.message, answer });
+          const id = await answerPages.saveAnswer({
+            topic: 'conformites',
+            userPhone: context.phone,
+            question: context.message,
+            answer,
+            lang,
+          });
+          const card = await answerCards.sendAnswerCard(context.phone, {
+            topic: 'conformites',
+            id,
+            lang,
+            question: context.message,
+            answer,
+          });
+          if (card) {
+            res.type('text/xml').send(buildEmptyTwiml());
+            return;
+          }
           const msg = answerPages.buildAnswerReadyMessage('conformites', id, lang);
           response.message(appendTextFooter(msg, lang, { includeBack: true }));
         } else {
