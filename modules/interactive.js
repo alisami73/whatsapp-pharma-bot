@@ -211,10 +211,17 @@ function buildMenuSpec(activeThemes, lang) {
 // ─── Core: resolve template SID (create or reuse) ────────────────────────────
 
 async function resolveTemplate(cacheKey, buildSpec) {
-  if (!twilioService.isTwilioConfigured()) return null;
+  if (!twilioService.isTwilioConfigured()) {
+    console.warn(`[interactive] resolveTemplate: Twilio not configured — skipping ${cacheKey}`);
+    return null;
+  }
 
   const cache = readCache();
-  if (isFresh(cache[cacheKey])) return cache[cacheKey].sid;
+  if (isFresh(cache[cacheKey])) {
+    console.log(`[interactive] Cache hit: ${cacheKey} → ${cache[cacheKey].sid}`);
+    return cache[cacheKey].sid;
+  }
+  console.log(`[interactive] Cache miss for "${cacheKey}" — will call Twilio API`);
 
   const client = twilioService.getTwilioClient();
   const spec = buildSpec();
@@ -282,10 +289,20 @@ async function sendInteractive(to, contentSid) {
  * Écran 1 — Sélection de la langue (identique pour tous).
  */
 async function sendLanguageScreen(to) {
-  if (!isInteractiveEnabled()) return null;
+  if (!isInteractiveEnabled()) {
+    console.log('[interactive] sendLanguageScreen: INTERACTIVE_MESSAGES_ENABLED is off — text fallback');
+    return null;
+  }
+  console.log(`[interactive] sendLanguageScreen → resolveTemplate language_v3 for ${to}`);
   const sid = await resolveTemplate('language_v3', buildLanguageSpec);
-  if (!sid) return null;
-  return sendInteractive(to, sid);
+  if (!sid) {
+    console.warn('[interactive] sendLanguageScreen: no SID — text fallback');
+    return null;
+  }
+  console.log(`[interactive] sendLanguageScreen → sendInteractive sid=${sid}`);
+  const result = await sendInteractive(to, sid);
+  console.log(`[interactive] sendLanguageScreen → sent ok, status=${result && result.status}`);
+  return result;
 }
 
 /**
