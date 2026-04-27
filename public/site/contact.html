@@ -80,10 +80,23 @@
     }
     .submit-btn:hover { background: #43a047; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76,175,80,0.35); }
     .submit-btn:active { transform: none; }
+    .submit-btn:disabled { opacity: 0.8; cursor: wait; transform: none; box-shadow: none; }
 
     .form-disclaimer {
       font-size: 0.75rem; color: #94A3B8; text-align: center; margin-top: 0.875rem;
     }
+    .form-status {
+      display: none;
+      margin-top: 0.875rem;
+      padding: 0.875rem 1rem;
+      border-radius: 14px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .form-status.is-visible { display: block; }
 
     /* Success state */
     .form-success {
@@ -213,10 +226,10 @@
                 <label for="logiciel">Logiciel actuel</label>
                 <select id="logiciel" name="logiciel">
                   <option value="" disabled selected>Sélectionner un logiciel</option>
-                  <option value="aucun">Aucun</option>
-                  <option value="pharmawin">Pharmawin</option>
-                  <option value="winpharma">Winpharma</option>
-                  <option value="altro">Altro</option>
+                  <option value="gestofi">Gestofi</option>
+                  <option value="logipharm">Logipharm</option>
+                  <option value="winpharm">Winpharm</option>
+                  <option value="sobrus">Sobrus</option>
                   <option value="autre">Autre</option>
                 </select>
               </div>
@@ -228,8 +241,9 @@
 
             <button type="submit" class="submit-btn" id="submitBtn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
-              Envoyer ma demande de démo
+              <span id="submitBtnLabel">Envoyer ma demande de démo</span>
             </button>
+            <div class="form-status" id="formStatus" role="alert" aria-live="polite"></div>
             <p class="form-disclaimer">🔒 Vos données sont confidentielles et ne seront jamais partagées avec des tiers.</p>
           </form>
         </div>
@@ -291,7 +305,7 @@
           <div class="contact-icon" style="background:color-mix(in srgb,var(--blink-blue) 12%,white);">✉️</div>
           <div class="contact-item-text">
             <strong>Email</strong>
-            <a href="mailto:contact@blinkpharmacie.ma">contact@blinkpharmacie.ma</a>
+            <a href="mailto:contact@blinkpharma.ma">contact@blinkpharma.ma</a>
           </div>
         </div>
         <div class="contact-item">
@@ -368,18 +382,17 @@
   // Inputs
   document.getElementById('message').placeholder = t.f_msg_ph;
 
-  // Select placeholder & aucun
+  // Select placeholder & software choices
   const sel = document.getElementById('logiciel');
   if (sel) {
     sel.options[0].text = t.f_log_ph;
-    sel.options[1].text = t.f_aucun;
+    sel.options[5].text = t.f_autre;
   }
 
   // Submit button
   const submitBtn = document.getElementById('submitBtn');
-  submitBtn.querySelector('span')
-    ? submitBtn.querySelector('span').textContent = t.f_submit
-    : (submitBtn.childNodes[submitBtn.childNodes.length - 1].textContent = ' ' + t.f_submit);
+  const submitBtnLabel = document.getElementById('submitBtnLabel');
+  submitBtnLabel.textContent = t.f_submit;
 
   // Disclaimer
   formCard.querySelector('.form-disclaimer').textContent = t.f_disclaimer;
@@ -417,20 +430,102 @@
   const form = document.getElementById('contactForm');
   const formContent = document.getElementById('formContent');
   const formSuccess = document.getElementById('formSuccess');
+  const formStatus = document.getElementById('formStatus');
+
+  function clearFieldState() {
+    form.querySelectorAll('input, select, textarea').forEach((el) => {
+      el.style.borderColor = '';
+      el.removeAttribute('aria-invalid');
+    });
+  }
+
+  function markFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    field.style.borderColor = '#EF5350';
+    field.setAttribute('aria-invalid', 'true');
+  }
+
+  function clearFormStatus() {
+    formStatus.textContent = '';
+    formStatus.classList.remove('is-visible');
+  }
+
+  function showFormStatus(message) {
+    formStatus.textContent = message;
+    formStatus.classList.add('is-visible');
+  }
+
+  function messageForApiError(code, fieldErrors = {}) {
+    if (fieldErrors.telephone === 'invalid_phone') return t.f_err_phone;
+    if (fieldErrors.nom === 'required' || fieldErrors.pharmacie === 'required' || fieldErrors.telephone === 'required') {
+      return t.f_err_required;
+    }
+    if (code === 'CONTACT_EMAIL_NOT_CONFIGURED') return t.f_err_unavailable;
+    if (code === 'CONTACT_RATE_LIMITED') return t.f_err_rate;
+    return t.f_err_generic;
+  }
+
+  async function submitContactLead(payload) {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error || 'CONTACT_SEND_FAILED');
+      error.code = data.error || 'CONTACT_SEND_FAILED';
+      error.fieldErrors = data.fieldErrors || {};
+      throw error;
+    }
+
+    return data;
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    clearFieldState();
+    clearFormStatus();
+
     const required = form.querySelectorAll('[required]');
     let valid = true;
     required.forEach(el => {
-      el.style.borderColor = '';
-      if (!el.value.trim()) { el.style.borderColor = '#EF5350'; valid = false; }
+      if (!el.value.trim()) {
+        el.style.borderColor = '#EF5350';
+        el.setAttribute('aria-invalid', 'true');
+        valid = false;
+      }
     });
-    if (!valid) return;
+
+    if (!valid) {
+      showFormStatus(t.f_err_required);
+      return;
+    }
+
     submitBtn.disabled = true;
-    await new Promise(r => setTimeout(r, 800));
-    formContent.style.display = 'none';
-    formSuccess.style.display = 'flex';
+    submitBtnLabel.textContent = t.f_submit_loading;
+
+    try {
+      const payload = Object.fromEntries(new FormData(form).entries());
+      payload.lang = BI18N.lang;
+      payload.sourcePage = window.location.pathname + window.location.search;
+
+      await submitContactLead(payload);
+      form.reset();
+      formContent.style.display = 'none';
+      formSuccess.style.display = 'flex';
+    } catch (error) {
+      const fieldErrors = error.fieldErrors || {};
+      Object.keys(fieldErrors).forEach(markFieldError);
+      showFormStatus(messageForApiError(error.code, fieldErrors));
+      submitBtn.disabled = false;
+      submitBtnLabel.textContent = t.f_submit;
+    }
   });
 
   if (typeof initScrollAnimations === 'function') initScrollAnimations();

@@ -78,6 +78,10 @@ function getContactEmailConfig(env = process.env) {
   const host = sanitizeSingleLine(env.CONTACT_SMTP_HOST || env.SMTP_HOST, 200);
   const port = Number(env.CONTACT_SMTP_PORT || env.SMTP_PORT || 0);
   const secure = parseBoolean(env.CONTACT_SMTP_SECURE || env.SMTP_SECURE, port === 465);
+  const requireTLS = parseBoolean(
+    env.CONTACT_SMTP_REQUIRE_TLS || env.SMTP_REQUIRE_TLS,
+    false,
+  );
   const user = sanitizeSingleLine(env.CONTACT_SMTP_USER || env.SMTP_USER, 200);
   const pass = String(env.CONTACT_SMTP_PASS || env.SMTP_PASS || '');
   const to = sanitizeSingleLine(env.CONTACT_FORM_TO, 200) || DEFAULT_CONTACT_EMAIL;
@@ -91,6 +95,7 @@ function getContactEmailConfig(env = process.env) {
     host,
     port,
     secure,
+    requireTLS,
     user,
     pass,
     to,
@@ -106,11 +111,18 @@ function createTransport(config = getContactEmailConfig()) {
     throw error;
   }
 
+  if ((config.user && !config.pass) || (!config.user && config.pass)) {
+    const error = new Error('Contact email transport authentication is incomplete');
+    error.code = 'CONTACT_EMAIL_AUTH_INCOMPLETE';
+    throw error;
+  }
+
   const cacheKey = JSON.stringify({
     smtpUrl: config.smtpUrl,
     host: config.host,
     port: config.port,
     secure: config.secure,
+    requireTLS: config.requireTLS,
     user: config.user,
     pass: config.pass ? '***' : '',
   });
@@ -119,14 +131,20 @@ function createTransport(config = getContactEmailConfig()) {
     return cachedTransport;
   }
 
-  const transport = config.smtpUrl
-    ? nodemailer.createTransport(config.smtpUrl)
-    : nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.secure,
-        auth: config.user || config.pass ? { user: config.user, pass: config.pass } : undefined,
-      });
+  const transport = nodemailer.createTransport(
+    config.smtpUrl
+      ? {
+          url: config.smtpUrl,
+          requireTLS: config.requireTLS,
+        }
+      : {
+          host: config.host,
+          port: config.port,
+          secure: config.secure,
+          requireTLS: config.requireTLS,
+          auth: config.user || config.pass ? { user: config.user, pass: config.pass } : undefined,
+        },
+  );
 
   cachedTransport = transport;
   cachedTransportKey = cacheKey;
@@ -219,12 +237,17 @@ async function sendContactLead(lead, meta = {}, env = process.env) {
 }
 
 function isContactEmailConfigError(error) {
-  return Boolean(error && error.code === 'CONTACT_EMAIL_NOT_CONFIGURED');
+  return Boolean(
+    error &&
+      (error.code === 'CONTACT_EMAIL_NOT_CONFIGURED' ||
+        error.code === 'CONTACT_EMAIL_AUTH_INCOMPLETE'),
+  );
 }
 
 module.exports = {
   DEFAULT_CONTACT_EMAIL,
   buildContactLeadMail,
+  createTransport,
   getContactEmailConfig,
   isContactEmailConfigError,
   normalizeContactLead,
