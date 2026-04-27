@@ -8,6 +8,7 @@
   "lang_es": "🇪🇸 Español",
   "lang_ru": "🇷🇺 Русский",
   "cgu_body": "Nous mettons notre service assisté par Intelligence Artificielle pour répondre à vos questions sur différents sujets d'actualité.\n\nPour utiliser ce service, vous confirmez que :\n✅ Vous êtes pharmacien ou utilisez ce service sous votre responsabilité\n✅ Vous acceptez de recevoir des messages WhatsApp liés aux services actifs\n✅ Vous validez les informations avant de les appliquer\n✅ Vous respectez les limites de votre rôle\n✅ Je comprends que cette IA peut se tromper",
+  "cgu_card_body": "Je suis pharmacien ou sous sa responsabilité, WhatsApp actif, je vérifie les informations, respecte mon rôle et sais que l'IA peut se tromper.",
   "cgu_accept": "J'accepte",
   "cgu_decline": "Je refuse",
   "cgu_full": "Voir CGU complètes",

@@ -1,5 +1,76 @@
 # CHAT ALI — whatsapp-pharma-bot
 
+## [2026-04-27] — Onboarding fusionné : carousel 4 langues + consentement intégré
+
+### Résumé
+Refonte de l'onboarding : les 2 étapes séparées (langue → CGU) sont fusionnées en **1 seul carousel**.
+
+**Avant :**
+- Étape 1 : carousel 4 cartes langue (bouton "Choisir" → sélection langue)
+- Étape 2 : quick-reply CGU dans la langue choisie (Accept / Decline / Voir CGU)
+
+**Après :**
+- 1 carousel 4 cartes, une par langue (AR / FR / ES / RU)
+- Chaque carte contient le texte de consentement **dans sa langue** + 3 boutons :
+  - ✅ Accept → payload `consent_{lang}_accept` (ex: `consent_fr_accept`)
+  - ❌ Decline → payload `consent_decline` (universel)
+  - 🔗 Voir CGU → URL button → `buildCguUrl(lang)`
+- Appuyer sur Accept → langue + consentement enregistrés en **une seule action** → Explorer carousel
+
+### Décisions / Priorités
+- `cgu_card_body` : texte compact (≤160 chars) ajouté aux 4 locales
+  - FR (fourni par Ali) : "Je suis pharmacien ou sous sa responsabilité, WhatsApp actif, je vérifie les informations, respecte mon rôle et sais que l'IA peut se tromper."
+  - AR/ES/RU : traductions équivalentes
+- Template Twilio : `blink_consent_carousel_v1` (cache key : `consent_carousel_v1`)
+- Cache `language_v3` supprimé de `data/interactive_templates.json` → nouveau template créé au prochain message
+- Legacy `lang_fr` payloads (texte/anciens templates) → flux consentement séparé conservé comme fallback
+
+### Fichiers modifiés
+- `locales/fr.json`, `ar.json`, `es.json`, `ru.json` : ajout `cgu_card_body`
+- `modules/interactive.js` : `buildConsentCarouselSpec()` + `sendConsentCarouselScreen()` (remplace `buildLanguageCardSpecs` + `buildLanguageSpec`)
+- `index.js` : handler `consent_*_accept` / `consent_decline` avant le bloc ÉCRAN 1 (ligne ~1236)
+- `data/interactive_templates.json` : suppression entrée `language_v3` pour forcer recréation
+
+### À retenir pour la prochaine session
+- Si le carousel ne s'affiche pas : vider `consent_carousel_v1` dans `data/interactive_templates.json` pour forcer recréation
+- Le bouton URL "Voir CGU" pointe vers `buildCguUrl(lang)` — vérifier que `CGU_URL` env var est correcte sur Railway
+- `sendLanguageScreen()` est conservé comme alias de `sendConsentCarouselScreen()` pour les appels existants
+
+---
+
+## [2026-04-26] — Message de bienvenue + remplacement numéro sandbox
+
+### Résumé
+Deux chantiers finalisés et poussés sur `main` (commit `0174a18`) :
+
+**1. Message de bienvenue au premier contact**
+- `index.js` : détection premier contact via `storage.getUser(phone)` AVANT `ensureUser()`
+- Si nouvel utilisateur → envoi outbound non-bloquant (`fire-and-forget`) via `_wClient.messages.create()`
+- Le message explique Blink Premium et invite à sélectionner la langue
+- Arrive avant le carousel de sélection de langue
+
+**2. Remplacement complet du numéro sandbox Twilio**
+- **RÈGLE ABSOLUE** : `whatsapp:+14155238886` (sandbox US) banni définitivement de tout le code
+- Numéro Blink : `+212768782598`
+- wa.me links avec message pré-rempli : `https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium`
+- Fichiers mis à jour : `.env.example`, `admin/index.html`, `admin/templates.html`, `public/site/contact.html`, `public/site/actu.html`, `public/site/blink-components.js`, `tests/answer_pages.test.js`
+
+**3. Autres inclus dans le même commit**
+- `package.json` / `package-lock.json` : ajout `nodemailer@^8.0.6`
+- `public/site/cgu.html` : page CGU ajoutée au tracking git
+
+### Décisions / Priorités
+- Sandbox Twilio (+14155238886) : ne JAMAIS réintroduire dans le code
+- `TWILIO_WHATSAPP_FROM` sur Railway DOIT être `whatsapp:+212768782598` (à vérifier manuellement dans Railway dashboard)
+- Message de bienvenue en français uniquement (pas multilingue) — c'est intentionnel car la langue n'est pas encore connue
+
+### À retenir pour la prochaine session
+- Vérifier Railway env var `TWILIO_WHATSAPP_FROM=whatsapp:+212768782598` (action manuelle utilisateur)
+- Le message de bienvenue est fire-and-forget : si Twilio échoue, l'erreur est loggée `[welcome]` mais n'interrompt pas l'onboarding
+- `public/site/cgu-translations.js` et `tests/interactive.test.js` sont non-commités (untracked) — à inclure dans un prochain commit si nécessaire
+
+---
+
 ## [2026-04-26] — Architecture URL-button : Explorer ouvre des pages web + endpoint /api/ask
 
 ### Résumé

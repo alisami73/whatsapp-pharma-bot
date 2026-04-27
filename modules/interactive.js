@@ -82,61 +82,65 @@ function buildCguUrl(lang = 'fr') {
   }
 }
 
-function buildLanguageCardSpecs() {
-  return [
-    {
-      id: 'lang_ar',
-      title: '🇲🇦 العربية',
-      body: 'تحدث مع Blink باللغة التي تفضلها',
-      cta: 'اختر',
-      media: buildAbsoluteUrl('public/onboarding/language-ar.png'),
-    },
-    {
-      id: 'lang_fr',
-      title: '🇫🇷 Français',
-      body: 'Discutez avec Blink dans la langue que vous préférez',
-      cta: 'Choisir',
-      media: buildAbsoluteUrl('public/onboarding/language-fr.png'),
-    },
-    {
-      id: 'lang_es',
-      title: '🇪🇸 Español',
-      body: 'Habla con Blink en el idioma que prefieras',
-      cta: 'Elegir',
-      media: buildAbsoluteUrl('public/onboarding/language-es.png'),
-    },
-    {
-      id: 'lang_ru',
-      title: '🇷🇺 Русский',
-      body: 'Общайтесь с Blink на языке, который вы предпочитаете',
-      cta: 'Выбрать',
-      media: buildAbsoluteUrl('public/onboarding/language-ru.png'),
-    },
-  ];
-}
+const CONSENT_CAROUSEL_LANGS = [
+  {
+    lang: 'ar',
+    title: '🇲🇦 العربية',
+    accept: 'أوافق',
+    decline: 'أرفض',
+    cgu: 'قراءة الشروط',
+    media: 'public/onboarding/language-ar.png',
+  },
+  {
+    lang: 'fr',
+    title: '🇫🇷 Français',
+    accept: "J'accepte",
+    decline: 'Je refuse',
+    cgu: 'Voir CGU',
+    media: 'public/onboarding/language-fr.png',
+  },
+  {
+    lang: 'es',
+    title: '🇪🇸 Español',
+    accept: 'Acepto',
+    decline: 'Rechazo',
+    cgu: 'Ver CGU',
+    media: 'public/onboarding/language-es.png',
+  },
+  {
+    lang: 'ru',
+    title: '🇷🇺 Русский',
+    accept: 'Принимаю',
+    decline: 'Отказываюсь',
+    cgu: 'Читать условия',
+    media: 'public/onboarding/language-ru.png',
+  },
+];
 
-function buildLanguageSpec() {
+function buildConsentCarouselSpec() {
   return {
-    friendlyName: 'blink_language_v3',
+    friendlyName: 'blink_consent_carousel_v1',
     language: 'fr',
     types: {
       'twilio/carousel': {
         body: t('language_body', 'fr'),
-        cards: buildLanguageCardSpecs().map((card) => ({
-          title: card.title,
-          body: card.body,
-          media: card.media,
+        cards: CONSENT_CAROUSEL_LANGS.map((cfg) => ({
+          title: cfg.title,
+          body: t('cgu_card_body', cfg.lang),
+          media: buildAbsoluteUrl(cfg.media),
           actions: [
-            {
-              type: 'QUICK_REPLY',
-              title: card.cta.slice(0, 25),
-              id: card.id,
-            },
+            { type: 'QUICK_REPLY', title: cfg.accept.slice(0, 25), id: `consent_${cfg.lang}_accept` },
+            { type: 'QUICK_REPLY', title: cfg.decline.slice(0, 25), id: 'consent_decline' },
+            { type: 'URL', title: cfg.cgu.slice(0, 25), url: buildCguUrl(cfg.lang) },
           ],
         })),
       },
     },
   };
+}
+
+function buildLanguageSpec() {
+  return buildConsentCarouselSpec();
 }
 
 function buildConsentSpec(lang) {
@@ -279,13 +283,19 @@ async function sendInteractive(to, contentSid) {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Écran 1 — Sélection de la langue (identique pour tous).
+ * Écran 1+2 fusionnés — Carousel consent + sélection de langue en une étape.
+ * Chaque carte = une langue + texte consentement + boutons Accept/Decline/CGU.
  */
-async function sendLanguageScreen(to) {
+async function sendConsentCarouselScreen(to) {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('language_v3', buildLanguageSpec);
+  const sid = await resolveTemplate('consent_carousel_v1', buildConsentCarouselSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
+}
+
+/** Alias — conservé pour les appels existants dans index.js. */
+async function sendLanguageScreen(to) {
+  return sendConsentCarouselScreen(to);
 }
 
 /**
@@ -328,6 +338,8 @@ module.exports = {
   buildCguUrl,
   buildConsentSpec,
   buildLanguageSpec,
+  buildConsentCarouselSpec,
+  sendConsentCarouselScreen,
   sendLanguageScreen,
   sendConsentScreen,
   sendRoleScreen,
