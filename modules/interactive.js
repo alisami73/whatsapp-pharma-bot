@@ -119,7 +119,7 @@ const CONSENT_CAROUSEL_LANGS = [
 
 function buildConsentCarouselSpec() {
   return {
-    friendlyName: 'blink_consent_carousel_v1',
+    friendlyName: 'blink_consent_carousel_v2',
     language: 'fr',
     types: {
       'twilio/carousel': {
@@ -131,7 +131,6 @@ function buildConsentCarouselSpec() {
           actions: [
             { type: 'QUICK_REPLY', title: cfg.accept.slice(0, 25), id: `consent_${cfg.lang}_accept` },
             { type: 'QUICK_REPLY', title: cfg.decline.slice(0, 25), id: 'consent_decline' },
-            { type: 'URL', title: cfg.cgu.slice(0, 25), url: buildCguUrl(cfg.lang) },
           ],
         })),
       },
@@ -288,7 +287,7 @@ async function sendInteractive(to, contentSid) {
  */
 async function sendConsentCarouselScreen(to) {
   if (!isInteractiveEnabled()) return null;
-  const sid = await resolveTemplate('consent_carousel_v1', buildConsentCarouselSpec);
+  const sid = await resolveTemplate('consent_carousel_v2', buildConsentCarouselSpec);
   if (!sid) return null;
   return sendInteractive(to, sid);
 }
