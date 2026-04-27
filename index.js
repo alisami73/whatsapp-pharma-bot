@@ -1233,46 +1233,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
-    // ── Consent carousel : consent_{lang}_accept / consent_decline ─────────────
-    // Payloads émis par le nouveau carousel fusionné langue+consentement.
-    const consentAcceptMatch = /^consent_(fr|ar|es|ru)_accept$/.exec(controlValue);
-    const isConsentCarouselDecline = controlValue === 'consent_decline';
-
-    if (consentAcceptMatch || isConsentCarouselDecline) {
-      if (isConsentCarouselDecline) {
-        await storage.refuseConsent(context.phone);
-        await storage.resetUser(context.phone);
-        console.log(`[state] ${context.phone} → CGU refusée (consent carousel)`);
-        response.message(t('cgu_declined', 'fr'));
-        res.type('text/xml').send(response.toString());
-        return;
-      }
-
-      const chosenLang = consentAcceptMatch[1];
-      user = await storage.saveUser({ ...user, user_language: chosenLang, current_state: STATES.MAIN_MENU });
-      const alreadyConsented = await storage.hasConsent(context.phone);
-      if (!alreadyConsented) {
-        await storage.grantConsentWithMeta(context.phone, {
-          version: consent.CONSENT_CURRENT_VERSION,
-          textSnapshot: consent.getConsentTextSnapshot(consent.CONSENT_CURRENT_VERSION),
-          source: 'consent_carousel',
-          lang: chosenLang,
-        });
-      }
-      const pharmacistRecord = (await storage.getPharmacist(context.phone)) || { phone: context.phone };
-      await storage.savePharmacist({ ...pharmacistRecord, onboarding_completed: true });
-      console.log(`[state] ${context.phone} → BROWSING_EXPLORER_CAROUSEL (consent carousel, lang: ${chosenLang})`);
-      const completionMsg = t('onboarding_complete', chosenLang);
-      const sentExplorer = await tryRespondWithMainMenuInteractive(context.phone, res, user, completionMsg);
-      if (!sentExplorer) {
-        const activeThemes = (await storage.getThemes()).filter((th) => th.active);
-        response.message(`${completionMsg}\n\n${buildMainMenu(activeThemes)}`);
-        res.type('text/xml').send(response.toString());
-      }
-      return;
-    }
-
-    // ── ÉCRAN 1 : Carousel consent+langue (affiché si pas encore de langue) ────
+    // ── ÉCRAN 1 : Sélection de langue ───────────────────────────────────────────
+    // Déclenché si l'utilisateur n'a pas encore de langue enregistrée.
     // Safety: if language was lost (storage corruption on restart) but user has a real state, restore to French silently.
     if (!user.user_language && user.current_state &&
         user.current_state !== STATES.AWAITING_LANGUAGE && user.current_state !== STATES.AWAITING_CONSENT) {
@@ -1280,10 +1242,10 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       console.warn(`[state] ${context.phone} — langue perdue, restaurée à 'fr' (state: ${user.current_state})`);
     }
     if (!user.user_language || user.current_state === STATES.AWAITING_LANGUAGE) {
-      // Legacy lang_* payloads (text fallback / old cached templates)
       const chosenLang = parseLang(controlValue);
 
       if (chosenLang) {
+        // Save language; if already consented go straight to main menu (no re-CGU, no re-role)
         const alreadyConsented = await storage.hasConsent(context.phone);
         user = await storage.saveUser({
           ...user,
@@ -1301,7 +1263,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
           return;
         }
 
-        console.log(`[state] ${context.phone} → AWAITING_CONSENT (langue: ${chosenLang}, legacy flow)`);
+        console.log(`[state] ${context.phone} → AWAITING_CONSENT (langue: ${chosenLang})`);
+        // Nouvel utilisateur → envoyer le consentement dans la langue choisie
         try {
           const consentResult = await interactive.sendConsentScreen(context.phone, chosenLang);
           if (consentResult) {
@@ -1318,29 +1281,31 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         } catch (err) {
           console.error('[interactive] sendConsentScreen failed:', err.message);
         }
+        // Fallback texte
         response.message(t('cgu_body', chosenLang));
         res.type('text/xml').send(response.toString());
         return;
       }
 
-      // Pas de payload reconnu → afficher le carousel consent+langue
-      console.log(`[state] ${context.phone} → sendConsentCarouselScreen`);
+      // Pas de langue reconnue → afficher l'écran de sélection
+      console.log(`[state] ${context.phone} → sendLanguageScreen`);
       try {
-        const carouselResult = await interactive.sendConsentCarouselScreen(context.phone);
-        if (carouselResult) {
+        const langResult = await interactive.sendLanguageScreen(context.phone);
+        if (langResult) {
           await storage.appendMessageLog({
             direction: 'outbound', phone: context.phone,
-            body: '[interactive:consent_carousel]',
-            status: carouselResult.status || 'queued',
-            provider_message_sid: carouselResult.sid,
-            metadata: { source: 'interactive_consent_carousel' },
+            body: '[interactive:language_carousel]',
+            status: langResult.status || 'queued',
+            provider_message_sid: langResult.sid,
+            metadata: { source: 'interactive_language' },
           });
           res.type('text/xml').send(buildEmptyTwiml());
           return;
         }
       } catch (err) {
-        console.error('[interactive] sendConsentCarouselScreen failed:', err.message);
+        console.error('[interactive] sendLanguageScreen failed:', err.message);
       }
+      // Fallback texte multilingue
       response.message(t('language_body', 'fr'));
       res.type('text/xml').send(response.toString());
       return;
