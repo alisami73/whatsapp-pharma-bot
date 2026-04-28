@@ -117,7 +117,7 @@ function buildLanguageCardSpecs() {
 
 function buildLanguageSpec() {
   return {
-    friendlyName: 'blink_language_v3',
+    friendlyName: 'blink_language_v4',
     language: 'fr',
     types: {
       'twilio/carousel': {
@@ -293,8 +293,8 @@ async function sendLanguageScreen(to) {
     console.log('[interactive] sendLanguageScreen: INTERACTIVE_MESSAGES_ENABLED is off — text fallback');
     return null;
   }
-  console.log(`[interactive] sendLanguageScreen → resolveTemplate language_v3 for ${to}`);
-  const sid = await resolveTemplate('language_v3', buildLanguageSpec);
+  console.log(`[interactive] sendLanguageScreen → resolveTemplate language_v4 for ${to}`);
+  const sid = await resolveTemplate('language_v4', buildLanguageSpec);
   if (!sid) {
     console.warn('[interactive] sendLanguageScreen: no SID — text fallback');
     return null;
