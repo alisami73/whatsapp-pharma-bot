@@ -226,9 +226,37 @@ async function resolveTemplate(cacheKey, buildSpec) {
   const client = twilioService.getTwilioClient();
   const spec = buildSpec();
 
-  // Tentative 1 : créer
+  // Tentative 1 : créer via REST direct (le SDK Node ne transmet pas friendly_name correctement)
   try {
-    const created = await client.content.v1.contents.create(spec);
+    const https = require('https');
+    const config = twilioService.getTwilioConfig();
+    const body = JSON.stringify({
+      friendly_name: spec.friendlyName,
+      language: spec.language,
+      types: spec.types,
+    });
+    const created = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: 'content.twilio.com',
+        path: '/v1/Content',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+          'Authorization': 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64'),
+        },
+      }, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          const parsed = JSON.parse(data);
+          if (parsed.sid) resolve(parsed); else reject(new Error(parsed.message || JSON.stringify(parsed)));
+        });
+      });
+      req.on('error', reject);
+      req.write(body);
+      req.end();
+    });
     cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
     writeCache(cache);
     console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
