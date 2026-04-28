@@ -1,11 +1,14 @@
 'use strict';
 
+const http = require('http');
+const https = require('https');
 const nodemailer = require('nodemailer');
 
 const { DEFAULT_LANG, parseLang } = require('./i18n');
 
 const DEFAULT_CONTACT_EMAIL = 'contact@blinkpharma.ma';
 const EMAIL_SUBJECT_PREFIX = 'Nouvelle demande de demo Blink Premium';
+const DEFAULT_DELIVERY_TIMEOUT_MS = 15000;
 
 let cachedTransport = null;
 let cachedTransportKey = null;
@@ -42,6 +45,29 @@ function normalizeLang(value) {
   return parseLang(value) || DEFAULT_LANG;
 }
 
+function parsePositiveInteger(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : fallback;
+}
+
+function normalizeContactEmailProvider(value) {
+  const normalized = sanitizeSingleLine(value, 32).toLowerCase();
+  if (!normalized) return '';
+  if (['graph', 'microsoft-graph', 'microsoft_graph', 'msgraph'].includes(normalized)) {
+    return 'msgraph';
+  }
+  return 'smtp';
+}
+
+function extractEmailAddress(value) {
+  const normalized = sanitizeSingleLine(value, 320);
+  const bracketMatch = normalized.match(/<([^<>\s@]+@[^<>\s@]+)>/);
+  if (bracketMatch) return bracketMatch[1].trim().toLowerCase();
+
+  const inlineMatch = normalized.match(/\b[^<>\s@]+@[^<>\s@]+\b/);
+  return inlineMatch ? inlineMatch[0].trim().toLowerCase() : '';
+}
+
 function normalizeContactLead(payload = {}) {
   return {
     nom: sanitizeSingleLine(payload.nom, 120),
@@ -74,6 +100,9 @@ function validateContactLead(lead) {
 }
 
 function getContactEmailConfig(env = process.env) {
+  const requestedProvider = normalizeContactEmailProvider(
+    env.CONTACT_EMAIL_PROVIDER || env.CONTACT_MAIL_PROVIDER,
+  );
   const smtpUrl = sanitizeSingleLine(env.CONTACT_SMTP_URL || env.SMTP_URL, 500);
   const host = sanitizeSingleLine(env.CONTACT_SMTP_HOST || env.SMTP_HOST, 200);
   const port = Number(env.CONTACT_SMTP_PORT || env.SMTP_PORT || 0);
@@ -89,8 +118,30 @@ function getContactEmailConfig(env = process.env) {
     sanitizeSingleLine(env.CONTACT_FORM_FROM, 200) ||
     sanitizeSingleLine(user, 200) ||
     DEFAULT_CONTACT_EMAIL;
+  const smtpTimeoutMs = parsePositiveInteger(
+    env.CONTACT_SMTP_TIMEOUT_MS,
+    DEFAULT_DELIVERY_TIMEOUT_MS,
+  );
+  const graphTenantId = sanitizeSingleLine(env.CONTACT_GRAPH_TENANT_ID, 200);
+  const graphClientId = sanitizeSingleLine(env.CONTACT_GRAPH_CLIENT_ID, 200);
+  const graphClientSecret = String(env.CONTACT_GRAPH_CLIENT_SECRET || '');
+  const graphUser =
+    sanitizeSingleLine(env.CONTACT_GRAPH_USER || env.CONTACT_GRAPH_MAILBOX, 200) ||
+    extractEmailAddress(from) ||
+    sanitizeSingleLine(user, 200) ||
+    to;
+  const graphTimeoutMs = parsePositiveInteger(
+    env.CONTACT_GRAPH_TIMEOUT_MS,
+    DEFAULT_DELIVERY_TIMEOUT_MS,
+  );
+  const graphConfigured = Boolean(
+    graphTenantId && graphClientId && graphClientSecret && graphUser,
+  );
+  const provider = requestedProvider || (graphConfigured ? 'msgraph' : 'smtp');
+  const smtpConfigured = Boolean(smtpUrl || (host && port));
 
   return {
+    provider,
     smtpUrl,
     host,
     port,
@@ -100,11 +151,23 @@ function getContactEmailConfig(env = process.env) {
     pass,
     to,
     from,
-    isConfigured: Boolean(smtpUrl || (host && port)),
+    smtpTimeoutMs,
+    graphTenantId,
+    graphClientId,
+    graphClientSecret,
+    graphUser,
+    graphTimeoutMs,
+    isConfigured: provider === 'msgraph' ? graphConfigured : smtpConfigured,
   };
 }
 
 function createTransport(config = getContactEmailConfig()) {
+  if (config.provider === 'msgraph') {
+    const error = new Error('SMTP transport requested while Microsoft Graph provider is active');
+    error.code = 'CONTACT_SMTP_NOT_ACTIVE';
+    throw error;
+  }
+
   if (!config.isConfigured) {
     const error = new Error('Contact email transport is not configured');
     error.code = 'CONTACT_EMAIL_NOT_CONFIGURED';
@@ -136,12 +199,18 @@ function createTransport(config = getContactEmailConfig()) {
       ? {
           url: config.smtpUrl,
           requireTLS: config.requireTLS,
+          connectionTimeout: config.smtpTimeoutMs,
+          greetingTimeout: config.smtpTimeoutMs,
+          socketTimeout: config.smtpTimeoutMs,
         }
       : {
           host: config.host,
           port: config.port,
           secure: config.secure,
           requireTLS: config.requireTLS,
+          connectionTimeout: config.smtpTimeoutMs,
+          greetingTimeout: config.smtpTimeoutMs,
+          socketTimeout: config.smtpTimeoutMs,
           auth: config.user || config.pass ? { user: config.user, pass: config.pass } : undefined,
         },
   );
@@ -229,10 +298,177 @@ function buildContactLeadMail(lead, meta = {}, config = getContactEmailConfig())
   };
 }
 
+function httpRequest(url, requestOptions = {}) {
+  return new Promise((resolve, reject) => {
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      const error = new Error(`Invalid URL: ${url}`);
+      error.code = 'CONTACT_HTTP_INVALID_URL';
+      reject(error);
+      return;
+    }
+
+    const lib = parsedUrl.protocol === 'https:' ? https : http;
+    const body =
+      typeof requestOptions.body === 'string' || Buffer.isBuffer(requestOptions.body)
+        ? requestOptions.body
+        : requestOptions.body == null
+          ? null
+          : JSON.stringify(requestOptions.body);
+    const headers = Object.assign(
+      {
+        Accept: 'application/json',
+        'User-Agent': 'whatsapp-pharma-bot/1.0',
+      },
+      requestOptions.headers || {},
+    );
+
+    if (body != null && headers['Content-Length'] == null && headers['content-length'] == null) {
+      headers['Content-Length'] = Buffer.byteLength(body);
+    }
+
+    const req = lib.request(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: `${parsedUrl.pathname}${parsedUrl.search}`,
+        method: requestOptions.method || 'GET',
+        headers,
+      },
+      (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8');
+          let data = null;
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch {
+            data = null;
+          }
+
+          resolve({
+            status: res.statusCode || 0,
+            headers: res.headers,
+            text,
+            data,
+          });
+        });
+      },
+    );
+
+    req.on('error', reject);
+    req.setTimeout(
+      parsePositiveInteger(requestOptions.timeoutMs, DEFAULT_DELIVERY_TIMEOUT_MS),
+      () => {
+        const error = new Error(requestOptions.timeoutMessage || 'Contact HTTP request timeout');
+        error.code = requestOptions.timeoutCode || 'CONTACT_HTTP_TIMEOUT';
+        req.destroy(error);
+      },
+    );
+
+    if (body != null) req.write(body);
+    req.end();
+  });
+}
+
+function buildMicrosoftGraphMessage(mail) {
+  const recipients = String(mail.to || '')
+    .split(/[;,]/)
+    .map((value) => extractEmailAddress(value) || sanitizeSingleLine(value, 200))
+    .filter(Boolean);
+
+  return {
+    message: {
+      subject: mail.subject,
+      body: {
+        contentType: 'HTML',
+        content: mail.html,
+      },
+      toRecipients: recipients.map((address) => ({
+        emailAddress: { address },
+      })),
+    },
+    saveToSentItems: true,
+  };
+}
+
+async function getMicrosoftGraphAccessToken(config) {
+  if (!config.graphTenantId || !config.graphClientId || !config.graphClientSecret || !config.graphUser) {
+    const error = new Error('Microsoft Graph contact email configuration is incomplete');
+    error.code = 'CONTACT_GRAPH_NOT_CONFIGURED';
+    throw error;
+  }
+
+  const response = await httpRequest(
+    `https://login.microsoftonline.com/${encodeURIComponent(config.graphTenantId)}/oauth2/v2.0/token`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: config.graphClientId,
+        client_secret: config.graphClientSecret,
+        grant_type: 'client_credentials',
+        scope: 'https://graph.microsoft.com/.default',
+      }).toString(),
+      timeoutMs: config.graphTimeoutMs,
+      timeoutCode: 'CONTACT_GRAPH_TOKEN_TIMEOUT',
+      timeoutMessage: 'Microsoft Graph token request timed out',
+    },
+  );
+
+  if (response.status !== 200 || !response.data || !response.data.access_token) {
+    const error = new Error(`Microsoft Graph token request failed with HTTP ${response.status}`);
+    error.code = 'CONTACT_GRAPH_TOKEN_FAILED';
+    error.status = response.status;
+    error.responseBody = response.text.slice(0, 500);
+    throw error;
+  }
+
+  return response.data.access_token;
+}
+
+async function sendContactLeadViaMicrosoftGraph(mail, config) {
+  const accessToken = await getMicrosoftGraphAccessToken(config);
+  const response = await httpRequest(
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(config.graphUser)}/sendMail`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: buildMicrosoftGraphMessage(mail),
+      timeoutMs: config.graphTimeoutMs,
+      timeoutCode: 'CONTACT_GRAPH_SEND_TIMEOUT',
+      timeoutMessage: 'Microsoft Graph sendMail request timed out',
+    },
+  );
+
+  if (response.status !== 202) {
+    const error = new Error(`Microsoft Graph sendMail failed with HTTP ${response.status}`);
+    error.code = 'CONTACT_GRAPH_SEND_FAILED';
+    error.status = response.status;
+    error.responseBody = response.text.slice(0, 500);
+    throw error;
+  }
+
+  return { accepted: true, provider: 'msgraph' };
+}
+
 async function sendContactLead(lead, meta = {}, env = process.env) {
   const config = getContactEmailConfig(env);
-  const transport = createTransport(config);
   const mail = buildContactLeadMail(lead, meta, config);
+
+  if (config.provider === 'msgraph') {
+    return sendContactLeadViaMicrosoftGraph(mail, config);
+  }
+
+  const transport = createTransport(config);
   return transport.sendMail(mail);
 }
 
@@ -240,14 +476,17 @@ function isContactEmailConfigError(error) {
   return Boolean(
     error &&
       (error.code === 'CONTACT_EMAIL_NOT_CONFIGURED' ||
-        error.code === 'CONTACT_EMAIL_AUTH_INCOMPLETE'),
+        error.code === 'CONTACT_EMAIL_AUTH_INCOMPLETE' ||
+        error.code === 'CONTACT_GRAPH_NOT_CONFIGURED'),
   );
 }
 
 module.exports = {
   DEFAULT_CONTACT_EMAIL,
   buildContactLeadMail,
+  buildMicrosoftGraphMessage,
   createTransport,
+  extractEmailAddress,
   getContactEmailConfig,
   isContactEmailConfigError,
   normalizeContactLead,

@@ -86,6 +86,66 @@ test('contact email config supports Microsoft 365 STARTTLS settings', () => {
   assert.equal(config.to, 'contact@blinkpharma.ma');
 });
 
+test('contact email config auto-selects Microsoft Graph when configured', () => {
+  const config = contactLeads.getContactEmailConfig({
+    CONTACT_FORM_TO: 'contact@blinkpharma.ma',
+    CONTACT_FORM_FROM: 'Blink Pharma <contact@blinkpharma.ma>',
+    CONTACT_GRAPH_TENANT_ID: 'tenant-123',
+    CONTACT_GRAPH_CLIENT_ID: 'client-123',
+    CONTACT_GRAPH_CLIENT_SECRET: 'secret-123',
+  });
+
+  assert.equal(config.provider, 'msgraph');
+  assert.equal(config.graphTenantId, 'tenant-123');
+  assert.equal(config.graphClientId, 'client-123');
+  assert.equal(config.graphClientSecret, 'secret-123');
+  assert.equal(config.graphUser, 'contact@blinkpharma.ma');
+  assert.equal(config.isConfigured, true);
+});
+
+test('contact lead Microsoft Graph payload preserves subject, HTML body, and recipients', () => {
+  const config = contactLeads.getContactEmailConfig({
+    CONTACT_EMAIL_PROVIDER: 'msgraph',
+    CONTACT_FORM_TO: 'contact@blinkpharma.ma',
+    CONTACT_FORM_FROM: 'Blink Pharma <contact@blinkpharma.ma>',
+    CONTACT_GRAPH_TENANT_ID: 'tenant-123',
+    CONTACT_GRAPH_CLIENT_ID: 'client-123',
+    CONTACT_GRAPH_CLIENT_SECRET: 'secret-123',
+    CONTACT_GRAPH_USER: 'contact@blinkpharma.ma',
+  });
+
+  const mail = contactLeads.buildContactLeadMail(
+    {
+      nom: 'Dr Ahmed Benali',
+      pharmacie: 'Pharmacie Al Amal',
+      telephone: '+212661095271',
+      ville: 'Casablanca',
+      logiciel: 'pharmawin',
+      message: 'Merci de me rappeler demain matin.',
+      lang: 'fr',
+      sourcePage: '/site/contact.html',
+    },
+    {
+      ip: '203.0.113.10',
+      referer: 'https://whatsapp-pharma-bot-production.up.railway.app/site/contact.html',
+      userAgent: 'Mozilla/5.0',
+      submittedAt: '2026-04-28T10:05:00.000Z',
+    },
+    config,
+  );
+
+  const graphPayload = contactLeads.buildMicrosoftGraphMessage(mail);
+
+  assert.equal(graphPayload.message.subject, mail.subject);
+  assert.equal(
+    graphPayload.message.toRecipients[0].emailAddress.address,
+    'contact@blinkpharma.ma',
+  );
+  assert.equal(graphPayload.message.body.contentType, 'HTML');
+  assert.match(graphPayload.message.body.content, /Pharmacie Al Amal/);
+  assert.equal(graphPayload.saveToSentItems, true);
+});
+
 test('incomplete SMTP auth is treated as a configuration error', () => {
   assert.throws(
     () =>
