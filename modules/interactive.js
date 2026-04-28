@@ -301,7 +301,7 @@ async function sendLanguageScreen(to) {
   }
   console.log(`[interactive] sendLanguageScreen → sendInteractive sid=${sid}`);
   const result = await sendInteractive(to, sid);
-  console.log(`[interactive] sendLanguageScreen → sent ok, status=${result && result.status}`);
+  console.log(`[interactive] sendLanguageScreen → sent ok, sid=${result && result.sid}, status=${result && result.status}`);
   return result;
 }
 
