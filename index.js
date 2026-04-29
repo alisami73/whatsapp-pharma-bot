@@ -17,6 +17,7 @@ const cnss = require('./modules/cnss');
 const onboardingFlow = require('./modules/onboarding_flow');
 const interactive = require('./modules/interactive');
 const contactLeads = require('./modules/contact_leads');
+const sav = require('./modules/sav');
 const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
@@ -896,6 +897,7 @@ async function handleFreeQuestion(response, user, theme, incomingMessage) {
   if (usesDocumentKnowledge(theme)) {
     const answer = await cnss.answerQuestion(incomingMessage, theme.id);
     await setCnssQuestionState(user, theme.id);
+    storage.appendRefOpposable({ phone: user.phone, theme_id: theme.id, module_type: theme.module_type || 'cnss', question: incomingMessage, answer }).catch(() => {});
     response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
     return;
   }
@@ -1103,11 +1105,53 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       return;
     }
 
+    // ── Flux SAV / Contact web — email + accusé, puis comportement selon l'origine ─
+    // "sav"         → dead-end : ack TwiML + return (jamais d'IA ni d'onboarding)
+    // "web_contact" → email fire-and-forget + ack outbound, puis onboarding normal
+    //                 (langue → consentement → carousel 5 cartes)
+    const savSourceType = sav.isSavMessage(context.message)
+      ? sav.detectSavSource(context.message)
+      : null;
+
+    if (savSourceType) {
+      const profileName = String(req.body.ProfileName || '').trim();
+      console.info('[sav] demande reçue', JSON.stringify({
+        event: 'sav.request.received',
+        sourceType: savSourceType,
+        from: context.phone,
+        profileName: profileName || null,
+        bodyPreview: context.message.slice(0, 120),
+        receivedAt: new Date().toISOString(),
+      }));
+
+      sav.sendSavEmail(context.phone, profileName, context.message).then(() => {
+        console.info('[sav] email transmis à contact@blinkpharma.ma', { from: context.phone, sourceType: savSourceType });
+      }).catch((err) => {
+        console.error('[sav] échec envoi email', { from: context.phone, sourceType: savSourceType, error: err.message });
+      });
+
+      if (savSourceType === 'sav') {
+        // SAV pur : accusé immédiat, pas de suite chatbot
+        response.message(sav.SAV_ACK_MESSAGE);
+        res.type('text/xml').send(response.toString());
+        return;
+      }
+
+      // web_contact : accusé outbound fire-and-forget, puis l'onboarding prend le relais
+      twilioService.sendWhatsAppMessage({
+        to: context.phone,
+        body: sav.WEB_CONTACT_ACK_MESSAGE,
+      }).catch((err) => console.error('[sav] échec ack web_contact', { error: err.message }));
+      console.info('[sav] web_contact → onboarding (langue → consentement → carousel)');
+      // Pas de return — tombe dans l'onboarding ci-dessous
+    }
+
     const isFirstContact = !(await storage.getUser(context.phone));
     let user = await ensureUser(context.phone);
 
-    // ── Welcome message — sent once on very first contact ───────────────────────
-    if (isFirstContact) {
+    // ── Welcome message — envoyé une seule fois au premier contact hors flux web_contact ─
+    // Pour web_contact, l'accusé SAV remplace ce message de bienvenue.
+    if (isFirstContact && !savSourceType) {
       const _wCfg = twilioService.getTwilioConfig();
       const _wClient = twilioService.getTwilioClient();
       const _wPayload = {
@@ -1627,6 +1671,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     // ── Module CNSS (conversationnel avec footer) ─────────────────────────
     if (user.current_state === STATES.AWAITING_CNSS_QUESTION && currentTheme) {
       const answer = await cnss.answerQuestion(context.message, currentTheme.id, lang);
+      storage.appendRefOpposable({ phone: context.phone, theme_id: currentTheme.id, module_type: currentTheme.module_type || 'cnss', question: context.message, answer }).catch(() => {});
       const footerResult = await sendAIResponseWithFooter(context.phone, lang, answer);
       if (footerResult) {
         res.type('text/xml').send(buildEmptyTwiml());
@@ -1690,6 +1735,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (currentTheme && usesDocumentKnowledge(currentTheme)) {
       await setCnssQuestionState(user, currentTheme.id);
       const answer = await cnss.answerQuestion(context.message, currentTheme.id);
+      storage.appendRefOpposable({ phone: context.phone, theme_id: currentTheme.id, module_type: currentTheme.module_type || 'cnss', question: context.message, answer }).catch(() => {});
       response.message(answer + '\n\nEnvoyez RETOUR pour revenir au menu.');
       res.type('text/xml').send(response.toString());
       return;
