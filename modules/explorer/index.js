@@ -6,14 +6,20 @@
  * Explorer carousel — menu principal 5 rubriques.
  *
  * Architecture: chaque carte ouvre une page web dans le viewer WhatsApp (bouton URL).
- * Plus de QUICK_REPLY — toute l'interaction se passe dans le navigateur in-app.
+ * Toute l'interaction se passe dans le navigateur in-app.
  *
  * Rubriques :
  *   💎 Blink Premium       → /site/
  *   🔔 Actualités Pharma   → /site/actu.html
- *   📋 FSE CNSS            → /site/fse.html     (Q&A IA dans le navigateur)
- *   ⚖️ Conformité Pharma   → /site/conformite.html (Q&A IA dans le navigateur)
- *   💊 MedIndex            → https://medindex.ma
+ *   📋 FSE CNSS            → /site/fse.html
+ *   ⚖️ Conformité Pharma   → /site/conformite.html
+ *   💊 MedIndex            → /go/medindex  (relay → https://medindex.ma)
+ *
+ * MedIndex uses a relay URL (/go/medindex) so the template always holds a
+ * valid HTTPS URL on our domain.  The v2 SIDs had a bare "medindex://" URL
+ * baked in — those are retired.  v3 SIDs are created on first use via the
+ * Twilio Content API and cached in data/interactive_templates.json; they
+ * require Meta approval before reaching live WhatsApp accounts.
  */
 
 const twilioService = require('../../twilio_service');
@@ -31,28 +37,28 @@ const CARD_CONTENT = {
     { title: '🔔 Actualités Pharma', body: 'Nouveautés, rappels de lots & mises à jour du marché pharma marocain',    btn: 'Consulter',        url: () => `${baseUrl()}/site/actu.html` },
     { title: '📋 FSE CNSS',          body: 'Tout sur la Feuille de Soins Électronique — posez votre question à l\'IA', btn: 'Poser une question', url: () => `${baseUrl()}/site/fse.html` },
     { title: '⚖️ Conformité Pharma', body: 'Inspections DMP, stupéfiants, CNDP, Loi 17-04 — réponses instantanées',  btn: 'Poser une question', url: () => `${baseUrl()}/site/conformite.html` },
-    { title: '💊 MedIndex',          body: 'Base médicaments marocains — nom commercial, DCI, dosage & interactions',  btn: 'Ouvrir MedIndex',   url: () => 'https://medindex.ma' },
+    { title: '💊 MedIndex',          body: 'Base médicaments marocains — nom commercial, DCI, dosage & interactions',  btn: 'Ouvrir MedIndex',   url: () => `${baseUrl()}/go/medindex` },
   ],
   ar: [
     { title: '💎 بلينك بريميوم',     body: 'برنامج إدارة الصيدليات N°1 في المغرب — عرض تجريبي وأسعار ومميزات',      btn: 'اكتشف',            url: () => `${baseUrl()}/site/?lang=ar` },
     { title: '🔔 أخبار الصيدلة',     body: 'المستجدات وسحب الدفعات وتحديثات سوق الأدوية المغربي',                   btn: 'استعرض',           url: () => `${baseUrl()}/site/actu.html?lang=ar` },
     { title: '📋 FSE CNSS',          body: 'كل شيء عن وصفة العلاج الإلكترونية — اطرح سؤالك على الذكاء الاصطناعي',   btn: 'اطرح سؤالاً',     url: () => `${baseUrl()}/site/fse.html?lang=ar` },
     { title: '⚖️ الامتثال الصيدلي', body: 'تفتيش DMP والمخدرات وCNDP والقانون 17-04 — إجابات فورية',              btn: 'اطرح سؤالاً',     url: () => `${baseUrl()}/site/conformite.html?lang=ar` },
-    { title: '💊 ميدإندكس',          body: 'قاعدة الأدوية المغربية — الاسم التجاري والجرعة والتفاعلات',               btn: 'فتح ميدإندكس',    url: () => 'https://medindex.ma' },
+    { title: '💊 ميدإندكس',          body: 'قاعدة الأدوية المغربية — الاسم التجاري والجرعة والتفاعلات',               btn: 'فتح ميدإندكس',    url: () => `${baseUrl()}/go/medindex` },
   ],
   es: [
     { title: '💎 Blink Premium',     body: 'Software N°1 gestión farmacia en Marruecos — demo, precios y funciones',  btn: 'Descubrir',        url: () => `${baseUrl()}/site/?lang=es` },
     { title: '🔔 Actualidades Pharma',body: 'Novedades, retiradas de lotes y actualizaciones del mercado farmacéutico', btn: 'Consultar',        url: () => `${baseUrl()}/site/actu.html?lang=es` },
     { title: '📋 FSE CNSS',          body: 'Todo sobre la Hoja de Cuidados Electrónica — pregúntele a la IA',         btn: 'Hacer una pregunta', url: () => `${baseUrl()}/site/fse.html?lang=es` },
     { title: '⚖️ Conformidad Pharma',body: 'Inspecciones DMP, estupefacientes, CNDP, Ley 17-04 — respuestas rápidas', btn: 'Hacer una pregunta', url: () => `${baseUrl()}/site/conformite.html?lang=es` },
-    { title: '💊 MedIndex',          body: 'Base medicamentos marroquíes — nombre comercial, DCI, dosis e interacciones', btn: 'Abrir MedIndex',   url: () => 'https://medindex.ma' },
+    { title: '💊 MedIndex',          body: 'Base medicamentos marroquíes — nombre comercial, DCI, dosis e interacciones', btn: 'Abrir MedIndex',   url: () => `${baseUrl()}/go/medindex` },
   ],
   ru: [
     { title: '💎 Blink Premium',     body: 'Программа №1 для аптек Марокко — демо, цены и функции',                  btn: 'Узнать',           url: () => `${baseUrl()}/site/?lang=ru` },
     { title: '🔔 Новости Pharma',    body: 'Новинки, отзывы партий и обновления фармацевтического рынка',             btn: 'Просмотреть',      url: () => `${baseUrl()}/site/actu.html?lang=ru` },
     { title: '📋 FSE CNSS',          body: 'Всё об электронном листе лечения — задайте вопрос ИИ',                    btn: 'Задать вопрос',    url: () => `${baseUrl()}/site/fse.html?lang=ru` },
     { title: '⚖️ Соответствие Pharma',body: 'Инспекции DMP, наркотики, CNDP, Закон 17-04 — мгновенные ответы',      btn: 'Задать вопрос',    url: () => `${baseUrl()}/site/conformite.html?lang=ru` },
-    { title: '💊 MedIndex',          body: 'База лекарств Марокко — торговое название, МНН, доза и взаимодействия',   btn: 'Открыть MedIndex', url: () => 'https://medindex.ma' },
+    { title: '💊 MedIndex',          body: 'База лекарств Марокко — торговое название, МНН, доза и взаимодействия',   btn: 'Открыть MedIndex', url: () => `${baseUrl()}/go/medindex` },
   ],
 };
 
@@ -71,12 +77,14 @@ const CAROUSEL_IMAGES = [
   'medindex.jpg',
 ];
 
-// ── Template spec builder (v2 — URL buttons) ──────────────────────────────────
-function buildExplorerV2Spec(lang) {
+// ── Template spec builder (v3 — URL buttons via relay URLs) ──────────────────
+// v2 SIDs are retired: they contained "medindex://" which Android cannot open.
+// v3 uses /go/medindex (HTTPS relay on our domain) for the MedIndex card.
+function buildExplorerV3Spec(lang) {
   const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
   const cards  = CARD_CONTENT[lcode];
   return {
-    friendlyName: `blink_explorer_v2_${lcode}`,
+    friendlyName: `blink_explorer_v3_${lcode}`,
     language: lcode,
     types: {
       'twilio/carousel': {
@@ -96,41 +104,29 @@ function buildExplorerV2Spec(lang) {
   };
 }
 
-// ── Approved SIDs ─────────────────────────────────────────────────────────────
-// v1 — QUICK_REPLY, approved 2026-04-26 (kept as fallback until v2 approved)
-const APPROVED_V1_SIDS = {
-  fr: 'HXd9eb17cff40280a0f7ad94978d2625ee',
-  ar: 'HX0f8860dfebafb971e29f12fb28a8ae2e',
-  es: 'HX72b8a6ba16a01b5056eb27c0323b2feb',
-  ru: 'HX80bc43cb8ec1cae4da7da24f0157fac2',
-};
-
-// v2 — URL buttons. ru rejected by Meta (Carousel + UTILITY not allowed for ru);
-// ru falls back to v1 (QUICK_REPLY carousel, already approved).
-const APPROVED_V2_SIDS = {
-  fr: 'HX40472f02cdbffc6e62b27830dd4fac77',
-  ar: 'HXd4680df211d0e60366edb12972e0bfb7',
-  es: 'HX797c30f7d5f63052bbb2e9de6a1250a1',
-  ru: null,
-};
-
 // ── Send carousel ─────────────────────────────────────────────────────────────
 async function sendExplorerCarousel(to, lang = 'fr') {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
   const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+  const cacheKey = `explorer_v3_${lcode}`;
 
-  // Use v2 (URL buttons) if approved, else fall back to v1
-  const sid = APPROVED_V2_SIDS[lcode] || APPROVED_V1_SIDS[lcode];
-
-  if (!sid) {
-    console.error(`[explorer] Aucun SID approuvé pour la langue ${lcode}`);
+  // Resolve SID via shared resolveTemplate (creates + caches; needs Meta approval before live use)
+  let sid;
+  try {
+    sid = await interactive.resolveTemplate(cacheKey, () => buildExplorerV3Spec(lcode));
+  } catch (err) {
+    console.error(`[explorer] resolveTemplate failed for ${cacheKey}: ${err.message}`);
     return null;
   }
 
-  const version = APPROVED_V2_SIDS[lcode] ? 'v2' : 'v1(fallback)';
-  console.log(`[explorer] Envoi carousel ${version} sid=${sid} to=${to}`);
+  if (!sid) {
+    console.error(`[explorer] Aucun SID disponible pour ${cacheKey}`);
+    return null;
+  }
+
+  console.log(`[explorer] Envoi carousel v3 sid=${sid} to=${to}`);
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
@@ -218,9 +214,7 @@ function isExplorerPayload(action) {
 
 module.exports = {
   CARD_CONTENT,
-  APPROVED_V1_SIDS,
-  APPROVED_V2_SIDS,
-  buildExplorerV2Spec,
+  buildExplorerV3Spec,
   sendExplorerCarousel,
   buildExplorerFallbackText,
   resolveExplorerPayload,

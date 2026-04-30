@@ -373,6 +373,7 @@ module.exports = {
   buildCguUrl,
   buildConsentSpec,
   buildLanguageSpec,
+  resolveTemplate,
   sendLanguageScreen,
   sendConsentScreen,
   sendRoleScreen,

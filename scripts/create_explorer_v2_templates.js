@@ -1,23 +1,20 @@
 'use strict';
 
 /**
- * scripts/create_explorer_v2_templates.js
+ * scripts/create_explorer_v2_templates.js  (now creates v3 templates)
  *
- * Creates the 4 Explorer v2 carousel templates (URL buttons) in Twilio.
+ * Creates the 4 Explorer v3 carousel templates (URL buttons with relay URLs) in Twilio.
  * Run once, then submit each template for Meta UTILITY approval via the Twilio Console.
- *
- * After approval, copy the SIDs into APPROVED_V2_SIDS in modules/explorer/index.js.
+ * The bot auto-creates and caches these on first use via resolveTemplate — this script
+ * is only needed to pre-create them or force a rebuild.
  *
  * Usage:
  *   node scripts/create_explorer_v2_templates.js [--dry-run]
- *
- * Note: uses raw HTTPS instead of the Twilio SDK because the SDK serializes
- * friendlyName incorrectly for carousel templates (camelCase vs snake_case JSON).
  */
 
 require('dotenv').config();
 const https = require('https');
-const { buildExplorerV2Spec } = require('../modules/explorer/index');
+const { buildExplorerV3Spec } = require('../modules/explorer/index');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -49,12 +46,11 @@ function api(method, path, body) {
 async function main() {
   console.log(`Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}\n`);
 
-  // Fetch existing templates to allow idempotent re-runs
   const listRes = await api('GET', '/v1/Content?PageSize=500', null);
   const existing = listRes.body.contents || [];
 
   for (const lang of ['fr', 'ar', 'es', 'ru']) {
-    const spec = buildExplorerV2Spec(lang);
+    const spec = buildExplorerV3Spec(lang);
     console.log(`\n── ${spec.friendlyName} ──────────────────────────`);
     console.log('Cards:');
     spec.types['twilio/carousel'].cards.forEach((c, i) => {
@@ -64,7 +60,6 @@ async function main() {
 
     if (DRY_RUN) { console.log('  [DRY RUN — skipped]'); continue; }
 
-    // Delete existing if present (idempotent re-run)
     const old = existing.find(t => t.friendly_name === spec.friendlyName);
     if (old) {
       await api('DELETE', `/v1/Content/${old.sid}`, null);
@@ -89,10 +84,9 @@ async function main() {
   }
 
   console.log('\n── NEXT STEPS ──────────────────────────────────────────');
-  console.log('1. In Twilio Console → Content Templates → submit each blink_explorer_v2_* for approval');
+  console.log('1. In Twilio Console → Content Templates → submit each blink_explorer_v3_* for approval');
   console.log('2. Category: UTILITY (service info, not promotional)');
-  console.log('3. Once approved, copy SIDs into APPROVED_V2_SIDS in modules/explorer/index.js');
-  console.log('4. Run: node scripts/cleanup_deprecated_templates.js --dry-run (then without --dry-run)');
+  console.log('3. The bot caches SIDs automatically — no code change needed after approval');
 }
 
 main().catch(err => { console.error('Fatal:', err.message); process.exit(1); });

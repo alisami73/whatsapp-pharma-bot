@@ -61,6 +61,10 @@ app.get('/site/data&cndp.html', (req, res) => {
 app.use('/site', express.static(require('path').join(__dirname, 'public', 'site')));
 app.use('/admin', adminRoutes);
 
+// MedIndex relay — WhatsApp URL-button cards must link to our domain;
+// this redirects to the real site so both iOS and Android work.
+app.get('/go/medindex', (_req, res) => res.redirect(302, 'https://medindex.ma'));
+
 // Public actus endpoint — no auth, only published items
 app.get('/api/actus', async (req, res) => {
   const fs = require('fs').promises;
