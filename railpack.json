@@ -1,3 +1,5 @@
 {
-  "provider": "node"
+  "provider": "node",
+  "buildCommand": "npm ci --omit=dev --prefer-offline --no-audit --no-fund",
+  "startCommand": "node index.js"
 }
