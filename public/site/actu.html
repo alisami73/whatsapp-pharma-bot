@@ -311,6 +311,27 @@
     .news-card.featured .news-card-footer .laboratoire strong { color: white; }
     .news-card.featured .news-card-footer .arrow { color: #FFC107; }
 
+    /* ─── COMING SOON BANNER ─── */
+    .coming-soon-banner {
+      margin: 1.25rem 1.25rem 0;
+      background: linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%);
+      border: 2px solid #FFC107;
+      border-radius: 18px;
+      padding: 1.25rem 1.125rem;
+      display: flex; align-items: flex-start; gap: 0.875rem;
+    }
+    .coming-soon-icon {
+      font-size: 1.75rem; flex-shrink: 0; line-height: 1;
+    }
+    .coming-soon-text strong {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem; font-weight: 900; color: #7B4F00;
+      display: block; margin-bottom: 3px;
+    }
+    .coming-soon-text p {
+      font-size: 0.8125rem; color: #92600A; line-height: 1.5; margin: 0;
+    }
+
     /* ─── BOTTOM CTA ─── */
     .bottom-banner {
       margin: 2rem 1.25rem 0;
@@ -381,7 +402,7 @@
     <header class="actu-hero">
       <div class="hero-bell">
         🔔
-        <span class="hero-bell-badge">12</span>
+        <span class="hero-bell-badge">0</span>
       </div>
       <h1>Actu<span class="accent">Médicaments</span></h1>
       <div class="hero-divider"></div>
@@ -405,6 +426,15 @@
         </div>
       </div>
     </header>
+
+    <!-- COMING SOON DISCLAIMER -->
+    <div class="coming-soon-banner">
+      <div class="coming-soon-icon">🚧</div>
+      <div class="coming-soon-text">
+        <strong>Arrive bientôt</strong>
+        <p>Cette section n'est pas encore fonctionnelle. Les données affichées sont des exemples fictifs et ne reflètent pas la réalité du marché.</p>
+      </div>
+    </div>
 
     <!-- FILTER PILLS -->
     <div class="filter-section">
@@ -434,53 +464,53 @@
   const NEWS = [
     {
       cat: 'rappel', urgent: true,
-      title: "Rappel de lot — Doliprane 1000mg cp séc.",
-      excerpt: "Lots 23K456 et 24A012 — défaut de conditionnement détecté. Retour pharmacie immédiat.",
-      lab: "Sanofi", date: "Il y a 2h", icon: "⚠️",
+      title: "Rappel de lot — Médicament Exemple 1000mg cp séc.",
+      excerpt: "Lots XXXXX — défaut de conditionnement détecté. Retour pharmacie immédiat. (Données fictives)",
+      lab: "Laboratoire A", date: "Il y a 2h", icon: "⚠️",
     },
     {
       cat: 'nouveau', featured: true,
-      title: "Nouveau — Eliquis® 2,5mg génériques disponibles",
-      excerpt: "Trois génériques de l'apixaban désormais commercialisés au Maroc. Prix indicatif : 145 DH.",
-      lab: "Cooper Pharma", date: "Aujourd'hui", icon: "💊",
+      title: "Nouveau — Exemple® 2,5mg génériques disponibles",
+      excerpt: "Génériques fictifs désormais commercialisés au Maroc. Prix indicatif : xxx DH. (Données fictives)",
+      lab: "Laboratoire B", date: "Aujourd'hui", icon: "💊",
     },
     {
       cat: 'rupture',
-      title: "Rupture — Ventoline® 100µg susp. p. inh.",
-      excerpt: "Tension d'approvisionnement signalée. Reprise prévue semaine du 11 mai.",
-      lab: "GSK", date: "Hier", icon: "📉",
+      title: "Rupture — Produit Exemple® 100µg susp. p. inh.",
+      excerpt: "Tension d'approvisionnement signalée. Reprise prévue prochainement. (Données fictives)",
+      lab: "Laboratoire C", date: "Hier", icon: "📉",
     },
     {
       cat: 'prix',
-      title: "Baisse de prix — Crestor® 20mg",
-      excerpt: "Nouveau prix public : 142 DH (au lieu de 168 DH). Application immédiate.",
-      lab: "AstraZeneca", date: "Hier", icon: "📊",
+      title: "Baisse de prix — Produit X® 20mg",
+      excerpt: "Nouveau prix public : xxx DH (au lieu de xxx DH). Application immédiate. (Données fictives)",
+      lab: "Laboratoire D", date: "Hier", icon: "📊",
       priceChange: { dir: 'down', value: '-15%' },
     },
     {
       cat: 'reprise',
-      title: "Reprise — Levothyrox® 100µg",
-      excerpt: "Stocks reconstitués chez les grossistes. Disponibilité normalisée à partir de demain.",
-      lab: "Merck", date: "Il y a 3j", icon: "✅",
+      title: "Reprise — Médicament Y® 100µg",
+      excerpt: "Stocks reconstitués chez les grossistes. Disponibilité normalisée à partir de demain. (Données fictives)",
+      lab: "Laboratoire E", date: "Il y a 3j", icon: "✅",
     },
     {
       cat: 'prix',
-      title: "Hausse de prix — Inexium® 40mg",
-      excerpt: "Réajustement tarifaire validé par le Ministère. Nouveau PPM : 89 DH.",
-      lab: "AstraZeneca", date: "Il y a 4j", icon: "📊",
+      title: "Hausse de prix — Produit Z® 40mg",
+      excerpt: "Réajustement tarifaire validé par le Ministère. Nouveau PPM : xx DH. (Données fictives)",
+      lab: "Laboratoire D", date: "Il y a 4j", icon: "📊",
       priceChange: { dir: 'up', value: '+8%' },
     },
     {
       cat: 'nouveau',
-      title: "Nouveau — Spikevax® XBB.1.5 disponible",
-      excerpt: "Vaccin COVID adapté aux variants récents. Ordonnance médicale requise.",
-      lab: "Moderna", date: "Il y a 5j", icon: "💉",
+      title: "Nouveau — Vaccin Exemple® disponible",
+      excerpt: "Vaccin adapté aux variants récents. Ordonnance médicale requise. (Données fictives)",
+      lab: "Laboratoire F", date: "Il y a 5j", icon: "💉",
     },
     {
       cat: 'rappel',
-      title: "Rappel — Tahor® 40mg lots Q1 2026",
-      excerpt: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours.",
-      lab: "Pfizer", date: "Il y a 6j", icon: "⚠️",
+      title: "Rappel — Médicament W® 40mg lots Q1 2026",
+      excerpt: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours. (Données fictives)",
+      lab: "Laboratoire G", date: "Il y a 6j", icon: "⚠️",
     },
   ];
 
