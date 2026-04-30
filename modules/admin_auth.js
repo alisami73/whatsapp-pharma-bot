@@ -11,6 +11,13 @@ const SESSIONS_FILE = path.join(DATA_DIR, 'admin_sessions.json');
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const INVITE_TTL_MS = 72 * 60 * 60 * 1000;       // 72 hours
 
+// ── In-memory fallback (Vercel read-only filesystem) ──────────────────────
+// On Vercel serverless, writes to data/ fail silently. We keep everything
+// in-memory within the process lifetime so auth still works per invocation.
+
+const MEM_SESSIONS = new Map(); // token → { user_id, expires_at }
+const MEM_USERS    = new Map(); // email → user object
+
 // ── File helpers ───────────────────────────────────────────────────────────
 
 async function readJson(filePath, fallback) {
@@ -22,7 +29,11 @@ async function readJson(filePath, fallback) {
 }
 
 async function writeJson(filePath, data) {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch {
+    // Silently ignore on read-only filesystems (Vercel)
+  }
 }
 
 // ── Password ───────────────────────────────────────────────────────────────
@@ -78,9 +89,25 @@ async function createUser({ email, name, role = 'admin', status = 'active', pass
 }
 
 async function verifyPassword(email, password) {
-  const user = await findByEmail(email);
-  if (!user || !['active'].includes(user.status) || !user.password_hash) return null;
-  if (hashPassword(password, user.password_salt) !== user.password_hash) return null;
+  const inputEmail = String(email || '').toLowerCase().trim();
+  const inputPass  = String(password || '');
+
+  // ── Env-var superadmin — works on any filesystem (Vercel included) ────────
+  const envEmail  = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
+  const envSecret = String(process.env.ADMIN_SECRET   || '').trim();
+  if (envEmail && envSecret && inputEmail === envEmail && inputPass === envSecret) {
+    const superAdmin = {
+      id: 'superadmin-env', email: envEmail, name: 'Super Admin',
+      role: 'superadmin', status: 'active', last_login_at: new Date().toISOString(),
+    };
+    MEM_USERS.set(envEmail, superAdmin);
+    return superAdmin;
+  }
+
+  // ── Regular file-based users ───────────────────────────────────────────────
+  const user = await findByEmail(inputEmail);
+  if (!user || user.status !== 'active' || !user.password_hash) return null;
+  if (hashPassword(inputPass, user.password_salt) !== user.password_hash) return null;
   const users = await getUsers();
   const idx = users.findIndex(u => u.id === user.id);
   if (idx !== -1) {
@@ -99,28 +126,50 @@ async function getSessions() {
 async function createSession(userId) {
   const token = crypto.randomBytes(32).toString('hex');
   const now = Date.now();
+  const expiresAt = new Date(now + SESSION_TTL_MS).toISOString();
+
+  // Always store in memory (works on Vercel)
+  MEM_SESSIONS.set(token, { user_id: userId, expires_at: expiresAt });
+
+  // Also persist to file when possible (Railway)
   const sessions = (await getSessions()).filter(s => new Date(s.expires_at).getTime() > now);
-  sessions.push({
-    token,
-    user_id: userId,
-    created_at: new Date().toISOString(),
-    expires_at: new Date(now + SESSION_TTL_MS).toISOString(),
-  });
+  sessions.push({ token, user_id: userId, created_at: new Date().toISOString(), expires_at: expiresAt });
   await writeJson(SESSIONS_FILE, sessions);
+
   return token;
 }
 
 async function verifySession(token) {
   if (!token || typeof token !== 'string') return null;
+  const now = Date.now();
+
+  // Check in-memory first (always works, survives Vercel within same warm instance)
+  const memSess = MEM_SESSIONS.get(token);
+  if (memSess && new Date(memSess.expires_at).getTime() > now) {
+    const userId = memSess.user_id;
+    // Env superadmin lives only in memory
+    if (userId === 'superadmin-env') {
+      const envEmail = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
+      const u = MEM_USERS.get(envEmail);
+      return u || null;
+    }
+    const user = await findById(userId);
+    if (user && user.status === 'active') return user;
+  }
+
+  // Fallback: file-based sessions (Railway persistent)
   const sessions = await getSessions();
   const session = sessions.find(s => s.token === token);
-  if (!session || new Date(session.expires_at).getTime() < Date.now()) return null;
+  if (!session || new Date(session.expires_at).getTime() < now) return null;
+  // Re-cache in memory for subsequent checks
+  MEM_SESSIONS.set(token, { user_id: session.user_id, expires_at: session.expires_at });
   const user = await findById(session.user_id);
   if (!user || user.status !== 'active') return null;
   return user;
 }
 
 async function deleteSession(token) {
+  MEM_SESSIONS.delete(token);
   const sessions = await getSessions();
   await writeJson(SESSIONS_FILE, sessions.filter(s => s.token !== token));
 }
