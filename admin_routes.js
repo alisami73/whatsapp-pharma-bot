@@ -1059,6 +1059,94 @@ router.get(
 );
 
 // ---------------------------------------------------------------------------
+// Actu Médicaments — CRUD
+// ---------------------------------------------------------------------------
+
+const ACTUS_FILE = require('path').join(require('./storage').DATA_DIR, 'actus.json');
+
+const DEFAULT_ACTUS = [
+  { id: '1', titre: 'Rappel de lot — Médicament Exemple 1000mg cp séc.', type: 'rappels', desc: 'Lots XXXXX — défaut de conditionnement détecté. Retour pharmacie immédiat. (Données fictives)', labo: 'Laboratoire A', date: '2025-04-28', urgent: true, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '2', titre: 'Nouveau — Exemple® 2,5mg génériques disponibles', type: 'nouveautes', desc: 'Génériques fictifs désormais commercialisés au Maroc. Prix indicatif : xxx DH. (Données fictives)', labo: 'Laboratoire B', date: '2025-04-30', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '3', titre: 'Rupture — Produit Exemple® 100µg susp. p. inh.', type: 'ruptures', desc: "Tension d'approvisionnement signalée. Reprise prévue prochainement. (Données fictives)", labo: 'Laboratoire C', date: '2025-04-29', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '4', titre: 'Baisse de prix — Produit X® 20mg', type: 'prix', desc: 'Nouveau prix public : xxx DH (au lieu de xxx DH). Application immédiate. (Données fictives)', labo: 'Laboratoire D', date: '2025-04-29', urgent: false, published: true, priceDir: 'down', priceVal: '15', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '5', titre: 'Reprise — Médicament Y® 100µg', type: 'reprises', desc: 'Stocks reconstitués chez les grossistes. Disponibilité normalisée à partir de demain. (Données fictives)', labo: 'Laboratoire E', date: '2025-04-27', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '6', titre: 'Hausse de prix — Produit Z® 40mg', type: 'prix', desc: 'Réajustement tarifaire validé par le Ministère. Nouveau PPM : xx DH. (Données fictives)', labo: 'Laboratoire D', date: '2025-04-26', urgent: false, published: true, priceDir: 'up', priceVal: '6', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '7', titre: 'Nouveau — Vaccin Exemple® disponible', type: 'nouveautes', desc: 'Vaccin adapté aux variants récents. Ordonnance médicale requise. (Données fictives)', labo: 'Laboratoire F', date: '2025-04-25', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: '8', titre: 'Rappel — Médicament W® 40mg lots Q1 2026', type: 'rappels', desc: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours. (Données fictives)", labo: 'Laboratoire G', date: '2025-04-24', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+];
+
+async function readActus() {
+  try {
+    return JSON.parse(await require('fs').promises.readFile(ACTUS_FILE, 'utf8'));
+  } catch {
+    return DEFAULT_ACTUS;
+  }
+}
+
+async function writeActus(actus) {
+  await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
+}
+
+router.get('/actu', (req, res) => res.sendFile(require('path').join(adminDir, 'actu.html')));
+
+router.get('/api/actus', asyncHandler(async (req, res) => {
+  res.json(await readActus());
+}));
+
+router.post('/api/actus', asyncHandler(async (req, res) => {
+  const { titre, type, desc, labo, date, urgent, published, priceDir, priceVal } = req.body;
+  if (!titre || !type) return res.status(400).json({ error: 'titre et type requis' });
+  const actus = await readActus();
+  const entry = {
+    id: require('crypto').randomUUID(),
+    titre: String(titre).trim(),
+    type: String(type).trim(),
+    desc: String(desc || '').trim(),
+    labo: String(labo || '').trim(),
+    date: String(date || new Date().toISOString().split('T')[0]),
+    urgent: Boolean(urgent),
+    published: published !== false,
+    priceDir: String(priceDir || ''),
+    priceVal: String(priceVal || ''),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  actus.unshift(entry);
+  await writeActus(actus);
+  res.status(201).json(entry);
+}));
+
+router.put('/api/actus/:id', asyncHandler(async (req, res) => {
+  const actus = await readActus();
+  const idx = actus.findIndex(a => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Actu introuvable' });
+  const { titre, type, desc, labo, date, urgent, published, priceDir, priceVal } = req.body;
+  actus[idx] = {
+    ...actus[idx],
+    titre: String(titre || actus[idx].titre).trim(),
+    type: String(type || actus[idx].type).trim(),
+    desc: String(desc !== undefined ? desc : actus[idx].desc).trim(),
+    labo: String(labo !== undefined ? labo : actus[idx].labo).trim(),
+    date: String(date || actus[idx].date),
+    urgent: urgent !== undefined ? Boolean(urgent) : actus[idx].urgent,
+    published: published !== undefined ? Boolean(published) : actus[idx].published,
+    priceDir: String(priceDir !== undefined ? priceDir : actus[idx].priceDir),
+    priceVal: String(priceVal !== undefined ? priceVal : actus[idx].priceVal),
+    updatedAt: new Date().toISOString(),
+  };
+  await writeActus(actus);
+  res.json(actus[idx]);
+}));
+
+router.delete('/api/actus/:id', asyncHandler(async (req, res) => {
+  const actus = await readActus();
+  const next = actus.filter(a => a.id !== req.params.id);
+  if (next.length === actus.length) return res.status(404).json({ error: 'Actu introuvable' });
+  await writeActus(next);
+  res.status(204).send();
+}));
+
+// ---------------------------------------------------------------------------
 // Static files (doit rester en dernier)
 // ---------------------------------------------------------------------------
 

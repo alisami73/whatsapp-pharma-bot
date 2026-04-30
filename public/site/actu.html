@@ -461,134 +461,88 @@
   </div>
 
   <script>
-  const NEWS = [
-    {
-      cat: 'rappel', urgent: true,
-      title: "Rappel de lot — Médicament Exemple 1000mg cp séc.",
-      excerpt: "Lots XXXXX — défaut de conditionnement détecté. Retour pharmacie immédiat. (Données fictives)",
-      lab: "Laboratoire A", date: "Il y a 2h", icon: "⚠️",
-    },
-    {
-      cat: 'nouveau', featured: true,
-      title: "Nouveau — Exemple® 2,5mg génériques disponibles",
-      excerpt: "Génériques fictifs désormais commercialisés au Maroc. Prix indicatif : xxx DH. (Données fictives)",
-      lab: "Laboratoire B", date: "Aujourd'hui", icon: "💊",
-    },
-    {
-      cat: 'rupture',
-      title: "Rupture — Produit Exemple® 100µg susp. p. inh.",
-      excerpt: "Tension d'approvisionnement signalée. Reprise prévue prochainement. (Données fictives)",
-      lab: "Laboratoire C", date: "Hier", icon: "📉",
-    },
-    {
-      cat: 'prix',
-      title: "Baisse de prix — Produit X® 20mg",
-      excerpt: "Nouveau prix public : xxx DH (au lieu de xxx DH). Application immédiate. (Données fictives)",
-      lab: "Laboratoire D", date: "Hier", icon: "📊",
-      priceChange: { dir: 'down', value: '-15%' },
-    },
-    {
-      cat: 'reprise',
-      title: "Reprise — Médicament Y® 100µg",
-      excerpt: "Stocks reconstitués chez les grossistes. Disponibilité normalisée à partir de demain. (Données fictives)",
-      lab: "Laboratoire E", date: "Il y a 3j", icon: "✅",
-    },
-    {
-      cat: 'prix',
-      title: "Hausse de prix — Produit Z® 40mg",
-      excerpt: "Réajustement tarifaire validé par le Ministère. Nouveau PPM : xx DH. (Données fictives)",
-      lab: "Laboratoire D", date: "Il y a 4j", icon: "📊",
-      priceChange: { dir: 'up', value: '+8%' },
-    },
-    {
-      cat: 'nouveau',
-      title: "Nouveau — Vaccin Exemple® disponible",
-      excerpt: "Vaccin adapté aux variants récents. Ordonnance médicale requise. (Données fictives)",
-      lab: "Laboratoire F", date: "Il y a 5j", icon: "💉",
-    },
-    {
-      cat: 'rappel',
-      title: "Rappel — Médicament W® 40mg lots Q1 2026",
-      excerpt: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours. (Données fictives)",
-      lab: "Laboratoire G", date: "Il y a 6j", icon: "⚠️",
-    },
-  ];
-
+  // Type → display cat mapping (admin uses 'rappels', public CSS uses 'rappel' etc.)
   const CAT_META = {
-    all:     { label: "Tout",       color: "#2E7D32" },
-    nouveau: { label: "Nouveautés", color: "#2E7D32" },
-    rappel:  { label: "Rappels",    color: "#E53935" },
-    rupture: { label: "Ruptures",   color: "#FF7043" },
-    prix:    { label: "Prix",       color: "#3F51B5" },
-    reprise: { label: "Reprises",   color: "#26C6DA" },
+    all:       { label: "Tout",       color: "#2E7D32" },
+    nouveautes:{ label: "Nouveautés", color: "#2E7D32" },
+    rappels:   { label: "Rappels",    color: "#E53935" },
+    ruptures:  { label: "Ruptures",   color: "#FF7043" },
+    prix:      { label: "Prix",       color: "#3F51B5" },
+    reprises:  { label: "Reprises",   color: "#26C6DA" },
   };
 
-  // FILTER PILLS
-  const filterTrack = document.getElementById('filterTrack');
+  const TYPE_ICONS = { rappels:'⚠️', nouveautes:'💊', ruptures:'📉', prix:'📊', reprises:'✅' };
+
+  let NEWS = [];
   let activeFilter = 'all';
+  const filterTrack = document.getElementById('filterTrack');
+  const newsList = document.getElementById('newsList');
+
+  function relativeDate(isoDate) {
+    if (!isoDate) return '';
+    const d = new Date(isoDate + 'T12:00:00');
+    const diff = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (diff === 0) return "Aujourd'hui";
+    if (diff === 1) return 'Hier';
+    if (diff < 7) return `Il y a ${diff}j`;
+    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+  }
 
   function buildFilters() {
     filterTrack.innerHTML = '';
     Object.entries(CAT_META).forEach(([key, meta]) => {
-      const count = key === 'all' ? NEWS.length : NEWS.filter(n => n.cat === key).length;
+      const count = key === 'all' ? NEWS.length : NEWS.filter(n => n.type === key).length;
       const pill = document.createElement('button');
       pill.className = 'filter-pill' + (key === activeFilter ? ' active' : '');
       pill.style.setProperty('--pcolor', meta.color);
       pill.innerHTML = `${meta.label} <span class="count">${count}</span>`;
-      pill.addEventListener('click', () => {
-        activeFilter = key;
-        buildFilters();
-        renderNews();
-      });
+      pill.addEventListener('click', () => { activeFilter = key; buildFilters(); renderNews(); });
       filterTrack.appendChild(pill);
     });
   }
 
-  // NEWS CARDS
-  const newsList = document.getElementById('newsList');
   function renderNews() {
     newsList.innerHTML = '';
-    const filtered = activeFilter === 'all' ? NEWS : NEWS.filter(n => n.cat === activeFilter);
-
-    filtered.forEach(n => {
-      const meta = CAT_META[n.cat];
+    const filtered = activeFilter === 'all' ? NEWS : NEWS.filter(n => n.type === activeFilter);
+    if (!filtered.length) {
+      newsList.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94A3B8;font-size:0.875rem;">Aucune actualité dans cette catégorie</div>';
+      return;
+    }
+    filtered.forEach((n, idx) => {
+      const meta = CAT_META[n.type] || CAT_META.all;
       const card = document.createElement('article');
-      card.className = 'news-card' + (n.urgent ? ' urgent' : '') + (n.featured ? ' featured' : '');
+      const isFeatured = idx === 1 && n.type === 'nouveautes';
+      card.className = 'news-card' + (n.urgent ? ' urgent' : '') + (isFeatured ? ' featured' : '');
       card.style.setProperty('--cat-color', meta.color);
-
-      const priceHTML = n.priceChange ? `
-        <span class="price-change ${n.priceChange.dir === 'up' ? 'price-up' : 'price-down'}">
-          ${n.priceChange.dir === 'up' ? '▲' : '▼'} ${n.priceChange.value}
+      const priceHTML = n.priceVal ? `
+        <span class="price-change ${n.priceDir === 'up' ? 'price-up' : 'price-down'}">
+          ${n.priceDir === 'up' ? '▲' : '▼'} ${n.priceVal}%
         </span>` : '';
-
       card.innerHTML = `
         <div class="news-card-top">
           <span class="news-tag">${meta.label}</span>
-          <span class="news-meta">${priceHTML} ${n.date}</span>
+          <span class="news-meta">${priceHTML} ${relativeDate(n.date)}</span>
         </div>
         <div class="news-card-body">
-          <div class="news-thumb">${n.icon}</div>
+          <div class="news-thumb">${TYPE_ICONS[n.type] || '📋'}</div>
           <div class="news-content">
-            <h3>${n.title}</h3>
-            <p>${n.excerpt}</p>
+            <h3>${n.titre}</h3>
+            <p>${n.desc || ''}</p>
           </div>
         </div>
         <div class="news-card-footer">
-          <span class="laboratoire">Laboratoire <strong>${n.lab}</strong></span>
+          <span class="laboratoire">Laboratoire <strong>${n.labo || '—'}</strong></span>
           <span class="arrow">Détails →</span>
-        </div>
-      `;
-
+        </div>`;
       newsList.appendChild(card);
     });
-
-    if (filtered.length === 0) {
-      newsList.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94A3B8;font-size:0.875rem;">Aucune actualité dans cette catégorie</div>';
-    }
   }
 
-  buildFilters();
-  renderNews();
+  // Load from API
+  fetch('/api/actus')
+    .then(r => r.json())
+    .then(data => { NEWS = data; buildFilters(); renderNews(); })
+    .catch(() => { newsList.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94A3B8;">Données temporairement indisponibles</div>'; });
 
   // Share
   document.getElementById('shareBtn').addEventListener('click', async () => {

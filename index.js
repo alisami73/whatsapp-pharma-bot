@@ -61,6 +61,19 @@ app.get('/site/data&cndp.html', (req, res) => {
 app.use('/site', express.static(require('path').join(__dirname, 'public', 'site')));
 app.use('/admin', adminRoutes);
 
+// Public actus endpoint — no auth, only published items
+app.get('/api/actus', async (req, res) => {
+  const fs = require('fs').promises;
+  const path = require('path');
+  try {
+    const raw = await fs.readFile(path.join(__dirname, 'data', 'actus.json'), 'utf8');
+    const all = JSON.parse(raw);
+    res.json(all.filter(a => a.published !== false));
+  } catch {
+    res.json([]);
+  }
+});
+
 // ── Answer pages (FSE + Conformité) ─────────────────────────────────────────
 // GET /answers/:topic/:id → serve the answer HTML page
 app.get('/answers/:topic/:lang/:id', (req, res) => {

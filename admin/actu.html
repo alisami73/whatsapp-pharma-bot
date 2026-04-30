@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actu Médicaments — Admin Blink Premium</title>
+  <script src="/admin/auth-guard.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: #f0f2f5; color: #1a2332; height: 100vh; overflow: hidden; }
+
+    /* ── Layout ── */
+    .wrap { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar { width: 220px; min-width: 220px; background: #1a3a2a; display: flex; flex-direction: column; }
+    .sidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo .brand { font-size: 14px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
+    .sidebar-logo .live-dot { width: 8px; height: 8px; background: #4caf82; border-radius: 50%; flex-shrink: 0; }
+    .sidebar-logo .sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; padding-left: 15px; }
+    .sidebar-nav { padding: 10px 8px; flex: 1; overflow-y: auto; }
+    .nav-section { font-size: 10px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 8px 5px; }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 1px; transition: all 0.15s; text-decoration: none; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+    .nav-item.active { background: rgba(76,175,130,0.18); color: #7dd4a8; }
+    .nav-icon { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.75; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .sidebar-footer a { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; }
+    .sidebar-footer a:hover { color: rgba(255,255,255,0.7); }
+
+    /* ── Main ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { background: #fff; border-bottom: 1px solid #e8ecf0; padding: 0 20px; height: 50px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .topbar-title { font-size: 14px; font-weight: 600; color: #1a2332; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .save-status { font-size: 12px; color: #8a96a3; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; border: 1px solid #dde3ea; background: #fff; color: #1a2332; font-family: inherit; transition: all 0.12s; }
+    .btn:hover { background: #f5f7fa; }
+    .btn-primary { background: #1a6640; color: #fff; border-color: #1a6640; }
+    .btn-primary:hover { background: #154f32; border-color: #154f32; }
+    .btn-danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .btn-danger:hover { background: #fee2e2; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Content area ── */
+    .content { flex: 1; overflow-y: auto; padding: 18px 20px; }
+
+    /* ── Stats ── */
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+    .stat-card { background: #fff; border: 1px solid #e8ecf0; border-radius: 10px; padding: 12px 14px; }
+    .stat-label { font-size: 11px; color: #8a96a3; margin-bottom: 4px; }
+    .stat-val { font-size: 22px; font-weight: 600; }
+
+    /* ── Two-column layout ── */
+    .panels { display: grid; grid-template-columns: 1fr 360px; gap: 14px; min-height: 0; }
+
+    /* ── List panel ── */
+    .list-panel { background: #fff; border: 1px solid #e8ecf0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .panel-header { padding: 13px 16px; border-bottom: 1px solid #e8ecf0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .panel-title { font-size: 13px; font-weight: 600; color: #1a2332; }
+    .count-label { font-size: 12px; color: #8a96a3; }
+    .filters { display: flex; gap: 6px; padding: 10px 16px; border-bottom: 1px solid #e8ecf0; flex-wrap: wrap; flex-shrink: 0; }
+    .filter-pill { font-size: 12px; padding: 4px 11px; border-radius: 20px; cursor: pointer; border: 1px solid #dde3ea; background: transparent; color: #5a6472; font-family: inherit; transition: all 0.12s; }
+    .filter-pill:hover { border-color: #b0bac4; color: #1a2332; }
+    .filter-pill.active { background: #1a6640; color: #fff; border-color: #1a6640; }
+    .news-list { overflow-y: auto; flex: 1; }
+    .news-row { display: flex; align-items: center; gap: 11px; padding: 11px 16px; border-bottom: 1px solid #f0f3f6; cursor: pointer; transition: background 0.1s; }
+    .news-row:last-child { border-bottom: none; }
+    .news-row:hover { background: #f8fafb; }
+    .news-row.selected { background: #eef4ff; }
+    .type-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-rappels { background: #e24b4a; }
+    .dot-nouveautes { background: #1a6640; }
+    .dot-ruptures { background: #ba7517; }
+    .dot-prix { background: #185fa5; }
+    .dot-reprises { background: #639922; }
+    .news-info { flex: 1; min-width: 0; }
+    .news-title-row { display: flex; align-items: center; gap: 7px; margin-bottom: 2px; flex-wrap: wrap; }
+    .news-name { font-size: 13px; color: #1a2332; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+    .news-meta { font-size: 11px; color: #8a96a3; }
+    .urgent-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #fcebeb; color: #a32d2d; border: 1px solid #f7c1c1; flex-shrink: 0; font-weight: 600; }
+    .price-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; flex-shrink: 0; }
+    .type-tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; font-weight: 600; }
+    .tag-rappels { background: #fcebeb; color: #a32d2d; }
+    .tag-nouveautes { background: #eaf3de; color: #3b6d11; }
+    .tag-ruptures { background: #faeeda; color: #854f0b; }
+    .tag-prix { background: #e6f1fb; color: #0c447c; }
+    .tag-reprises { background: #eaf3de; color: #3b6d11; }
+    .row-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s; }
+    .news-row:hover .row-actions { opacity: 1; }
+    .icon-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #dde3ea; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #8a96a3; transition: all 0.1s; }
+    .icon-btn:hover { background: #f5f7fa; color: #1a2332; }
+    .icon-btn.del:hover { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .empty-state { padding: 40px; text-align: center; color: #8a96a3; font-size: 13px; }
+
+    /* ── Form panel ── */
+    .form-panel { background: #fff; border: 1px solid #e8ecf0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .form-body { padding: 16px; flex: 1; overflow-y: auto; }
+    .form-id-label { font-size: 11px; color: #8a96a3; }
+    .form-group { margin-bottom: 13px; }
+    .form-label { font-size: 12px; color: #5a6472; margin-bottom: 5px; display: block; font-weight: 500; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 7px 10px; border: 1px solid #dde3ea; border-radius: 7px;
+      font-size: 13px; background: #f8fafb; color: #1a2332; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1a6640; background: #fff; }
+    .form-textarea { resize: vertical; min-height: 68px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .price-row { display: flex; gap: 8px; align-items: center; }
+    .price-row .form-select { width: auto; }
+    .price-row .form-input { width: 80px; flex-shrink: 0; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .form-check { width: 15px; height: 15px; cursor: pointer; accent-color: #1a6640; }
+    .checkbox-label { font-size: 13px; cursor: pointer; color: #1a2332; }
+    .tag-preview { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 9px; border-radius: 4px; margin-top: 6px; font-weight: 600; }
+    .form-footer { padding: 13px 16px; border-top: 1px solid #e8ecf0; display: flex; gap: 8px; flex-shrink: 0; }
+    .form-footer .btn-primary { flex: 1; justify-content: center; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 9px; font-size: 13px; font-weight: 500; color: #fff; background: #1a3a2a; opacity: 0; transform: translateY(6px); transition: all 0.25s; pointer-events: none; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #b91c1c; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand"><span class="live-dot"></span>blink premium</div>
+      <div class="sub">Administration</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Contenu</div>
+      <a class="nav-item active" href="/admin/actu">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/><rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+        Actu Médicaments
+      </a>
+      <div class="nav-section">Administration</div>
+      <a class="nav-item" href="/admin">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Tableau de bord
+      </a>
+      <a class="nav-item" href="/admin/crm">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 13c0-2.21 2.24-4 5-4s5 1.79 5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        CRM
+      </a>
+      <a class="nav-item" href="/admin/users">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2 1.8-3.5 4-3.5s4 1.5 4 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="11.5" cy="5.5" r="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M13.5 12c0-1.38-1-2.5-2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Accès
+      </a>
+      <a class="nav-item" href="/admin/monitoring">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Monitoring
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <a href="#" id="logoutLink">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Déconnexion
+      </a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Actu Médicaments</div>
+      <div class="topbar-right">
+        <span class="save-status" id="save-status"></span>
+        <a class="btn" href="/site/actu.html" target="_blank" style="font-size:12px;">↗ Voir la page</a>
+        <button class="btn btn-primary" onclick="newEntry()">+ Nouvelle actu</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Total actus</div><div class="stat-val" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Rappels</div><div class="stat-val" style="color:#e24b4a" id="stat-rappels">—</div></div>
+        <div class="stat-card"><div class="stat-label">Nouveautés</div><div class="stat-val" style="color:#1a6640" id="stat-nouveautes">—</div></div>
+        <div class="stat-card"><div class="stat-label">Ruptures</div><div class="stat-val" style="color:#ba7517" id="stat-ruptures">—</div></div>
+        <div class="stat-card"><div class="stat-label">Urgentes</div><div class="stat-val" style="color:#e24b4a" id="stat-urgent">—</div></div>
+      </div>
+
+      <!-- Panels -->
+      <div class="panels">
+
+        <!-- List -->
+        <div class="list-panel">
+          <div class="panel-header">
+            <div class="panel-title">Liste des actus</div>
+            <div class="count-label" id="count-label">—</div>
+          </div>
+          <div class="filters">
+            <button class="filter-pill active" onclick="filterBy('all',this)">Tout</button>
+            <button class="filter-pill" onclick="filterBy('rappels',this)">Rappels</button>
+            <button class="filter-pill" onclick="filterBy('nouveautes',this)">Nouveautés</button>
+            <button class="filter-pill" onclick="filterBy('ruptures',this)">Ruptures</button>
+            <button class="filter-pill" onclick="filterBy('prix',this)">Prix</button>
+            <button class="filter-pill" onclick="filterBy('reprises',this)">Reprises</button>
+          </div>
+          <div class="news-list" id="news-list"><div class="empty-state">Chargement…</div></div>
+        </div>
+
+        <!-- Form -->
+        <div class="form-panel">
+          <div class="panel-header">
+            <div class="panel-title" id="form-title">Nouvelle actu</div>
+            <div class="form-id-label" id="form-id-label"></div>
+          </div>
+          <div class="form-body">
+            <div class="form-group">
+              <label class="form-label">Titre *</label>
+              <input class="form-input" type="text" id="f-titre" placeholder="Ex: Rappel de lot — Médicament X" oninput="syncPreview()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-select" id="f-type" onchange="syncPreview()">
+                <option value="rappels">Rappels</option>
+                <option value="nouveautes">Nouveautés</option>
+                <option value="ruptures">Ruptures</option>
+                <option value="prix">Prix</option>
+                <option value="reprises">Reprises</option>
+              </select>
+              <div id="tag-preview" class="tag-preview tag-rappels">● Rappels</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-textarea" id="f-desc" placeholder="Détails sur l'actu…"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Laboratoire</label>
+                <input class="form-input" type="text" id="f-labo" placeholder="Ex: Laboratoire A" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input class="form-input" type="date" id="f-date" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Variation de prix (optionnel)</label>
+              <div class="price-row">
+                <select class="form-select" id="f-price-dir">
+                  <option value="">—</option>
+                  <option value="up">▲ Hausse</option>
+                  <option value="down">▼ Baisse</option>
+                </select>
+                <input class="form-input" type="number" id="f-price-val" placeholder="%" min="0" max="999" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Options</label>
+              <div class="checkbox-row">
+                <input type="checkbox" class="form-check" id="f-urgent" />
+                <label class="checkbox-label" for="f-urgent">Marquer comme URGENT</label>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" class="form-check" id="f-published" checked />
+                <label class="checkbox-label" for="f-published">Publier immédiatement</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-primary" id="save-btn" onclick="saveEntry()">Enregistrer</button>
+            <button class="btn" onclick="newEntry()">Annuler</button>
+            <button class="btn btn-danger icon-btn del" id="delete-btn" onclick="deleteSelected()" style="display:none;width:36px;padding:0;justify-content:center;" title="Supprimer">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPE_LABELS = { rappels:'Rappels', nouveautes:'Nouveautés', ruptures:'Ruptures', prix:'Prix', reprises:'Reprises' };
+const TYPE_COLORS = { rappels:'tag-rappels', nouveautes:'tag-nouveautes', ruptures:'tag-ruptures', prix:'tag-prix', reprises:'tag-reprises' };
+const DOT_COLORS  = { rappels:'dot-rappels', nouveautes:'dot-nouveautes', ruptures:'dot-ruptures', prix:'dot-prix', reprises:'dot-reprises' };
+
+let items = [];
+let currentFilter = 'all';
+let selectedId = null;
+let saving = false;
+
+// ── API ────────────────────────────────────────────────────────────────────
+
+async function loadActus() {
+  // TODO: connecter à l'API
+  const res = await fetch('/admin/api/actus');
+  if (!res.ok) { toast('Erreur de chargement', true); return; }
+  items = await res.json();
+  updateStats();
+  renderList();
+}
+
+async function apiSave(entry) {
+  // TODO: connecter à l'API
+  if (entry.id && items.find(i => i.id === entry.id)) {
+    const res = await fetch('/admin/api/actus/' + entry.id, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Erreur');
+    return res.json();
+  } else {
+    const res = await fetch('/admin/api/actus', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Erreur');
+    return res.json();
+  }
+}
+
+async function apiDelete(id) {
+  // TODO: connecter à l'API
+  const res = await fetch('/admin/api/actus/' + id, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Erreur de suppression');
+}
+
+// ── Stats & render ─────────────────────────────────────────────────────────
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = items.length;
+  document.getElementById('stat-rappels').textContent = items.filter(i => i.type==='rappels').length;
+  document.getElementById('stat-nouveautes').textContent = items.filter(i => i.type==='nouveautes').length;
+  document.getElementById('stat-ruptures').textContent = items.filter(i => i.type==='ruptures').length;
+  document.getElementById('stat-urgent').textContent = items.filter(i => i.urgent).length;
+}
+
+function getFiltered() {
+  return currentFilter === 'all' ? items : items.filter(i => i.type === currentFilter);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  document.getElementById('count-label').textContent = filtered.length + ' entrée' + (filtered.length !== 1 ? 's' : '');
+  const el = document.getElementById('news-list');
+  if (!filtered.length) { el.innerHTML = '<div class="empty-state">Aucune actu dans cette catégorie.</div>'; return; }
+  el.innerHTML = filtered.map(item => {
+    const priceHtml = item.priceVal ? `<span class="price-badge" style="background:${item.priceDir==='up'?'#fcebeb':'#eaf3de'};color:${item.priceDir==='up'?'#a32d2d':'#3b6d11'};">${item.priceDir==='up'?'▲':'▼'}${item.priceVal}%</span>` : '';
+    return `
+    <div class="news-row${selectedId===item.id?' selected':''}" onclick="selectItem('${item.id}')">
+      <div class="type-dot ${DOT_COLORS[item.type]||''}"></div>
+      <div class="news-info">
+        <div class="news-title-row">
+          <div class="news-name" title="${item.titre}">${item.titre}</div>
+          ${item.urgent ? '<span class="urgent-badge">URGENT</span>' : ''}
+          ${priceHtml}
+        </div>
+        <div class="news-meta">${item.labo || '—'} · ${formatDate(item.date)}${item.published===false?' · <em>Brouillon</em>':''}</div>
+      </div>
+      <span class="type-tag ${TYPE_COLORS[item.type]||''}">${TYPE_LABELS[item.type]||item.type}</span>
+      <div class="row-actions">
+        <div class="icon-btn" onclick="event.stopPropagation();selectItem('${item.id}')" title="Modifier">✎</div>
+        <div class="icon-btn del" onclick="event.stopPropagation();confirmDelete('${item.id}')" title="Supprimer">✕</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────
+
+function filterBy(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// ── Select / Edit ──────────────────────────────────────────────────────────
+
+function selectItem(id) {
+  selectedId = id;
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('form-title').textContent = "Modifier l'actu";
+  document.getElementById('form-id-label').textContent = '#' + id.slice(0,8);
+  document.getElementById('f-titre').value = item.titre;
+  document.getElementById('f-type').value = item.type;
+  document.getElementById('f-desc').value = item.desc || '';
+  document.getElementById('f-labo').value = item.labo || '';
+  document.getElementById('f-date').value = item.date || '';
+  document.getElementById('f-urgent').checked = !!item.urgent;
+  document.getElementById('f-published').checked = item.published !== false;
+  document.getElementById('f-price-dir').value = item.priceDir || '';
+  document.getElementById('f-price-val').value = item.priceVal || '';
+  document.getElementById('delete-btn').style.display = 'flex';
+  syncPreview();
+  renderList();
+}
+
+function newEntry() {
+  selectedId = null;
+  document.getElementById('form-title').textContent = 'Nouvelle actu';
+  document.getElementById('form-id-label').textContent = '';
+  document.getElementById('f-titre').value = '';
+  document.getElementById('f-type').value = 'rappels';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-labo').value = '';
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-urgent').checked = false;
+  document.getElementById('f-published').checked = true;
+  document.getElementById('f-price-dir').value = '';
+  document.getElementById('f-price-val').value = '';
+  document.getElementById('delete-btn').style.display = 'none';
+  syncPreview();
+  renderList();
+}
+
+function syncPreview() {
+  const type = document.getElementById('f-type').value;
+  const p = document.getElementById('tag-preview');
+  p.className = 'tag-preview ' + (TYPE_COLORS[type] || '');
+  p.textContent = '● ' + (TYPE_LABELS[type] || type);
+}
+
+// ── Save ───────────────────────────────────────────────────────────────────
+
+async function saveEntry() {
+  const titre = document.getElementById('f-titre').value.trim();
+  if (!titre) { document.getElementById('f-titre').focus(); toast('Le titre est requis', true); return; }
+  if (saving) return;
+  saving = true;
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+  const entry = {
+    id: selectedId || undefined,
+    titre,
+    type: document.getElementById('f-type').value,
+    desc: document.getElementById('f-desc').value,
+    labo: document.getElementById('f-labo').value,
+    date: document.getElementById('f-date').value,
+    urgent: document.getElementById('f-urgent').checked,
+    published: document.getElementById('f-published').checked,
+    priceDir: document.getElementById('f-price-dir').value,
+    priceVal: document.getElementById('f-price-val').value,
+  };
+
+  try {
+    const saved = await apiSave(entry);
+    if (selectedId) {
+      const idx = items.findIndex(i => i.id === selectedId);
+      if (idx !== -1) items[idx] = saved;
+    } else {
+      items.unshift(saved);
+      selectedId = saved.id;
+      document.getElementById('form-title').textContent = "Modifier l'actu";
+      document.getElementById('form-id-label').textContent = '#' + saved.id.slice(0,8);
+      document.getElementById('delete-btn').style.display = 'flex';
+    }
+    const now = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('save-status').textContent = 'Sauvegardé à ' + now;
+    updateStats();
+    renderList();
+    toast('Sauvegardé ✓');
+  } catch (err) {
+    toast(err.message, true);
+  }
+
+  saving = false;
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+
+// ── Delete ─────────────────────────────────────────────────────────────────
+
+async function confirmDelete(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm('Supprimer "' + item.titre.slice(0, 50) + '" ?')) return;
+  try {
+    await apiDelete(id);
+    items = items.filter(i => i.id !== id);
+    if (selectedId === id) { selectedId = null; newEntry(); }
+    updateStats();
+    renderList();
+    toast('Actu supprimée');
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
+function deleteSelected() {
+  if (selectedId) confirmDelete(selectedId);
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+
+function toast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isError ? ' error' : '') + ' show';
+  setTimeout(() => { el.className = 'toast' + (isError ? ' error' : ''); }, 3000);
+}
+
+// ── Logout ─────────────────────────────────────────────────────────────────
+
+document.getElementById('logoutLink').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await fetch('/admin/api/auth/logout', { method: 'POST' });
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  window.location.href = '/admin/login';
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+loadActus();
+syncPreview();
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
