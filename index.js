@@ -608,16 +608,19 @@ async function setCnssQuestionState(user, themeId) {
 // Retourne true si le message a été envoyé via l'API Twilio, false sinon.
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
 async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
-  if (!interactive.isInteractiveEnabled()) return false;
+  if (!interactive.isInteractiveEnabled()) {
+    console.warn('[explorer] INTERACTIVE_MESSAGES_ENABLED is off — sending empty response');
+    res.type('text/xml').send(buildEmptyTwiml());
+    return true;
+  }
+
+  const lang = getUserLang(user);
+  await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
 
   try {
-    const lang = getUserLang(user);
-    await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
-
     const result = await explorer.sendExplorerCarousel(phone, lang);
     console.log(`[explorer] sendExplorerCarousel result: ${result ? result.sid : 'null'}`);
     if (result) {
-      // Carousel sent successfully — send prefix text first (appears before carousel in chat)
       if (prefix) {
         await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
       }
@@ -629,14 +632,15 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
         provider_message_sid: result.sid,
         metadata: { source: 'explorer_carousel' },
       });
-      res.type('text/xml').send(buildEmptyTwiml());
-      return true;
+    } else {
+      console.warn('[explorer] sendExplorerCarousel returned null — no text fallback, sending empty response');
     }
-    console.warn('[explorer] sendExplorerCarousel returned null — fallback to text');
   } catch (err) {
     console.error('[explorer] tryRespondWithMainMenuInteractive failed:', err.message || err);
   }
-  return false;
+
+  res.type('text/xml').send(buildEmptyTwiml());
+  return true;
 }
 
 async function respondWithMainMenu(response, user, prefix = '') {
@@ -969,12 +973,8 @@ async function handleOnboardingStep(response, res, user, context) {
     // Onboarding terminé → Explorer carousel
     console.log(`[state] ${user.phone} → BROWSING_EXPLORER_CAROUSEL (onboarding terminé, lang: ${lang})`);
     const completionMsg = t('onboarding_complete', lang);
-    const sentExplorer = await tryRespondWithMainMenuInteractive(user.phone, res, user, completionMsg);
-    if (sentExplorer) return true;
-    // Fallback texte
-    const activeThemes = (await storage.getThemes()).filter((th) => th.active);
-    response.message(`${completionMsg}\n\n${buildMainMenu(activeThemes)}`);
-    return false;
+    await tryRespondWithMainMenuInteractive(user.phone, res, user, completionMsg);
+    return true;
   }
 
   if (user.current_state === STATES.ONBOARDING_NAME) {
@@ -1212,12 +1212,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (controlValue === 'back_to_themes') {
       const consented2 = await storage.hasConsent(context.phone);
       if (consented2) {
-        const sentMenu = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-        if (!sentMenu) {
-          const activeThemes2 = (await storage.getThemes()).filter((th) => th.active);
-          await respondWithMainMenu(response, user);
-          res.type('text/xml').send(response.toString());
-        }
+        await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
       } else {
         // Pas de consentement → retour Écran 2
         const lang2 = getUserLang(user);
@@ -1312,11 +1307,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
         if (alreadyConsented) {
           console.log(`[state] ${context.phone} → MAIN_MENU (langue changée: ${chosenLang}, consentement existant conservé)`);
-          const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-          if (!sentInteractive) {
-            await respondWithMainMenu(response, user);
-            res.type('text/xml').send(response.toString());
-          }
+          await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
           return;
         }
 
@@ -1395,18 +1386,12 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         const pharmacistRecord = (await storage.getPharmacist(context.phone)) || { phone: context.phone };
         await storage.savePharmacist({ ...pharmacistRecord, onboarding_completed: true });
         const completionMsg = t('onboarding_complete', lang);
-        const sentExplorer = await tryRespondWithMainMenuInteractive(
+        await tryRespondWithMainMenuInteractive(
           context.phone,
           res,
           { ...user, authenticated: false },
           completionMsg,
         );
-        if (!sentExplorer) {
-          const activeThemes = (await storage.getThemes()).filter((theme) => theme.active);
-          await setMainMenuState({ ...user, authenticated: false });
-          response.message(`${completionMsg}\n\n${buildMainMenu(activeThemes)}`);
-          res.type('text/xml').send(response.toString());
-        }
         return;
 
       } else if (isCguDecline) {
@@ -1490,11 +1475,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     if (controlValue === 'menu') {
-      const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-      if (!sentInteractive) {
-        await respondWithMainMenu(response, user);
-        res.type('text/xml').send(response.toString());
-      }
+      await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
       return;
     }
 
@@ -1542,10 +1523,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       }
 
       // Payload non résolu → renvoyer l'explorer
-      const sent = await explorer.sendExplorerCarousel(context.phone, lang);
-      if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-      response.message(explorer.buildExplorerFallbackText(lang));
-      res.type('text/xml').send(response.toString());
+      await explorer.sendExplorerCarousel(context.phone, lang);
+      res.type('text/xml').send(buildEmptyTwiml());
       return;
     }
 
@@ -1553,10 +1532,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       // FSE / Conformité question states → revenir à l'explorer
       const aiQuestionStates = [STATES.AWAITING_FSE_QUESTION, STATES.AWAITING_CONFORMITE_QUESTION];
       if (aiQuestionStates.includes(user.current_state)) {
-        const sent = await explorer.sendExplorerCarousel(context.phone, lang);
-        if (sent) { res.type('text/xml').send(buildEmptyTwiml()); return; }
-        response.message(explorer.buildExplorerFallbackText(lang));
-        res.type('text/xml').send(response.toString());
+        await explorer.sendExplorerCarousel(context.phone, lang);
+        res.type('text/xml').send(buildEmptyTwiml());
         return;
       }
 
@@ -1564,22 +1541,14 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const swSubStates = [STATES.BROWSING_SW_CALLBACK_SUB, STATES.BROWSING_SW_BENEFITS_FAQ, STATES.BROWSING_SW_DATA_FAQ, STATES.BROWSING_SOFTWARE_CAROUSEL];
       if (swSubStates.includes(user.current_state)) {
         await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-        const sent = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-        if (!sent) {
-          response.message(explorer.buildExplorerFallbackText(lang));
-          res.type('text/xml').send(response.toString());
-        }
+        await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
         return;
       }
       if (user.current_state === STATES.AWAITING_FREE_QUESTION && currentTheme) {
         await respondWithThemeMenu(response, user, currentTheme);
         res.type('text/xml').send(response.toString());
       } else {
-        const sentInteractive = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-        if (!sentInteractive) {
-          await respondWithMainMenu(response, user);
-          res.type('text/xml').send(response.toString());
-        }
+        await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
       }
       return;
     }
@@ -1697,11 +1666,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
 
     // ── Explorer carousel — texte libre dans cet état → renvoyer le carousel ─
     if (user.current_state === STATES.BROWSING_EXPLORER_CAROUSEL) {
-      const sent = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-      if (!sent) {
-        response.message(explorer.buildExplorerFallbackText(lang));
-        res.type('text/xml').send(response.toString());
-      }
+      await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
       return;
     }
 
@@ -1766,11 +1731,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     }
 
     console.log('[flow] fallback menu | state:', user.current_state, '| currentTheme:', user.current_theme);
-    const sentFallbackMenu = await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
-    if (!sentFallbackMenu) {
-      await respondWithMainMenu(response, user);
-      res.type('text/xml').send(response.toString());
-    }
+    await tryRespondWithMainMenuInteractive(context.phone, res, user, '');
   } catch (error) {
     next(error);
   }
