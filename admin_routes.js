@@ -35,6 +35,15 @@ async function requireAdminAuth(req, res, next) {
   next();
 }
 
+// Static assets served before auth (CSS, JS, images — not HTML pages)
+router.use((req, res, next) => {
+  const ext = require('path').extname(req.path).toLowerCase();
+  if (['.css', '.js', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.woff', '.woff2'].includes(ext)) {
+    return express.static(adminDir)(req, res, next);
+  }
+  next();
+});
+
 // Public routes (no auth required)
 const PUBLIC_PATHS = ['/login', '/register', '/request-access',
   '/api/auth/login', '/api/auth/register', '/api/auth/request-access',

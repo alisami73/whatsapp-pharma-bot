@@ -3,100 +3,334 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connexion — Admin Blink Premium</title>
-  <link rel="stylesheet" href="/admin/styles.css" />
+  <title>Connexion — Blink Premium</title>
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .auth-card {
-      background: var(--surface-strong);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 2.5rem 2rem;
-      width: min(420px, calc(100vw - 32px));
-      box-shadow: var(--shadow);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
     }
-    .auth-logo { text-align: center; margin-bottom: 1.75rem; }
-    .auth-logo .wordmark { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
-    .auth-logo .sub { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
-    .auth-card h1 { font-size: 1.375rem; margin: 0 0 0.25rem; }
-    .auth-card .lead { color: var(--muted); font-size: 0.875rem; margin: 0 0 1.75rem; }
-    label { display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 5px; }
-    .field { margin-bottom: 1rem; }
-    input[type=email], input[type=password], input[type=text] {
-      width: 100%; padding: 0.65rem 0.875rem;
-      border: 1.5px solid var(--border); border-radius: 10px;
-      font-size: 0.9375rem; background: var(--surface);
-      color: var(--text); box-sizing: border-box;
-      transition: border-color 0.2s;
+
+    /* ── Left panel ── */
+    .left {
+      width: 380px;
+      min-width: 380px;
+      background: #1a3a2a;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 48px;
     }
-    input:focus { outline: none; border-color: var(--accent); }
-    .btn-primary {
-      width: 100%; padding: 0.75rem;
-      background: var(--accent); color: white;
-      border: none; border-radius: 10px;
-      font-size: 0.9375rem; font-weight: 700;
-      cursor: pointer; margin-top: 0.5rem;
-      transition: background 0.2s;
+    .left-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 56px;
     }
-    .btn-primary:hover { background: var(--accent-strong); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .error-msg { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 0.65rem 0.875rem; font-size: 0.875rem; margin-bottom: 1rem; display: none; }
-    .auth-links { text-align: center; margin-top: 1.5rem; font-size: 0.8125rem; color: var(--muted); }
-    .auth-links a { color: var(--accent); font-weight: 600; }
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: #4caf82;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .left-logo span {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .left h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .left p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+    .left-features {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .left-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+    }
+    .left-feature-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(76,175,130,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ── Right panel ── */
+    .right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: min(460px, 100%);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .card-header {
+      margin-bottom: 36px;
+    }
+    .card-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4caf82;
+      margin-bottom: 8px;
+    }
+    .card h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a2332;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .card-sub {
+      font-size: 14px;
+      color: #8a96a3;
+      margin-top: 6px;
+    }
+
+    /* Error banner */
+    .error-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 13px 16px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #b91c1c;
+    }
+    .error-banner.visible { display: flex; }
+    .error-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* Form */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+    .field input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1a2332;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus {
+      border-color: #1a6640;
+      box-shadow: 0 0 0 3px rgba(26,102,64,0.1);
+    }
+    .field input::placeholder { color: #b0bac4; }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: #1a6640;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: #154f32;
+      transform: translateY(-1px);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer link */
+    .card-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 13px;
+      color: #8a96a3;
+    }
+    .card-footer a {
+      color: #1a6640;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .card-footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      body { flex-direction: column; }
+      .left { width: 100%; min-width: 0; padding: 40px 28px 36px; }
+      .left h1 { font-size: 26px; }
+      .left-features { display: none; }
+      .left-logo { margin-bottom: 20px; }
+      .right { padding: 28px 16px; }
+      .card { padding: 32px 24px; }
+    }
   </style>
 </head>
 <body>
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="wordmark">blink <strong>premium</strong></div>
-      <div class="sub">Espace Administration</div>
+
+  <!-- Left branding panel -->
+  <div class="left">
+    <div class="left-logo">
+      <div class="live-dot"></div>
+      <span>blink premium</span>
     </div>
-    <h1>Connexion</h1>
-    <p class="lead">Accès réservé aux administrateurs autorisés.</p>
-
-    <div class="error-msg" id="errorMsg"></div>
-
-    <form id="loginForm">
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" autocomplete="username" placeholder="vous@blinkpharmacie.com" required />
+    <h1>Espace Administration</h1>
+    <p>Gérez vos contenus, vos utilisateurs et les paramètres du chatbot Blink Premium.</p>
+    <div class="left-features">
+      <div class="left-feature">
+        <div class="left-feature-icon">📋</div>
+        <span>Actu Médicaments & rappels</span>
       </div>
-      <div class="field">
-        <label for="password">Mot de passe</label>
-        <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required />
+      <div class="left-feature">
+        <div class="left-feature-icon">👥</div>
+        <span>Gestion des utilisateurs</span>
       </div>
-      <button type="submit" class="btn-primary" id="submitBtn">Se connecter</button>
-    </form>
+      <div class="left-feature">
+        <div class="left-feature-icon">⚙️</div>
+        <span>Configuration du chatbot</span>
+      </div>
+    </div>
+  </div>
 
-    <div class="auth-links">
-      <a href="/admin/request-access">Demander un accès</a>
+  <!-- Right login card -->
+  <div class="right">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-eyebrow">Administration</div>
+        <h2>Connexion</h2>
+        <p class="card-sub">Accès réservé aux administrateurs autorisés.</p>
+      </div>
+
+      <div class="error-banner" id="errorBanner">
+        <span class="error-icon">⚠️</span>
+        <span id="errorText">Identifiants incorrects ou compte inactif</span>
+      </div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="email">Adresse e-mail</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="username"
+            placeholder="vous@blinkpharma.ma"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            placeholder="••••••••••"
+            required
+          />
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <div class="spinner" id="spinner"></div>
+          <span id="btnLabel">Se connecter</span>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        Pas encore accès ? <a href="/admin/request-access">Demander un accès</a>
+      </div>
     </div>
   </div>
 
   <script>
-    // Already logged in?
-    (function() {
+    // Redirect if already authenticated
+    (function () {
       const token = localStorage.getItem('admin_token');
-      if (token) {
-        fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
-          .then(r => { if (r.ok) window.location.href = '/admin'; });
-      }
+      if (!token) return;
+      fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+        .then(r => { if (r.ok) window.location.href = '/admin'; })
+        .catch(() => {});
     })();
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const err = document.getElementById('errorMsg');
-      err.style.display = 'none';
-      btn.disabled = true;
-      btn.textContent = 'Connexion…';
+      const btn      = document.getElementById('submitBtn');
+      const spinner  = document.getElementById('spinner');
+      const label    = document.getElementById('btnLabel');
+      const banner   = document.getElementById('errorBanner');
+      const errText  = document.getElementById('errorText');
+
+      banner.classList.remove('visible');
+      btn.disabled   = true;
+      spinner.style.display = 'block';
+      label.textContent = 'Connexion…';
 
       try {
         const res = await fetch('/admin/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: document.getElementById('email').value,
+            email:    document.getElementById('email').value.trim(),
             password: document.getElementById('password').value,
           }),
         });
@@ -106,10 +340,12 @@
         localStorage.setItem('admin_user', JSON.stringify(data.user));
         window.location.href = '/admin';
       } catch (ex) {
-        err.textContent = ex.message;
-        err.style.display = 'block';
+        errText.textContent = ex.message;
+        banner.classList.add('visible');
         btn.disabled = false;
-        btn.textContent = 'Se connecter';
+        spinner.style.display = 'none';
+        label.textContent = 'Se connecter';
+        document.getElementById('password').focus();
       }
     });
   </script>

@@ -6,17 +6,46 @@ const fs = require('fs').promises;
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const USERS_FILE = path.join(DATA_DIR, 'admin_users.json');
-const SESSIONS_FILE = path.join(DATA_DIR, 'admin_sessions.json');
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const INVITE_TTL_MS = 72 * 60 * 60 * 1000;       // 72 hours
 
-// ── In-memory fallback (Vercel read-only filesystem) ──────────────────────
-// On Vercel serverless, writes to data/ fail silently. We keep everything
-// in-memory within the process lifetime so auth still works per invocation.
+// ── Signed-token helpers (stateless — works on Vercel + Railway) ───────────
+// Format: "v1.<base64url_payload>.<base64url_sig>"
+// The payload is JSON containing {uid, email, name, role, exp}.
+// Signing key = ADMIN_SECRET (falls back to a fixed default — set the env var).
 
-const MEM_SESSIONS = new Map(); // token → { user_id, expires_at }
-const MEM_USERS    = new Map(); // email → user object
+function _signingKey() {
+  return String(process.env.ADMIN_SECRET || process.env.SESSION_SECRET || 'blink-admin-default-secret');
+}
+
+function _signToken(payload) {
+  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig  = crypto.createHmac('sha256', _signingKey()).update(data).digest('base64url');
+  return 'v1.' + data + '.' + sig;
+}
+
+function _verifyToken(token) {
+  if (!token || !token.startsWith('v1.')) return null;
+  const rest   = token.slice(3); // strip "v1."
+  const dot    = rest.lastIndexOf('.');
+  if (dot < 1) return null;
+  const data   = rest.slice(0, dot);
+  const sig    = rest.slice(dot + 1);
+  const expected = crypto.createHmac('sha256', _signingKey()).update(data).digest('base64url');
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  } catch {
+    return null;
+  }
+  try {
+    const payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
+    if (payload.exp && Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 // ── File helpers ───────────────────────────────────────────────────────────
 
@@ -75,7 +104,7 @@ async function createUser({ email, name, role = 'admin', status = 'active', pass
     email: email.toLowerCase().trim(),
     name: String(name || email).trim(),
     role,
-    status, // 'active' | 'pending' | 'invited' | 'disabled'
+    status,
     password_hash: password ? hashPassword(password, salt) : null,
     password_salt: salt,
     invite_token: null,
@@ -96,12 +125,10 @@ async function verifyPassword(email, password) {
   const envEmail  = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
   const envSecret = String(process.env.ADMIN_SECRET   || '').trim();
   if (envEmail && envSecret && inputEmail === envEmail && inputPass === envSecret) {
-    const superAdmin = {
+    return {
       id: 'superadmin-env', email: envEmail, name: 'Super Admin',
       role: 'superadmin', status: 'active', last_login_at: new Date().toISOString(),
     };
-    MEM_USERS.set(envEmail, superAdmin);
-    return superAdmin;
   }
 
   // ── Regular file-based users ───────────────────────────────────────────────
@@ -117,61 +144,49 @@ async function verifyPassword(email, password) {
   return user;
 }
 
-// ── Sessions ───────────────────────────────────────────────────────────────
-
-async function getSessions() {
-  return readJson(SESSIONS_FILE, []);
-}
+// ── Sessions (stateless signed tokens) ────────────────────────────────────
 
 async function createSession(userId) {
-  const token = crypto.randomBytes(32).toString('hex');
-  const now = Date.now();
-  const expiresAt = new Date(now + SESSION_TTL_MS).toISOString();
-
-  // Always store in memory (works on Vercel)
-  MEM_SESSIONS.set(token, { user_id: userId, expires_at: expiresAt });
-
-  // Also persist to file when possible (Railway)
-  const sessions = (await getSessions()).filter(s => new Date(s.expires_at).getTime() > now);
-  sessions.push({ token, user_id: userId, created_at: new Date().toISOString(), expires_at: expiresAt });
-  await writeJson(SESSIONS_FILE, sessions);
-
-  return token;
+  // Build the user snapshot for embedding in the token
+  let snapshot;
+  if (userId === 'superadmin-env') {
+    const envEmail = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
+    snapshot = { uid: userId, email: envEmail, name: 'Super Admin', role: 'superadmin' };
+  } else {
+    const u = await findById(userId);
+    if (!u) throw new Error('User not found');
+    snapshot = { uid: u.id, email: u.email, name: u.name, role: u.role };
+  }
+  snapshot.exp = Date.now() + SESSION_TTL_MS;
+  return _signToken(snapshot);
 }
 
 async function verifySession(token) {
   if (!token || typeof token !== 'string') return null;
-  const now = Date.now();
 
-  // Check in-memory first (always works, survives Vercel within same warm instance)
-  const memSess = MEM_SESSIONS.get(token);
-  if (memSess && new Date(memSess.expires_at).getTime() > now) {
-    const userId = memSess.user_id;
-    // Env superadmin lives only in memory
-    if (userId === 'superadmin-env') {
+  // ── Signed stateless token (v1.*) — primary path ──────────────────────────
+  const payload = _verifyToken(token);
+  if (payload) {
+    if (payload.uid === 'superadmin-env') {
+      // Validate the env secret is still configured
       const envEmail = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
-      const u = MEM_USERS.get(envEmail);
-      return u || null;
+      if (!envEmail || payload.email !== envEmail) return null;
+      return { id: 'superadmin-env', email: payload.email, name: payload.name || 'Super Admin', role: 'superadmin', status: 'active' };
     }
-    const user = await findById(userId);
+    // File-based user: verify they're still active
+    const user = await findById(payload.uid);
     if (user && user.status === 'active') return user;
+    return null;
   }
 
-  // Fallback: file-based sessions (Railway persistent)
-  const sessions = await getSessions();
-  const session = sessions.find(s => s.token === token);
-  if (!session || new Date(session.expires_at).getTime() < now) return null;
-  // Re-cache in memory for subsequent checks
-  MEM_SESSIONS.set(token, { user_id: session.user_id, expires_at: session.expires_at });
-  const user = await findById(session.user_id);
-  if (!user || user.status !== 'active') return null;
-  return user;
+  return null;
 }
 
-async function deleteSession(token) {
-  MEM_SESSIONS.delete(token);
-  const sessions = await getSessions();
-  await writeJson(SESSIONS_FILE, sessions.filter(s => s.token !== token));
+async function deleteSession(_token) {
+  // Stateless tokens can't be revoked server-side without a denylist.
+  // On Railway, we could maintain a denylist file; on Vercel that's impractical.
+  // Logout is handled client-side by clearing localStorage.
+  return;
 }
 
 // ── Invitations ────────────────────────────────────────────────────────────
@@ -303,7 +318,6 @@ async function bootstrapSuperAdmin() {
     await saveUsers(users);
     console.info('[admin-auth] super-admin créé depuis ADMIN_USERNAME/ADMIN_SECRET');
   } else {
-    // Always sync password from env on startup so env change takes effect
     const salt = crypto.randomBytes(16).toString('hex');
     users[idx].password_hash = hashPassword(password, salt);
     users[idx].password_salt = salt;
