@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accès Admin — Blink Premium</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .auth-card {
+      background: var(--surface-strong); border: 1px solid var(--border);
+      border-radius: 18px; padding: 2.5rem 2rem;
+      width: min(440px, calc(100vw - 32px)); box-shadow: var(--shadow);
+    }
+    .auth-logo { text-align: center; margin-bottom: 1.75rem; }
+    .auth-logo .wordmark { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    .auth-logo .sub { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .auth-card h1 { font-size: 1.375rem; margin: 0 0 0.25rem; }
+    .auth-card .lead { color: var(--muted); font-size: 0.875rem; margin: 0 0 1.75rem; }
+    label { display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 5px; }
+    .field { margin-bottom: 1rem; }
+    input[type=email], input[type=password], input[type=text] {
+      width: 100%; padding: 0.65rem 0.875rem;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.9375rem; background: var(--surface);
+      color: var(--text); box-sizing: border-box; transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    input:disabled { opacity: 0.6; }
+    .btn-primary {
+      width: 100%; padding: 0.75rem; background: var(--accent); color: white;
+      border: none; border-radius: 10px; font-size: 0.9375rem; font-weight: 700;
+      cursor: pointer; margin-top: 0.5rem; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-strong); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 0.65rem 0.875rem; font-size: 0.875rem; margin-bottom: 1rem; display: none; }
+    .success-msg { background: var(--accent-soft); color: var(--accent-strong); border-radius: 8px; padding: 0.65rem 0.875rem; font-size: 0.875rem; margin-bottom: 1rem; display: none; }
+    .auth-links { text-align: center; margin-top: 1.5rem; font-size: 0.8125rem; color: var(--muted); }
+    .auth-links a { color: var(--accent); font-weight: 600; }
+    #inviteSection, #requestSection { display: none; }
+    .hint { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="wordmark">blink <strong>premium</strong></div>
+      <div class="sub">Espace Administration</div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+
+    <!-- Invite acceptance form -->
+    <div id="inviteSection">
+      <h1>Créer mon accès</h1>
+      <p class="lead" id="inviteLead">Définissez votre mot de passe pour activer votre compte.</p>
+      <form id="inviteForm">
+        <input type="hidden" id="inviteToken" />
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="inviteEmail" disabled />
+        </div>
+        <div class="field">
+          <label for="inviteName">Prénom &amp; Nom</label>
+          <input type="text" id="inviteName" placeholder="Votre nom" required />
+        </div>
+        <div class="field">
+          <label for="invitePassword">Mot de passe</label>
+          <input type="password" id="invitePassword" placeholder="8 caractères minimum" required minlength="8" />
+          <p class="hint">Au moins 8 caractères</p>
+        </div>
+        <div class="field">
+          <label for="invitePassword2">Confirmer le mot de passe</label>
+          <input type="password" id="invitePassword2" placeholder="Répétez le mot de passe" required />
+        </div>
+        <button type="submit" class="btn-primary" id="inviteBtn">Créer mon compte</button>
+      </form>
+    </div>
+
+    <!-- Request access form -->
+    <div id="requestSection">
+      <h1>Demander un accès</h1>
+      <p class="lead">Un administrateur examinera votre demande et vous enverra un lien d'invitation par email.</p>
+      <form id="requestForm">
+        <div class="field">
+          <label for="reqName">Prénom &amp; Nom</label>
+          <input type="text" id="reqName" placeholder="Votre nom" required />
+        </div>
+        <div class="field">
+          <label for="reqEmail">Email professionnel</label>
+          <input type="email" id="reqEmail" placeholder="vous@blinkpharmacie.com" required />
+        </div>
+        <button type="submit" class="btn-primary" id="requestBtn">Envoyer la demande</button>
+      </form>
+    </div>
+
+    <div class="auth-links">
+      <a href="/admin/login">← Retour à la connexion</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const inviteToken = params.get('token');
+
+    if (inviteToken) {
+      document.getElementById('inviteSection').style.display = 'block';
+      document.getElementById('inviteToken').value = inviteToken;
+      // Load user info from token
+      fetch('/admin/api/auth/invite-info?token=' + encodeURIComponent(inviteToken))
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            showError(data.error);
+            document.getElementById('inviteSection').style.display = 'none';
+          } else {
+            document.getElementById('inviteEmail').value = data.email;
+            if (data.name && data.name !== data.email) {
+              document.getElementById('inviteName').value = data.name;
+            }
+          }
+        }).catch(() => showError('Erreur de chargement du lien.'));
+    } else {
+      document.getElementById('requestSection').style.display = 'block';
+    }
+
+    document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('inviteBtn');
+      const p1 = document.getElementById('invitePassword').value;
+      const p2 = document.getElementById('invitePassword2').value;
+      if (p1 !== p2) return showError('Les mots de passe ne correspondent pas.');
+      if (p1.length < 8) return showError('Mot de passe trop court (8 caractères min).');
+      btn.disabled = true; btn.textContent = 'Création…';
+      hideMessages();
+      try {
+        const res = await fetch('/admin/api/auth/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: inviteToken, password: p1, name: document.getElementById('inviteName').value }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur');
+        localStorage.setItem('admin_token', data.token);
+        localStorage.setItem('admin_user', JSON.stringify(data.user));
+        window.location.href = '/admin';
+      } catch (ex) {
+        showError(ex.message);
+        btn.disabled = false; btn.textContent = 'Créer mon compte';
+      }
+    });
+
+    document.getElementById('requestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('requestBtn');
+      btn.disabled = true; btn.textContent = 'Envoi…';
+      hideMessages();
+      try {
+        const res = await fetch('/admin/api/auth/request-access', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('reqEmail').value, name: document.getElementById('reqName').value }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur');
+        showSuccess('Demande envoyée ! Un administrateur vous contactera par email dès validation.');
+        document.getElementById('requestForm').reset();
+      } catch (ex) {
+        showError(ex.message);
+      }
+      btn.disabled = false; btn.textContent = 'Envoyer la demande';
+    });
+
+    function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = msg; el.style.display = 'block'; document.getElementById('successMsg').style.display = 'none'; }
+    function showSuccess(msg) { const el = document.getElementById('successMsg'); el.textContent = msg; el.style.display = 'block'; document.getElementById('errorMsg').style.display = 'none'; }
+    function hideMessages() { document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
+  </script>
+</body>
+</html>

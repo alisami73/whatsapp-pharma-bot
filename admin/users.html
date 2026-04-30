@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des accès — Admin Blink Premium</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+  <style>
+    .users-grid { display: grid; gap: 20px; }
+    .invite-panel { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+    .invite-panel h3 { margin: 0 0 1rem; font-size: 1rem; }
+    .invite-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .invite-row input { flex: 1; min-width: 180px; padding: 0.6rem 0.875rem; border: 1.5px solid var(--border); border-radius: 9px; font-size: 0.875rem; background: var(--surface); color: var(--text); }
+    .invite-row input:focus { outline: none; border-color: var(--accent); }
+    .btn { padding: 0.6rem 1.125rem; border-radius: 9px; font-size: 0.875rem; font-weight: 600; border: 1.5px solid var(--border); background: white; color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-accent { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: white; }
+    .btn-danger { color: var(--danger); border-color: var(--danger-soft); }
+    .btn-danger:hover { background: var(--danger-soft); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
+    .section-header h2 { font-size: 1.0625rem; margin: 0; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 100px; background: var(--accent); color: white; font-size: 0.6875rem; font-weight: 700; }
+    .badge.orange { background: #D97706; }
+    .badge.gray { background: var(--muted); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; padding: 0.5rem 0.75rem; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--border); }
+    td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--info-soft); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 9px; border-radius: 100px;
+      font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+    }
+    .status-active { background: #D1FAE5; color: #065F46; }
+    .status-pending { background: #FEF3C7; color: #92400E; }
+    .status-invited { background: #DBEAFE; color: #1E40AF; }
+    .status-disabled { background: #F3F4F6; color: #6B7280; }
+
+    .role-badge { font-size: 0.6875rem; color: var(--muted); background: var(--info-soft); padding: 2px 8px; border-radius: 6px; }
+    .role-superadmin { color: var(--accent); background: var(--accent-soft); }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .copy-link { font-size: 0.75rem; color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none; z-index: 9999; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.875rem; }
+
+    .panel { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; }
+  </style>
+</head>
+<body>
+  <!-- Auth guard -->
+  <script>
+  (function() {
+    const token = localStorage.getItem('admin_token');
+    if (!token) { window.location.href = '/admin/login'; return; }
+    fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => { if (!r.ok) { localStorage.removeItem('admin_token'); window.location.href = '/admin/login'; } })
+      .catch(() => { window.location.href = '/admin/login'; });
+  })();
+  </script>
+
+  <div class="shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Administration</p>
+        <h1>Gestion des accès</h1>
+        <p class="subtitle">Invitez des collaborateurs, approuvez les demandes en attente et gérez les comptes admin.</p>
+      </div>
+      <div class="header-actions">
+        <a class="button" href="/admin">← Tableau de bord</a>
+        <button class="button button-primary" id="logoutBtn">Déconnexion</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <a class="tab" href="/admin">Accueil</a>
+      <a class="tab" href="/admin/themes">Thèmes</a>
+      <a class="tab" href="/admin/crm">CRM</a>
+      <a class="tab" href="/admin/templates">Templates</a>
+      <a class="tab" href="/admin/monitoring">Monitoring</a>
+      <a class="tab active" href="/admin/users">Accès</a>
+    </nav>
+
+    <div class="users-grid">
+
+      <!-- Invite form -->
+      <div class="invite-panel">
+        <h3>✉️ Inviter un collaborateur par email</h3>
+        <div class="invite-row">
+          <input type="text" id="inviteName" placeholder="Prénom Nom" />
+          <input type="email" id="inviteEmail" placeholder="email@blinkpharmacie.com" />
+          <select id="inviteRole" style="padding:0.6rem 0.875rem;border:1.5px solid var(--border);border-radius:9px;font-size:0.875rem;background:var(--surface);color:var(--text);">
+            <option value="admin">Admin</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+          <button class="btn btn-accent" id="inviteBtn" onclick="sendInvite()">Envoyer l'invitation</button>
+        </div>
+        <div id="inviteResult" style="margin-top:0.75rem;font-size:0.8125rem;display:none;"></div>
+      </div>
+
+      <!-- Pending requests -->
+      <div class="panel">
+        <div class="section-header">
+          <h2>⏳ Demandes en attente <span class="badge orange" id="pendingBadge">0</span></h2>
+          <button class="btn" onclick="loadUsers()">Actualiser</button>
+        </div>
+        <table>
+          <thead><tr><th>Nom</th><th>Email</th><th>Demande</th><th>Actions</th></tr></thead>
+          <tbody id="pendingTable"><tr><td colspan="4" class="empty-state">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- All users -->
+      <div class="panel">
+        <div class="section-header">
+          <h2>👥 Tous les comptes <span class="badge" id="usersBadge">0</span></h2>
+        </div>
+        <table>
+          <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const TOKEN = localStorage.getItem('admin_token');
+    const ME = JSON.parse(localStorage.getItem('admin_user') || '{}');
+    const isSuperAdmin = ME.role === 'superadmin';
+
+    function authFetch(url, opts = {}) {
+      return fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN, ...(opts.headers || {}) } });
+    }
+
+    function toast(msg, ok = true) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.background = ok ? '#18654b' : '#9a2f1f';
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function statusBadge(s) {
+      const MAP = { active: 'Actif', pending: 'En attente', invited: 'Invité', disabled: 'Désactivé' };
+      return `<span class="status-badge status-${s}">${MAP[s] || s}</span>`;
+    }
+
+    async function loadUsers() {
+      const res = await authFetch('/admin/api/users');
+      if (!res.ok) { toast('Erreur de chargement', false); return; }
+      const users = await res.json();
+
+      const pending = users.filter(u => u.status === 'pending');
+      document.getElementById('pendingBadge').textContent = pending.length;
+      document.getElementById('usersBadge').textContent = users.filter(u => u.status !== 'pending').length;
+
+      // Pending table
+      const pendingTbody = document.getElementById('pendingTable');
+      if (!pending.length) {
+        pendingTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune demande en attente</td></tr>';
+      } else {
+        pendingTbody.innerHTML = pending.map(u => `
+          <tr>
+            <td><strong>${u.name}</strong></td>
+            <td>${u.email}</td>
+            <td style="color:var(--muted);font-size:0.8125rem;">${fmtDate(u.created_at)}</td>
+            <td class="actions">
+              <button class="btn btn-accent" onclick="approveUser('${u.id}','${u.email}','${u.name}')">✓ Approuver</button>
+              <button class="btn btn-danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Refuser</button>
+            </td>
+          </tr>`).join('');
+      }
+
+      // All users table (excluding pending)
+      const allTbody = document.getElementById('usersTable');
+      const others = users.filter(u => u.status !== 'pending');
+      if (!others.length) {
+        allTbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun compte</td></tr>';
+      } else {
+        allTbody.innerHTML = others.map(u => {
+          const isMe = u.id === ME.id;
+          const canDelete = isSuperAdmin && !isMe;
+          const inviteLink = u.invite_token ? `<br><span class="copy-link" onclick="copyInviteLink('${u.invite_token}')">📋 Copier le lien d'invitation</span>` : '';
+          return `
+          <tr>
+            <td><strong>${u.name}</strong>${isMe ? ' <span style="font-size:0.7rem;color:var(--muted)">(moi)</span>' : ''}</td>
+            <td>${u.email}</td>
+            <td><span class="role-badge ${u.role === 'superadmin' ? 'role-superadmin' : ''}">${u.role}</span></td>
+            <td>${statusBadge(u.status)}${inviteLink}</td>
+            <td style="font-size:0.8rem;color:var(--muted)">${fmtDate(u.last_login_at)}</td>
+            <td class="actions">
+              ${u.status === 'active' && !isMe ? `<button class="btn btn-danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Désactiver</button>` : ''}
+              ${u.status === 'disabled' ? `<button class="btn" onclick="setStatus('${u.id}','active','${u.name}')">Réactiver</button>` : ''}
+              ${u.status === 'invited' ? `<button class="btn" onclick="resendInvite('${u.email}','${u.name}')">Renvoyer</button>` : ''}
+              ${canDelete ? `<button class="btn btn-danger" onclick="deleteUser('${u.id}','${u.name}')">Supprimer</button>` : ''}
+            </td>
+          </tr>`;
+        }).join('');
+      }
+    }
+
+    async function sendInvite() {
+      const email = document.getElementById('inviteEmail').value.trim();
+      const name = document.getElementById('inviteName').value.trim();
+      const role = document.getElementById('inviteRole').value;
+      if (!email) { toast('Email requis', false); return; }
+      const btn = document.getElementById('inviteBtn');
+      btn.disabled = true; btn.textContent = 'Envoi…';
+      const result = document.getElementById('inviteResult');
+      result.style.display = 'none';
+
+      const res = await authFetch('/admin/api/users/invite', { method: 'POST', body: JSON.stringify({ email, name, role }) });
+      const data = await res.json();
+
+      if (res.ok) {
+        toast('Invitation envoyée à ' + email);
+        document.getElementById('inviteEmail').value = '';
+        document.getElementById('inviteName').value = '';
+        result.style.display = 'block';
+        result.innerHTML = `<span style="color:var(--accent);font-weight:600;">✓ Invitation envoyée</span> — <span class="copy-link" onclick="navigator.clipboard.writeText('${data.invite_url}');toast('Lien copié')">📋 Copier le lien</span> <code style="font-size:0.75rem;word-break:break-all;">${data.invite_url}</code>`;
+        loadUsers();
+      } else {
+        toast(data.error || 'Erreur', false);
+      }
+      btn.disabled = false; btn.textContent = "Envoyer l'invitation";
+    }
+
+    async function approveUser(id, email, name) {
+      if (!confirm(`Approuver ${name} (${email}) et lui envoyer une invitation ?`)) return;
+      const res = await authFetch(`/admin/api/users/${id}/approve`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) { toast(`Invitation envoyée à ${email}`); loadUsers(); }
+      else toast(data.error || 'Erreur', false);
+    }
+
+    async function setStatus(id, status, name) {
+      const label = status === 'disabled' ? 'désactiver' : 'réactiver';
+      if (!confirm(`Voulez-vous ${label} le compte de ${name} ?`)) return;
+      const res = await authFetch(`/admin/api/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+      if (res.ok) { toast(`Compte ${status === 'disabled' ? 'désactivé' : 'réactivé'}`); loadUsers(); }
+      else { const d = await res.json(); toast(d.error || 'Erreur', false); }
+    }
+
+    async function deleteUser(id, name) {
+      if (!confirm(`Supprimer définitivement le compte de ${name} ?`)) return;
+      const res = await authFetch(`/admin/api/users/${id}`, { method: 'DELETE' });
+      if (res.ok) { toast('Compte supprimé'); loadUsers(); }
+      else { const d = await res.json(); toast(d.error || 'Erreur', false); }
+    }
+
+    async function resendInvite(email, name) {
+      const res = await authFetch('/admin/api/users/invite', { method: 'POST', body: JSON.stringify({ email, name }) });
+      const data = await res.json();
+      if (res.ok) toast('Invitation renvoyée à ' + email);
+      else toast(data.error || 'Erreur', false);
+    }
+
+    function copyInviteLink(token) {
+      const url = `${location.origin}/admin/register?token=${token}`;
+      navigator.clipboard.writeText(url).then(() => toast('Lien copié !'));
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await authFetch('/admin/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/admin/login';
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>

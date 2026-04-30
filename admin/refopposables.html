@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Références Opposables — Admin</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+    <style>
+      .filter-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px; }
+      .filter-bar label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+      .filter-bar .input { padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--surface); color:var(--text); }
+      .filter-bar .input:focus { outline:2px solid var(--accent); border-color:var(--accent); }
+      .ref-table { width:100%; border-collapse:collapse; font-size:13px; }
+      .ref-table th { text-align:left; padding:10px 12px; border-bottom:2px solid var(--border); color:var(--muted); font-weight:600; white-space:nowrap; }
+      .ref-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+      .ref-table tr:hover td { background:var(--info-soft); }
+      .phone-cell { font-family:monospace; font-size:12px; white-space:nowrap; }
+      .theme-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; background:var(--accent-soft); color:var(--accent-strong); }
+      .question-cell { max-width:240px; color:var(--text); }
+      .answer-cell { max-width:340px; }
+      .answer-preview { color:var(--muted); white-space:pre-wrap; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; cursor:pointer; }
+      .answer-full { display:none; white-space:pre-wrap; color:var(--text); }
+      .expand-btn { font-size:11px; color:var(--accent); cursor:pointer; margin-top:4px; background:none; border:none; padding:0; }
+      .date-cell { white-space:nowrap; font-size:12px; color:var(--muted); }
+      .chars-cell { text-align:right; font-size:12px; color:var(--muted); }
+      .empty-state { text-align:center; padding:48px; color:var(--muted); }
+      .stat-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+      .stat-card { flex:1; min-width:120px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; }
+      .stat-card .stat-val { font-size:28px; font-weight:700; color:var(--accent); }
+      .stat-card .stat-lbl { font-size:12px; color:var(--muted); margin-top:2px; }
+    </style>
+  </head>
+  <body>
+  <script src="/admin/auth-guard.js"></script>
+    <div class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Administration</p>
+          <h1>Références Opposables</h1>
+          <p class="subtitle">Audit trail des réponses IA générées par le bot — horodatées et liées au numéro consultant.</p>
+        </div>
+        <div class="header-actions">
+          <button class="button" id="exportBtn" type="button">Exporter CSV</button>
+          <a class="button button-primary" href="/admin">Accueil</a>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <a class="tab" href="/admin">Accueil</a>
+        <a class="tab" href="/admin/themes">Themes</a>
+        <a class="tab" href="/admin/crm">CRM</a>
+        <a class="tab" href="/admin/templates">Templates</a>
+        <a class="tab" href="/admin/monitoring">Monitoring</a>
+        <a class="tab active" href="/admin/refopposables">Réf. Opposables</a>
+      </nav>
+
+      <!-- Stats -->
+      <div class="stat-row" id="statRow">
+        <div class="stat-card"><div class="stat-val" id="statTotal">–</div><div class="stat-lbl">Total réponses</div></div>
+        <div class="stat-card"><div class="stat-val" id="statUsers">–</div><div class="stat-lbl">Numéros distincts</div></div>
+        <div class="stat-card"><div class="stat-val" id="statToday">–</div><div class="stat-lbl">Aujourd'hui</div></div>
+        <div class="stat-card"><div class="stat-val" id="statAvgChars">–</div><div class="stat-lbl">Moy. caractères / rép.</div></div>
+      </div>
+
+      <!-- Filtres -->
+      <section class="panel" style="margin-bottom:20px;">
+        <div class="filter-bar">
+          <label>Numéro (partiel)
+            <input class="input" id="filterPhone" type="text" placeholder="+212…" style="width:180px;" />
+          </label>
+          <label>Thème
+            <select class="input" id="filterTheme" style="width:180px;">
+              <option value="">Tous les thèmes</option>
+            </select>
+          </label>
+          <label>Depuis
+            <input class="input" id="filterFrom" type="date" />
+          </label>
+          <label>Jusqu'au
+            <input class="input" id="filterTo" type="date" />
+          </label>
+          <label>&nbsp;
+            <button class="button button-primary" id="searchBtn" type="button">Rechercher</button>
+          </label>
+          <label>&nbsp;
+            <button class="button" id="resetBtn" type="button">Réinitialiser</button>
+          </label>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="panel">
+        <div id="tableWrap" style="overflow-x:auto;">
+          <p style="color:var(--muted);">Chargement...</p>
+        </div>
+        <div id="pagination" style="display:flex;gap:8px;margin-top:16px;align-items:center;justify-content:flex-end;font-size:13px;color:var(--muted);"></div>
+      </section>
+    </div>
+
+    <script>
+      const PAGE_SIZE = 50;
+      let allRecords = [];
+      let filtered = [];
+      let currentPage = 0;
+
+      async function load() {
+        try {
+          const res = await fetch('/admin/api/ref-opposables?limit=2000');
+          const data = await res.json();
+          allRecords = data.records || [];
+          populateThemeFilter();
+          computeStats(allRecords);
+          applyFilters();
+        } catch (e) {
+          document.getElementById('tableWrap').innerHTML = '<p style="color:var(--danger);">Erreur de chargement.</p>';
+        }
+      }
+
+      function populateThemeFilter() {
+        const themes = [...new Set(allRecords.map(r => r.theme_id).filter(Boolean))].sort();
+        const sel = document.getElementById('filterTheme');
+        themes.forEach(t => {
+          const o = document.createElement('option');
+          o.value = t;
+          o.textContent = t;
+          sel.appendChild(o);
+        });
+      }
+
+      function computeStats(records) {
+        document.getElementById('statTotal').textContent = records.length;
+        document.getElementById('statUsers').textContent = new Set(records.map(r => r.phone)).size;
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('statToday').textContent = records.filter(r => r.created_at && r.created_at.startsWith(today)).length;
+        const avg = records.length ? Math.round(records.reduce((s, r) => s + (r.char_count || 0), 0) / records.length) : 0;
+        document.getElementById('statAvgChars').textContent = avg || '–';
+      }
+
+      function applyFilters() {
+        const phone = document.getElementById('filterPhone').value.trim().toLowerCase();
+        const theme = document.getElementById('filterTheme').value;
+        const from = document.getElementById('filterFrom').value;
+        const to = document.getElementById('filterTo').value;
+
+        filtered = allRecords.filter(r => {
+          if (phone && !r.phone.toLowerCase().includes(phone)) return false;
+          if (theme && r.theme_id !== theme) return false;
+          if (from && r.created_at < from) return false;
+          if (to && r.created_at > to + 'T23:59:59') return false;
+          return true;
+        });
+        currentPage = 0;
+        renderTable();
+        renderPagination();
+      }
+
+      function renderTable() {
+        const start = currentPage * PAGE_SIZE;
+        const page = filtered.slice(start, start + PAGE_SIZE);
+
+        if (!page.length) {
+          document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Aucune référence trouvée.</div>';
+          return;
+        }
+
+        const rows = page.map((r, i) => {
+          const idx = start + i;
+          const date = r.created_at ? new Date(r.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '–';
+          const qShort = r.question.length > 120 ? r.question.slice(0, 118) + '…' : r.question;
+          const phone = r.phone.replace('whatsapp:', '');
+          return `<tr>
+            <td class="date-cell">${date}</td>
+            <td class="phone-cell">${esc(phone)}</td>
+            <td><span class="theme-badge">${esc(r.theme_id || '—')}</span></td>
+            <td class="question-cell">${esc(qShort)}</td>
+            <td class="answer-cell">
+              <div class="answer-preview" id="prev-${idx}">${esc(r.answer)}</div>
+              <div class="answer-full" id="full-${idx}">${esc(r.answer)}</div>
+              <button class="expand-btn" onclick="toggle(${idx})">▼ Voir la réponse complète</button>
+            </td>
+            <td class="chars-cell">${r.char_count || r.answer.length}</td>
+          </tr>`;
+        }).join('');
+
+        document.getElementById('tableWrap').innerHTML = `
+          <table class="ref-table">
+            <thead><tr>
+              <th>Date</th><th>Numéro</th><th>Thème</th><th>Question</th><th>Réponse IA</th><th>Chars</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }
+
+      function renderPagination() {
+        const total = filtered.length;
+        const pages = Math.ceil(total / PAGE_SIZE);
+        const el = document.getElementById('pagination');
+        if (pages <= 1) { el.innerHTML = `<span>${total} résultat(s)</span>`; return; }
+        let html = `<span>${total} résultats</span> `;
+        if (currentPage > 0) html += `<button class="button" onclick="goPage(${currentPage-1})">‹ Précédent</button>`;
+        html += `<span>Page ${currentPage+1} / ${pages}</span>`;
+        if (currentPage < pages - 1) html += `<button class="button" onclick="goPage(${currentPage+1})">Suivant ›</button>`;
+        el.innerHTML = html;
+      }
+
+      function goPage(p) { currentPage = p; renderTable(); renderPagination(); window.scrollTo(0,0); }
+
+      function toggle(idx) {
+        const prev = document.getElementById('prev-' + idx);
+        const full = document.getElementById('full-' + idx);
+        const btn = prev.nextElementSibling.nextElementSibling;
+        if (full.style.display === 'block') {
+          full.style.display = 'none'; prev.style.display = '-webkit-box'; btn.textContent = '▼ Voir la réponse complète';
+        } else {
+          full.style.display = 'block'; prev.style.display = 'none'; btn.textContent = '▲ Réduire';
+        }
+      }
+
+      function esc(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      document.getElementById('searchBtn').addEventListener('click', applyFilters);
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        document.getElementById('filterPhone').value = '';
+        document.getElementById('filterTheme').value = '';
+        document.getElementById('filterFrom').value = '';
+        document.getElementById('filterTo').value = '';
+        applyFilters();
+      });
+      document.getElementById('filterPhone').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const rows = [['id','date','phone','theme','module','question','answer','chars']];
+        filtered.forEach(r => rows.push([
+          r.id, r.created_at, r.phone.replace('whatsapp:',''), r.theme_id||'', r.module_type||'',
+          '"' + (r.question||'').replace(/"/g,'""') + '"',
+          '"' + (r.answer||'').replace(/"/g,'""') + '"',
+          r.char_count||r.answer.length
+        ]));
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'ref_opposables_' + new Date().toISOString().slice(0,10) + '.csv';
+        a.click();
+      });
+
+      load();
+    </script>
+  </body>
+</html>

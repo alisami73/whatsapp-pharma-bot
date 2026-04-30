@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — Admin Blink Premium</title>
+  <link rel="stylesheet" href="/admin/styles.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .auth-card {
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2.5rem 2rem;
+      width: min(420px, calc(100vw - 32px));
+      box-shadow: var(--shadow);
+    }
+    .auth-logo { text-align: center; margin-bottom: 1.75rem; }
+    .auth-logo .wordmark { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    .auth-logo .sub { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .auth-card h1 { font-size: 1.375rem; margin: 0 0 0.25rem; }
+    .auth-card .lead { color: var(--muted); font-size: 0.875rem; margin: 0 0 1.75rem; }
+    label { display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 5px; }
+    .field { margin-bottom: 1rem; }
+    input[type=email], input[type=password], input[type=text] {
+      width: 100%; padding: 0.65rem 0.875rem;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.9375rem; background: var(--surface);
+      color: var(--text); box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; padding: 0.75rem;
+      background: var(--accent); color: white;
+      border: none; border-radius: 10px;
+      font-size: 0.9375rem; font-weight: 700;
+      cursor: pointer; margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-strong); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg { background: var(--danger-soft); color: var(--danger); border-radius: 8px; padding: 0.65rem 0.875rem; font-size: 0.875rem; margin-bottom: 1rem; display: none; }
+    .auth-links { text-align: center; margin-top: 1.5rem; font-size: 0.8125rem; color: var(--muted); }
+    .auth-links a { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="wordmark">blink <strong>premium</strong></div>
+      <div class="sub">Espace Administration</div>
+    </div>
+    <h1>Connexion</h1>
+    <p class="lead">Accès réservé aux administrateurs autorisés.</p>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" autocomplete="username" placeholder="vous@blinkpharmacie.com" required />
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Se connecter</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="/admin/request-access">Demander un accès</a>
+    </div>
+  </div>
+
+  <script>
+    // Already logged in?
+    (function() {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+          .then(r => { if (r.ok) window.location.href = '/admin'; });
+      }
+    })();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Connexion…';
+
+      try {
+        const res = await fetch('/admin/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur de connexion');
+        localStorage.setItem('admin_token', data.token);
+        localStorage.setItem('admin_user', JSON.stringify(data.user));
+        window.location.href = '/admin';
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Se connecter';
+      }
+    });
+  </script>
+</body>
+</html>

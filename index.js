@@ -1836,6 +1836,7 @@ app.use((error, req, res, next) => {
 if (require.main === module) {
   storage
     .initializeStorage()
+    .then(() => require('./modules/admin_auth').bootstrapSuperAdmin())
     .then(() => {
       app.listen(PORT, () => {
         console.log(`WhatsApp pharmacy assistant running on port ${PORT}`);
@@ -1852,9 +1853,9 @@ if (require.main === module) {
     });
 } else {
   // Import par Vercel ou les tests : initialiser le storage silencieusement
-  storage.initializeStorage().catch((error) => {
-    console.error('[storage-init]', error.message);
-  });
+  storage.initializeStorage()
+    .then(() => require('./modules/admin_auth').bootstrapSuperAdmin())
+    .catch((error) => { console.error('[storage-init]', error.message); });
 }
 
 // Export pour Vercel serverless et les tests

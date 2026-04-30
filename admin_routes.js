@@ -7,68 +7,208 @@ const medindex = require('./modules/medindex');
 const monitoring = require('./modules/monitoring');
 const consent = require('./modules/consent');
 const onboardingFlow = require('./modules/onboarding_flow');
+const adminAuth = require('./modules/admin_auth');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
 
 // ---------------------------------------------------------------------------
-// Authentification HTTP Basic pour l'interface d'administration
-//
-// Si ADMIN_SECRET est défini dans les variables d'environnement, toutes les
-// routes /admin/* nécessitent un login HTTP Basic :
-//   - Utilisateur : "admin"
-//   - Mot de passe : valeur de ADMIN_SECRET
-//
-// Si ADMIN_SECRET n'est pas défini, l'admin est accessible sans restriction
-// (acceptable en dev local, à éviter en production).
+// Auth middleware — Bearer token in Authorization header
 // ---------------------------------------------------------------------------
 
-function getAdminCredentials() {
-  return {
-    username: String(process.env.ADMIN_USERNAME || 'admin').trim(),
-    secret: String(process.env.ADMIN_SECRET || '').trim(),
-  };
+function extractToken(req) {
+  const h = String(req.headers.authorization || '');
+  if (h.startsWith('Bearer ')) return h.slice(7).trim();
+  return null;
 }
 
-function requireAdminAuth(req, res, next) {
-  const { username, secret } = getAdminCredentials();
-
-  // Pas de secret configuré → accès libre avec avertissement
-  if (!secret) {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('[admin-auth] ADMIN_SECRET non défini — interface admin accessible sans authentification');
+async function requireAdminAuth(req, res, next) {
+  const token = extractToken(req);
+  const user = await adminAuth.verifySession(token);
+  if (!user) {
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Non authentifié', redirect: '/admin/login' });
     }
-    return next();
+    return res.redirect('/admin/login');
   }
-
-  const authHeader = String(req.headers.authorization || '');
-
-  if (authHeader.startsWith('Basic ')) {
-    const encoded = authHeader.slice('Basic '.length);
-    let decoded;
-    try {
-      decoded = Buffer.from(encoded, 'base64').toString('utf8');
-    } catch {
-      decoded = '';
-    }
-    // Format : "<username>:<secret>" — le username peut contenir @ . & etc.
-    const colonIndex = decoded.indexOf(':');
-    if (colonIndex !== -1) {
-      const user = decoded.slice(0, colonIndex);
-      const pass = decoded.slice(colonIndex + 1);
-      if (user === username && pass === secret) {
-        return next();
-      }
-    }
-  }
-
-  // Demander les credentials
-  res.set('WWW-Authenticate', 'Basic realm="Admin WhatsApp Pharma"');
-  res.status(401).send('Authentification requise');
+  req.adminUser = user;
+  next();
 }
 
-// Appliquer le middleware d'auth à toutes les routes admin
-router.use(requireAdminAuth);
+// Public routes (no auth required)
+const PUBLIC_PATHS = ['/login', '/register', '/request-access',
+  '/api/auth/login', '/api/auth/register', '/api/auth/request-access',
+  '/api/auth/invite-info'];
+
+router.use((req, res, next) => {
+  if (PUBLIC_PATHS.some(p => req.path === p || req.path.startsWith(p))) return next();
+  requireAdminAuth(req, res, next);
+});
+
+// ---------------------------------------------------------------------------
+// Auth routes (public)
+// ---------------------------------------------------------------------------
+
+router.get('/login', (req, res) => res.sendFile(path.join(adminDir, 'login.html')));
+router.get('/register', (req, res) => res.sendFile(path.join(adminDir, 'register.html')));
+router.get('/request-access', (req, res) => res.sendFile(path.join(adminDir, 'register.html')));
+
+router.post('/api/auth/login', asyncHandler(async (req, res) => {
+  const email = String(req.body.email || '').trim();
+  const password = String(req.body.password || '').trim();
+  if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
+
+  const user = await adminAuth.verifyPassword(email, password);
+  if (!user) return res.status(401).json({ error: 'Identifiants incorrects ou compte inactif' });
+
+  const token = await adminAuth.createSession(user.id);
+  res.json({ token, user: adminAuth.publicUser(user) });
+}));
+
+router.post('/api/auth/logout', asyncHandler(async (req, res) => {
+  const token = extractToken(req);
+  if (token) await adminAuth.deleteSession(token);
+  res.json({ ok: true });
+}));
+
+router.get('/api/auth/me', asyncHandler(async (req, res) => {
+  const token = extractToken(req);
+  const user = await adminAuth.verifySession(token);
+  if (!user) return res.status(401).json({ error: 'Non authentifié' });
+  res.json(adminAuth.publicUser(user));
+}));
+
+router.get('/api/auth/invite-info', asyncHandler(async (req, res) => {
+  const token = String(req.query.token || '').trim();
+  if (!token) return res.status(400).json({ error: 'Token manquant' });
+  const user = await adminAuth.getUserByInviteToken(token);
+  if (!user) return res.status(404).json({ error: 'Lien invalide ou expiré' });
+  if (user.invite_expires_at && new Date(user.invite_expires_at).getTime() < Date.now()) {
+    return res.status(410).json({ error: 'Lien expiré' });
+  }
+  res.json({ email: user.email, name: user.name });
+}));
+
+router.post('/api/auth/register', asyncHandler(async (req, res) => {
+  const token = String(req.body.token || '').trim();
+  const password = String(req.body.password || '').trim();
+  const name = String(req.body.name || '').trim();
+  if (!token || !password) return res.status(400).json({ error: 'Token et mot de passe requis' });
+  if (password.length < 8) return res.status(400).json({ error: 'Mot de passe trop court (8 caractères min)' });
+
+  const user = await adminAuth.acceptInvite(token, password);
+  if (!user) return res.status(400).json({ error: 'Lien invalide ou expiré' });
+
+  const sessionToken = await adminAuth.createSession(user.id);
+  res.json({ token: sessionToken, user: adminAuth.publicUser(user) });
+}));
+
+router.post('/api/auth/request-access', asyncHandler(async (req, res) => {
+  const email = String(req.body.email || '').trim();
+  const name = String(req.body.name || '').trim();
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+
+  try {
+    const user = await adminAuth.requestAccess(email, name);
+    console.info('[admin-auth] demande d\'accès reçue', { email, name });
+    res.status(201).json({ ok: true, status: user.status });
+  } catch (err) {
+    const MAP = {
+      already_active: 'Ce compte est déjà actif. Connectez-vous.',
+      already_pending: 'Une demande est déjà en attente pour cet email.',
+      already_invited: 'Une invitation a déjà été envoyée à cet email.',
+    };
+    res.status(409).json({ error: MAP[err.message] || err.message });
+  }
+}));
+
+// ---------------------------------------------------------------------------
+// User management routes (auth required — middleware above applies)
+// ---------------------------------------------------------------------------
+
+router.get('/users', (req, res) => res.sendFile(path.join(adminDir, 'users.html')));
+
+router.get('/api/users', asyncHandler(async (req, res) => {
+  const users = await adminAuth.getUsers();
+  res.json(users.map(adminAuth.publicUser));
+}));
+
+router.post('/api/users/invite', asyncHandler(async (req, res) => {
+  const email = String(req.body.email || '').trim();
+  const name = String(req.body.name || '').trim();
+  const role = ['superadmin', 'admin'].includes(req.body.role) ? req.body.role : 'admin';
+
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+
+  try {
+    const { token, user } = await adminAuth.createInviteToken(email, name, role);
+    const base = String(process.env.PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const inviteUrl = `${base}/admin/register?token=${token}`;
+
+    await sendInviteEmail(email, user.name, inviteUrl, req.adminUser.name);
+    console.info('[admin-auth] invitation envoyée', { email, inviteUrl });
+    res.status(201).json({ ok: true, invite_url: inviteUrl, user: adminAuth.publicUser(user) });
+  } catch (err) {
+    res.status(409).json({ error: err.message });
+  }
+}));
+
+router.post('/api/users/:id/approve', asyncHandler(async (req, res) => {
+  const result = await adminAuth.approveUser(req.params.id);
+  if (!result) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  const base = String(process.env.PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  const inviteUrl = `${base}/admin/register?token=${result.token}`;
+  await sendInviteEmail(result.user.email, result.user.name, inviteUrl, req.adminUser.name);
+
+  res.json({ ok: true, invite_url: inviteUrl, user: adminAuth.publicUser(result.user) });
+}));
+
+router.put('/api/users/:id/status', asyncHandler(async (req, res) => {
+  const status = String(req.body.status || '').trim();
+  if (!['active', 'disabled'].includes(status)) return res.status(400).json({ error: 'Status invalide' });
+  const user = await adminAuth.updateUserStatus(req.params.id, status);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  res.json(user);
+}));
+
+router.delete('/api/users/:id', asyncHandler(async (req, res) => {
+  if (req.adminUser.role !== 'superadmin') return res.status(403).json({ error: 'Réservé au super-admin' });
+  const ok = await adminAuth.deleteUser(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  res.status(204).send();
+}));
+
+// ── Email invitation helper ────────────────────────────────────────────────
+
+async function sendInviteEmail(toEmail, toName, inviteUrl, fromName) {
+  try {
+    const { getContactEmailConfig, createTransport, sendContactLeadViaMicrosoftGraph } = require('./modules/contact_leads');
+    const config = getContactEmailConfig();
+    const subject = 'Invitation — Espace Admin Blink Premium';
+    const html = `
+<div style="font-family:Arial,sans-serif;color:#1f2937;max-width:560px;line-height:1.6;">
+  <h2 style="color:#18654b;">Vous avez été invité(e)</h2>
+  <p>Bonjour ${toName || toEmail},</p>
+  <p><strong>${fromName || 'Un administrateur'}</strong> vous invite à accéder à l'espace d'administration Blink Premium.</p>
+  <p style="margin:24px 0;">
+    <a href="${inviteUrl}" style="background:#18654b;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">
+      Créer mon mot de passe →
+    </a>
+  </p>
+  <p style="color:#6b7280;font-size:0.875rem;">Ce lien expire dans 72 heures.<br>Si vous n'attendiez pas cette invitation, ignorez cet email.</p>
+</div>`.trim();
+    const mail = { to: toEmail, from: config.from, subject, text: `${subject}\n\nLien : ${inviteUrl}\n(expire dans 72h)`, html };
+    if (config.provider === 'msgraph') {
+      await sendContactLeadViaMicrosoftGraph(mail, config);
+    } else {
+      const transport = createTransport(config);
+      await transport.sendMail(mail);
+    }
+  } catch (err) {
+    console.error('[admin-auth] échec envoi email invitation', { to: toEmail, error: err.message });
+  }
+}
 
 function asyncHandler(handler) {
   return (req, res, next) => {
@@ -233,6 +373,10 @@ router.get('/templates', (req, res) => {
 
 router.get('/monitoring', (req, res) => {
   res.sendFile(path.join(adminDir, 'monitoring.html'));
+});
+
+router.get('/refopposables', (req, res) => {
+  res.sendFile(path.join(adminDir, 'refopposables.html'));
 });
 
 router.get(
@@ -866,6 +1010,51 @@ router.get(
     const pharmacyId = String(req.query.pharmacy_id || 'demo').trim();
     const sales = await connector.getSalesSummary(pharmacyId);
     res.json({ software, pharmacy_id: pharmacyId, sales });
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Références opposables — audit trail réponses IA
+// ---------------------------------------------------------------------------
+
+router.get(
+  '/api/ref-opposables',
+  asyncHandler(async (req, res) => {
+    // Si RAILWAY_BACKEND_URL est défini (Vercel → proxy vers Railway)
+    const railwayBase = String(process.env.RAILWAY_BACKEND_URL || '').replace(/\/+$/, '');
+    if (railwayBase) {
+      const https = require('https');
+      const http = require('http');
+      const qs = new URLSearchParams(req.query).toString();
+      const targetUrl = `${railwayBase}/admin/api/ref-opposables${qs ? '?' + qs : ''}`;
+      const { credentials } = getAdminCredentials ? {} : {};
+      const creds = getAdminCredentials();
+      const authHeader = creds.secret
+        ? 'Basic ' + Buffer.from(`${creds.username}:${creds.secret}`).toString('base64')
+        : null;
+      const lib = targetUrl.startsWith('https') ? https : http;
+      return new Promise((resolve) => {
+        const proxyReq = lib.get(targetUrl, {
+          headers: { ...(authHeader ? { Authorization: authHeader } : {}) },
+        }, (proxyRes) => {
+          let data = '';
+          proxyRes.on('data', (c) => { data += c; });
+          proxyRes.on('end', () => {
+            try { res.json(JSON.parse(data)); } catch { res.status(502).json({ error: 'proxy parse error', raw: data.slice(0, 200) }); }
+            resolve();
+          });
+        });
+        proxyReq.on('error', (err) => { res.status(502).json({ error: err.message }); resolve(); });
+      });
+    }
+
+    const { phone, theme_id, limit } = req.query;
+    const records = await storage.listRefOpposables({
+      phone: phone ? String(phone).trim() : undefined,
+      theme_id: theme_id ? String(theme_id).trim() : undefined,
+      limit: limit ? Math.min(parseInt(limit, 10) || 200, 5000) : 200,
+    });
+    res.json({ records, total: records.length });
   }),
 );
 
