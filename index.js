@@ -822,7 +822,7 @@ async function startThemePrimaryAction(response, user, theme) {
     const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
     const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-    response.message(`💎 Blink Premium\n\n${base}/site/index.html${langSuffix}`);
+    response.message(`💎 Blink Premium\n\n${base}/site/${langSuffix}`);
     return;
   }
 
@@ -1504,7 +1504,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
 
       const WEB_URLS = {
-        'software':              `${base}/site/index.html${langSuffix}`,
+        'software':              `${base}/site/${langSuffix}`,
         'nouveautes-medicaments':`${base}/site/actu.html${langSuffix}`,
         'fse':                   `${base}/site/fse.html${langSuffix}`,
         'conformites':           `${base}/site/conformite.html${langSuffix}`,
@@ -1701,7 +1701,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
       const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
       await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-      response.message(`💎 Blink Premium\n\n${base}/site/index.html${langSuffix}`);
+      response.message(`💎 Blink Premium\n\n${base}/site/${langSuffix}`);
       res.type('text/xml').send(response.toString());
       return;
     }
