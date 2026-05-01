@@ -622,13 +622,17 @@ async function setCnssQuestionState(user, themeId) {
 // Retourne true si le message a été envoyé via l'API Twilio, false sinon.
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
 async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
+  const lang = getUserLang(user);
+
   if (!interactive.isInteractiveEnabled()) {
-    console.warn('[explorer] INTERACTIVE_MESSAGES_ENABLED is off — sending empty response');
-    res.type('text/xml').send(buildEmptyTwiml());
+    console.warn('[explorer] INTERACTIVE_MESSAGES_ENABLED is off — sending text fallback');
+    const response = new MessagingResponse();
+    if (prefix) response.message(prefix);
+    response.message(explorer.buildExplorerFallbackText(lang));
+    res.type('text/xml').send(response.toString());
     return true;
   }
 
-  const lang = getUserLang(user);
   await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL });
 
   try {
@@ -647,10 +651,20 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
         metadata: { source: 'explorer_carousel' },
       });
     } else {
-      console.warn('[explorer] sendExplorerCarousel returned null — no text fallback, sending empty response');
+      console.warn('[explorer] sendExplorerCarousel returned null — sending text fallback');
+      const response = new MessagingResponse();
+      if (prefix) response.message(prefix);
+      response.message(explorer.buildExplorerFallbackText(lang));
+      res.type('text/xml').send(response.toString());
+      return true;
     }
   } catch (err) {
     console.error('[explorer] tryRespondWithMainMenuInteractive failed:', err.message || err);
+    const response = new MessagingResponse();
+    if (prefix) response.message(prefix);
+    response.message(explorer.buildExplorerFallbackText(lang));
+    res.type('text/xml').send(response.toString());
+    return true;
   }
 
   res.type('text/xml').send(buildEmptyTwiml());

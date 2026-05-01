@@ -25,6 +25,7 @@ const { buildPublicAssetUrl, buildPublicSiteUrl } = require('./public_site');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
+const DEFAULT_APPROVED_LANGUAGE_TEMPLATE_SID = 'HX2908fc06ee9d18dea8127f7d0975f6d8';
 
 function isInteractiveEnabled() {
   return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
@@ -316,14 +317,24 @@ async function sendLanguageScreen(to) {
     console.log('[interactive] sendLanguageScreen: INTERACTIVE_MESSAGES_ENABLED is off — text fallback');
     return null;
   }
+  const configuredSid = String(process.env.TWILIO_LANGUAGE_TEMPLATE_SID || '').trim();
+  const sid = configuredSid || DEFAULT_APPROVED_LANGUAGE_TEMPLATE_SID;
+
+  if (sid) {
+    console.log(`[interactive] sendLanguageScreen → using approved language SID ${sid} for ${to}`);
+    const result = await sendInteractive(to, sid);
+    console.log(`[interactive] sendLanguageScreen → sent ok, sid=${result && result.sid}, status=${result && result.status}`);
+    return result;
+  }
+
   console.log(`[interactive] sendLanguageScreen → resolveTemplate language_v4 for ${to}`);
-  const sid = await resolveTemplate('language_v4', buildLanguageSpec);
-  if (!sid) {
+  const resolvedSid = await resolveTemplate('language_v4', buildLanguageSpec);
+  if (!resolvedSid) {
     console.warn('[interactive] sendLanguageScreen: no SID — text fallback');
     return null;
   }
-  console.log(`[interactive] sendLanguageScreen → sendInteractive sid=${sid}`);
-  const result = await sendInteractive(to, sid);
+  console.log(`[interactive] sendLanguageScreen → sendInteractive sid=${resolvedSid}`);
+  const result = await sendInteractive(to, resolvedSid);
   console.log(`[interactive] sendLanguageScreen → sent ok, sid=${result && result.sid}, status=${result && result.status}`);
   return result;
 }
