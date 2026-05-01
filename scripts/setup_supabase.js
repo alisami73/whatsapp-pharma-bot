@@ -47,6 +47,7 @@ const MIGRATIONS = [
   { key: 'pharmacists',  file: 'pharmacists.json' },
   { key: 'refOpposables',file: 'ref_opposables.json' },
   { key: 'actus',        file: 'actus.json' },
+  { key: 'interactive_templates', file: 'interactive_templates.json' },
 ];
 
 async function main() {

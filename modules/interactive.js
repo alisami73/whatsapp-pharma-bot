@@ -20,10 +20,12 @@
 const fs = require('fs');
 const path = require('path');
 const twilioService = require('../twilio_service');
+const supabaseStore = require('./supabase_store');
 const { t } = require('./i18n');
 const { buildPublicAssetUrl, buildPublicSiteUrl } = require('./public_site');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
+const CACHE_SUPABASE_KEY = 'interactive_templates';
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
 const DEFAULT_APPROVED_LANGUAGE_TEMPLATE_SID = 'HX2908fc06ee9d18dea8127f7d0975f6d8';
 
@@ -31,20 +33,31 @@ function isInteractiveEnabled() {
   return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
 }
 
-// ─── Cache I/O ────────────────────────────────────────────────────────────────
+// ─── Cache I/O (Supabase primary, file fallback) ──────────────────────────────
 
-function readCache() {
+async function readCache() {
+  if (supabaseStore.isEnabled()) {
+    try {
+      const val = await supabaseStore.read(CACHE_SUPABASE_KEY);
+      if (val && typeof val === 'object') return val;
+    } catch {}
+  }
   try {
     if (fs.existsSync(CACHE_PATH)) return JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
   } catch (_) {}
   return {};
 }
 
-function writeCache(cache) {
+async function writeCache(cache) {
+  if (supabaseStore.isEnabled()) {
+    supabaseStore.write(CACHE_SUPABASE_KEY, cache).catch(() => {});
+  }
   try {
     fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
   } catch (err) {
-    console.error('[interactive] Impossible d\'écrire le cache templates:', err.message);
+    if (!supabaseStore.isEnabled()) {
+      console.error('[interactive] Impossible d\'écrire le cache templates:', err.message);
+    }
   }
 }
 
@@ -212,7 +225,7 @@ async function resolveTemplate(cacheKey, buildSpec) {
     return null;
   }
 
-  const cache = readCache();
+  const cache = await readCache();
   if (isFresh(cache[cacheKey])) {
     console.log(`[interactive] Cache hit: ${cacheKey} → ${cache[cacheKey].sid}`);
     return cache[cacheKey].sid;
@@ -225,7 +238,6 @@ async function resolveTemplate(cacheKey, buildSpec) {
   // Tentative 1 : créer via REST direct (le SDK Node ne transmet pas friendly_name correctement)
   try {
     const https = require('https');
-    const config = twilioService.getTwilioConfig();
     const body = JSON.stringify({
       friendly_name: spec.friendlyName,
       language: spec.language,
@@ -254,7 +266,7 @@ async function resolveTemplate(cacheKey, buildSpec) {
       req.end();
     });
     cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
-    writeCache(cache);
+    await writeCache(cache);
     console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
     return created.sid;
   } catch (createErr) {
@@ -267,7 +279,7 @@ async function resolveTemplate(cacheKey, buildSpec) {
     const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
     if (match) {
       cache[cacheKey] = { sid: match.sid, created_at: new Date().toISOString() };
-      writeCache(cache);
+      await writeCache(cache);
       console.log(`[interactive] Template existant réutilisé : ${cacheKey} → ${match.sid}`);
       return match.sid;
     }
