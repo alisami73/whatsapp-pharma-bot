@@ -89,12 +89,13 @@ router.get('/api/auth/me', asyncHandler(async (req, res) => {
 
 // TEMPORARY DIAGNOSTIC — remove after login is fixed
 router.get('/api/auth/env-check', (req, res) => {
-  const u = process.env.ADMIN_USERNAME || '';
-  const s = process.env.ADMIN_SECRET   || '';
+  const u1 = process.env.BLINK_ADMIN_EMAIL || '';
+  const u2 = process.env.ADMIN_USERNAME    || '';
+  const s  = process.env.ADMIN_SECRET      || '';
   res.json({
-    ADMIN_USERNAME: { set: u.length > 0, length: u.length, prefix: u.slice(0, 6) + '…' },
-    ADMIN_SECRET:   { set: s.length > 0, length: s.length },
-    SESSION_SECRET: { set: !!process.env.SESSION_SECRET },
+    BLINK_ADMIN_EMAIL: { set: u1.length > 0, length: u1.length, prefix: u1.slice(0, 6) + '…' },
+    ADMIN_USERNAME:    { set: u2.length > 0, length: u2.length },
+    ADMIN_SECRET:      { set: s.length > 0,  length: s.length },
   });
 });
 

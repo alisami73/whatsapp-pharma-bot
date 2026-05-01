@@ -124,7 +124,7 @@ async function verifyPassword(email, password) {
   // ── Env-var superadmin — works on any filesystem (Vercel included) ────────
   // Supports both ADMIN_USERNAME=ali.sami@blinkpharma.ma (@ directly)
   // and the older ADMIN_USERNAME=ali.sami&blinkpharma.ma (& as @ workaround).
-  const rawUsername = String(process.env.ADMIN_USERNAME || '');
+  const rawUsername = String(process.env.BLINK_ADMIN_EMAIL || process.env.ADMIN_USERNAME || '');
   const envEmail    = rawUsername.replace('&', '@').toLowerCase().trim();
   const envSecret   = String(process.env.ADMIN_SECRET || '').trim();
 
@@ -165,7 +165,7 @@ async function createSession(userId) {
   // Build the user snapshot for embedding in the token
   let snapshot;
   if (userId === 'superadmin-env') {
-    const envEmail = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
+    const envEmail = String(process.env.BLINK_ADMIN_EMAIL || process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
     snapshot = { uid: userId, email: envEmail, name: 'Super Admin', role: 'superadmin' };
   } else {
     const u = await findById(userId);
@@ -184,7 +184,7 @@ async function verifySession(token) {
   if (payload) {
     if (payload.uid === 'superadmin-env') {
       // Validate the env secret is still configured
-      const envEmail = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
+      const envEmail = String(process.env.BLINK_ADMIN_EMAIL || process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
       if (!envEmail || payload.email !== envEmail) return null;
       return { id: 'superadmin-env', email: payload.email, name: payload.name || 'Super Admin', role: 'superadmin', status: 'active' };
     }
@@ -308,7 +308,7 @@ async function deleteUser(userId) {
 // ── Bootstrap super-admin from env vars ───────────────────────────────────
 
 async function bootstrapSuperAdmin() {
-  const email = String(process.env.ADMIN_USERNAME || '').replace('&', '@').trim();
+  const email = String(process.env.BLINK_ADMIN_EMAIL || process.env.ADMIN_USERNAME || '').replace('&', '@').trim();
   const password = String(process.env.ADMIN_SECRET || '').trim();
   if (!email || !password) return;
 
