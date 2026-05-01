@@ -54,6 +54,22 @@ test('buildPublicRequestRedirectUrl does not loop when host is custom but x-forw
   assert.equal(publicSite.buildPublicRequestRedirectUrl(req), null);
 });
 
+test('buildPublicRequestRedirectUrl does not redirect Cloudflare-proxied public requests', () => {
+  process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+
+  const req = {
+    path: '/contact.html',
+    originalUrl: '/contact.html?lang=es',
+    url: '/contact.html?lang=es',
+    headers: {
+      host: 'whatsapp-pharma-bot-production.up.railway.app',
+      'cf-ray': 'abc123-MAD',
+    },
+  };
+
+  assert.equal(publicSite.buildPublicRequestRedirectUrl(req), null);
+});
+
 test('buildPublicRequestRedirectUrl ignores webhook and API routes', () => {
   process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
 

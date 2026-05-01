@@ -72,6 +72,13 @@ function getRequestHost(req) {
   return getRequestHosts(req)[0] || '';
 }
 
+function isCloudflareProxiedRequest(req) {
+  const cfRay = String(req?.headers?.['cf-ray'] || '').trim();
+  const cfVisitor = String(req?.headers?.['cf-visitor'] || '').trim();
+  const cdnLoop = String(req?.headers?.['cdn-loop'] || '').trim().toLowerCase();
+  return Boolean(cfRay || cfVisitor || cdnLoop.includes('cloudflare'));
+}
+
 function isPublicSiteRequestHost(req) {
   const publicHost = getPublicSiteHost();
   const requestHosts = getRequestHosts(req);
@@ -97,7 +104,7 @@ function buildPublicRequestRedirectUrl(req) {
     return null;
   }
 
-  if (isPublicSiteRequestHost(req)) {
+  if (isPublicSiteRequestHost(req) || isCloudflareProxiedRequest(req)) {
     return null;
   }
 
@@ -113,6 +120,7 @@ module.exports = {
   getPublicSiteHost,
   getRequestHosts,
   getRequestHost,
+  isCloudflareProxiedRequest,
   isPublicSiteRequestHost,
   isPublicSitePath,
   buildPublicRequestRedirectUrl,
