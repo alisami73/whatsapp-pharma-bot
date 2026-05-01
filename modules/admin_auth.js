@@ -122,8 +122,20 @@ async function verifyPassword(email, password) {
   const inputPass  = String(password || '');
 
   // ── Env-var superadmin — works on any filesystem (Vercel included) ────────
-  const envEmail  = String(process.env.ADMIN_USERNAME || '').replace('&', '@').toLowerCase().trim();
-  const envSecret = String(process.env.ADMIN_SECRET   || '').trim();
+  // Supports both ADMIN_USERNAME=ali.sami@blinkpharma.ma (@ directly)
+  // and the older ADMIN_USERNAME=ali.sami&blinkpharma.ma (& as @ workaround).
+  const rawUsername = String(process.env.ADMIN_USERNAME || '');
+  const envEmail    = rawUsername.replace('&', '@').toLowerCase().trim();
+  const envSecret   = String(process.env.ADMIN_SECRET || '').trim();
+
+  console.log('[admin-auth] login attempt:', {
+    inputEmail,
+    envUsername_set: Boolean(rawUsername),
+    envSecret_set:   Boolean(envSecret),
+    email_match:     inputEmail === envEmail,
+    pass_match:      inputPass  === envSecret,
+  });
+
   if (envEmail && envSecret && inputEmail === envEmail && inputPass === envSecret) {
     return {
       id: 'superadmin-env', email: envEmail, name: 'Super Admin',
