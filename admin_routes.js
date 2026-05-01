@@ -1116,7 +1116,14 @@ async function readActus() {
 }
 
 async function writeActus(actus) {
-  await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
+  try {
+    await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
+  } catch (err) {
+    if (err.code === 'EROFS' || err.code === 'ENOENT' || err.code === 'EACCES') {
+      throw Object.assign(new Error('Stockage non disponible sur cette instance (filesystem read-only). Utilisez l\'admin Railway pour modifier le contenu.'), { status: 503 });
+    }
+    throw err;
+  }
 }
 
 router.get('/actu', (req, res) => res.sendFile(require('path').join(adminDir, 'actu.html')));
