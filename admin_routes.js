@@ -47,7 +47,7 @@ router.use((req, res, next) => {
 // Public routes (no auth required)
 const PUBLIC_PATHS = ['/login', '/register', '/request-access',
   '/api/auth/login', '/api/auth/register', '/api/auth/request-access',
-  '/api/auth/invite-info'];
+  '/api/auth/invite-info', '/api/auth/env-check'];
 
 router.use((req, res, next) => {
   if (PUBLIC_PATHS.some(p => req.path === p || req.path.startsWith(p))) return next();
