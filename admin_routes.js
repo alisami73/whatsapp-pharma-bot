@@ -19,6 +19,10 @@ const adminDir = path.join(__dirname, 'admin');
 function extractToken(req) {
   const h = String(req.headers.authorization || '');
   if (h.startsWith('Bearer ')) return h.slice(7).trim();
+  // Also accept cookie for browser navigation (no Authorization header on GET pages)
+  const cookieHeader = String(req.headers.cookie || '');
+  const m = cookieHeader.match(/(?:^|;\s*)admin_token=([^;]+)/);
+  if (m) return decodeURIComponent(m[1]);
   return null;
 }
 
@@ -71,12 +75,19 @@ router.post('/api/auth/login', asyncHandler(async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Identifiants incorrects ou compte inactif' });
 
   const token = await adminAuth.createSession(user.id);
+  res.cookie('admin_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
   res.json({ token, user: adminAuth.publicUser(user) });
 }));
 
 router.post('/api/auth/logout', asyncHandler(async (req, res) => {
   const token = extractToken(req);
   if (token) await adminAuth.deleteSession(token);
+  res.clearCookie('admin_token');
   res.json({ ok: true });
 }));
 
