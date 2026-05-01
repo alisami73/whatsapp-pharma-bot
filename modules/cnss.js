@@ -270,6 +270,54 @@ function looksLikeGeneralFseQuestion(normalizedQuestion, normalizedScope) {
     return mentionsFse && asksExplanation;
 }
 
+function looksLikeCndpQuestion(question) {
+    const normalizedQuestion = normalizeText(question);
+
+    if (!normalizedQuestion) {
+        return false;
+    }
+
+    const strongSignals = [
+        'cndp',
+        '09 08',
+        'donnees personnelles',
+        'donnees a caractere personnel',
+        'identite numerique',
+        'videosurveillance',
+        'video surveillance',
+        'sante cndp ma',
+        'conf secteur sante',
+    ];
+
+    if (strongSignals.some((signal) => normalizedQuestion.includes(signal))) {
+        return true;
+    }
+
+    if (normalizedQuestion.includes('camera') || normalizedQuestion.includes('cameras')) {
+        return true;
+    }
+
+    const mentionsPrivacyWorkflow = (
+        normalizedQuestion.includes('formulaire')
+        || normalizedQuestion.includes('declaration')
+        || normalizedQuestion.includes('declarer')
+        || normalizedQuestion.includes('traitement')
+    );
+
+    const mentionsPharmacyContext = normalizedQuestion.includes('pharmacie') || normalizedQuestion.includes('officine');
+    const mentionsDataContext = normalizedQuestion.includes('donnees') || normalizedQuestion.includes('confidentialite');
+
+    return mentionsPrivacyWorkflow && (mentionsPharmacyContext || mentionsDataContext);
+}
+
+function resolveFaqScopeOverride(question, normalizedScope) {
+    if (!['conformites', 'compliance', 'regulations'].includes(normalizedScope)) {
+        return null;
+    }
+
+    return looksLikeCndpQuestion(question) ? 'cndp' : null;
+}
+
 function buildGeneralFseSummary(context) {
     const normalizedContext = normalizeText(context);
 
@@ -284,6 +332,46 @@ function buildGeneralFseSummary(context) {
         'Le pharmacien garde le meme role : verifier l ordonnance, delivrer les medicaments et conseiller le patient, avec moins de papier.',
         'Apres la delivrance, les informations sont transmises automatiquement a la CNSS et la delivrance est tracee numeriquement.',
     ].join(' ');
+}
+
+function buildRelevantSectionPreviewLines(lines, rawKeywords) {
+    const cleanedLines = (lines || []).filter((line) => line && !line.startsWith('---'));
+
+    if (!cleanedLines.length) {
+        return [];
+    }
+
+    const scoredLines = cleanedLines.map((line, index) => {
+        const normalizedLine = normalizeText(line);
+        let score = 0;
+
+        rawKeywords.forEach((kw) => {
+            if (normalizedLine.includes(kw)) {
+                score += 4 + Math.min(kw.length, 12) * 0.1;
+            }
+        });
+
+        return { line, index, score };
+    });
+
+    const bestLine = scoredLines
+        .slice()
+        .sort((left, right) => right.score - left.score || left.index - right.index)[0];
+
+    if (!bestLine || bestLine.score <= 0) {
+        return cleanedLines.slice(0, 5);
+    }
+
+    const previewLines = [];
+    const headingIndex = bestLine.index > 0 && /^\*\*/.test(cleanedLines[bestLine.index - 1])
+        ? bestLine.index - 1
+        : bestLine.index;
+
+    for (let index = headingIndex; index < cleanedLines.length && previewLines.length < 5; index += 1) {
+        previewLines.push(cleanedLines[index]);
+    }
+
+    return previewLines;
 }
 
 /**
@@ -1034,7 +1122,8 @@ function fallbackKeywordSearch(question, scope) {
     }
 
     const rawKeywords = normalizedQuestion.split(/\s+/).filter((w) => w.length > 2);
-    const expandedKeywords = new Set(rawKeywords);
+    const rawKeywordSet = new Set(rawKeywords);
+    const expandedKeywords = new Set();
 
     rawKeywords.forEach((keyword) => {
         if (keyword === 'fse') {
@@ -1056,17 +1145,35 @@ function fallbackKeywordSearch(question, scope) {
         const normalizedTitle = normalizeText(section.title);
         const haystack = normalizedTitle + ' ' + normalizeText(section.content.join(' '));
         let score = 0;
+        let longestTitleMatchLength = 0;
+
+        rawKeywords.forEach((kw) => {
+            if (normalizedTitle.includes(kw)) {
+                score += 8; // Original query words should dominate section selection
+                longestTitleMatchLength = Math.max(longestTitleMatchLength, kw.length);
+            } else if (haystack.includes(kw)) {
+                score += 3;
+            }
+        });
 
         expandedKeywords.forEach((kw) => {
+            if (rawKeywordSet.has(kw)) {
+                return;
+            }
+
             if (normalizedTitle.includes(kw)) {
-                score += 6; // Title match — much more specific than body
-            } else if (haystack.includes(kw)) {
                 score += 2;
+            } else if (haystack.includes(kw)) {
+                score += 1;
             }
         });
 
         if (section.title && normalizedQuestion.includes(normalizedTitle)) {
             score += 4;
+        }
+
+        if (longestTitleMatchLength > 0) {
+            score += Math.min(longestTitleMatchLength, 16) * 0.2;
         }
 
         if (score > bestScore) {
@@ -1076,9 +1183,7 @@ function fallbackKeywordSearch(question, scope) {
     });
 
     if (bestScore > 0 && bestSection) {
-        const preview = bestSection.content
-            .filter((line) => !line.startsWith('---'))
-            .slice(0, 5)
+        const preview = buildRelevantSectionPreviewLines(bestSection.content, rawKeywords)
             .join(' ')
             .trim();
 
@@ -1168,12 +1273,14 @@ function detectLanguage(text) {
 
 async function answerQuestion(question, scope, userLang = null) {
     const client = getAzureClient();
-    const scopeLabel = buildScopeLabel(scope);
     const normalizedScope = normalizeScope(scope);
+    const faqScopeOverride = resolveFaqScopeOverride(question, normalizedScope);
+    const effectiveScope = faqScopeOverride || normalizedScope;
+    const scopeLabel = buildScopeLabel(effectiveScope);
     // Use stored user language if provided; fall back to text-based detection
     const langMap = { ar: { code: 'ar', label: 'arabe (العربية)' }, es: { code: 'es', label: 'espagnol' }, ru: { code: 'ru', label: 'russe (русский)' }, fr: { code: 'fr', label: 'français' } };
     const lang = (userLang && langMap[userLang]) || detectLanguage(question);
-    const useLegalKb = legalKb.shouldUseLegalKb(normalizedScope);
+    const useLegalKb = legalKb.shouldUseLegalKb(normalizedScope) && !faqScopeOverride;
     const parsedLegalQuery = useLegalKb ? legalKb.parseQueryFeatures(question) : null;
     const legalTopK = parsedLegalQuery?.asksAboutPractical ? Math.max(MAX_LEGAL_CHUNKS, 6) : MAX_LEGAL_CHUNKS;
 
@@ -1192,7 +1299,7 @@ async function answerQuestion(question, scope, userLang = null) {
 
     if (!client) {
         console.warn('[CNSS] Azure OpenAI non configuré, basculement en mode dégradé.');
-        return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
+        return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, effectiveScope);
     }
 
     const langInstruction = `INSTRUCTION IMPÉRATIVE : Tu dois répondre UNIQUEMENT en ${lang.label}. Pas en français, pas dans une autre langue — en ${lang.label} exclusivement.`;
@@ -1215,7 +1322,7 @@ async function answerQuestion(question, scope, userLang = null) {
             return await fallbackLegalSearch(question, normalizedScope);
         }
     }
-    const faqContext = useLegalKb ? '' : loadFaqContext(scope);
+    const faqContext = useLegalKb ? '' : loadFaqContext(effectiveScope);
     const contextBlock = useLegalKb ? legalContext.context : faqContext;
 
     if (useLegalKb && !contextBlock) {
@@ -1223,7 +1330,7 @@ async function answerQuestion(question, scope, userLang = null) {
     }
 
     if (!useLegalKb && !contextBlock) {
-        return fallbackKeywordSearch(question, scope);
+        return fallbackKeywordSearch(question, effectiveScope);
     }
 
     const answerStyleInstruction = useLegalKb
@@ -1255,7 +1362,7 @@ Question : ${question}`;
         const completion = await client.chat.completions.create({
             model: getDeployment(),
             messages: [
-                { role: 'system', content: buildSystemPrompt(scope) },
+                { role: 'system', content: buildSystemPrompt(effectiveScope) },
                 { role: 'user', content: userContent },
             ],
             max_tokens: parsedLegalQuery?.asksAboutPractical ? 450 : 320,
@@ -1282,7 +1389,7 @@ Question : ${question}`;
                 console.log(`[CNSS] Réponse fallback chunks (${fallbackAnswer.length} chars)`);
                 return fallbackAnswer;
             }
-            return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
+            return useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, effectiveScope);
         }
 
         if (useLegalKb) {
@@ -1336,7 +1443,7 @@ Question : ${question}`;
                 { practical: Boolean(parsedLegalQuery?.asksAboutPractical), legal: true, query: question },
             );
         }
-        const fallback = useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, scope);
+        const fallback = useLegalKb ? await fallbackLegalSearch(question, normalizedScope) : fallbackKeywordSearch(question, effectiveScope);
         return fallback;
     }
 }
@@ -1392,11 +1499,14 @@ module.exports = {
     reloadFaqContext,
     _test: {
         fallbackLegalSearch,
+        fallbackKeywordSearch,
         buildPracticalShortLines,
         buildLegalAnswerStyleInstruction,
         getStructuredLabels,
+        looksLikeCndpQuestion,
         postProcessLegalReply,
         replaceReferencePlaceholders,
+        resolveFaqScopeOverride,
         extractAssistantText,
     },
 };
