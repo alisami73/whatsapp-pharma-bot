@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consentements CGU — Admin Blink Premium</title>
+  <script src="/admin/auth-guard.js"></script>
+  <script src="/admin/sidebar.js" data-page="consents"></script>
+  <style>
+    .adm-body { padding: 18px 20px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+    .stat-card { background: #fff; border: 1px solid #e8ecf0; border-radius: 10px; padding: 12px 14px; }
+    .stat-label { font-size: 11px; color: #8a96a3; margin-bottom: 4px; }
+    .stat-val { font-size: 22px; font-weight: 700; color: #1a2332; }
+    .stat-sub { font-size: 11px; color: #b0bac4; margin-top: 2px; }
+
+    /* Panel */
+    .panel { background: #fff; border: 1px solid #e8ecf0; border-radius: 12px; overflow: hidden; }
+    .panel-hdr { padding: 13px 16px; border-bottom: 1px solid #e8ecf0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .panel-title { font-size: 13px; font-weight: 600; color: #1a2332; }
+    .panel-sub { font-size: 12px; color: #8a96a3; margin-top: 2px; }
+
+    /* Filters */
+    .filters { display: flex; gap: 6px; padding: 10px 16px; border-bottom: 1px solid #e8ecf0; flex-wrap: wrap; }
+    .filter-pill { font-size: 12px; padding: 4px 11px; border-radius: 20px; cursor: pointer; border: 1px solid #dde3ea; background: transparent; color: #5a6472; font-family: inherit; transition: all 0.12s; }
+    .filter-pill:hover { border-color: #b0bac4; }
+    .filter-pill.active { background: #1a6640; color: #fff; border-color: #1a6640; }
+
+    /* Search */
+    .search-bar { padding: 10px 16px; border-bottom: 1px solid #e8ecf0; }
+    .search-input { width: 100%; padding: 7px 12px; border: 1px solid #dde3ea; border-radius: 7px; font-size: 13px; font-family: inherit; outline: none; background: #f8fafb; color: #1a2332; }
+    .search-input:focus { border-color: #1a6640; background: #fff; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; color: #8a96a3; font-weight: 600; padding: 10px 16px; border-bottom: 1px solid #e8ecf0; background: #f8fafb; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    td { padding: 10px 16px; border-bottom: 1px solid #f0f3f6; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafb; }
+
+    /* Status badges */
+    .badge { display: inline-flex; align-items: center; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .badge-accepted { background: #eaf5ef; color: #1a6640; }
+    .badge-refused  { background: #fef2f2; color: #b91c1c; }
+    .badge-revoked  { background: #fff8e6; color: #92600a; }
+    .badge-pending  { background: #f0f2f5; color: #5a6472; }
+
+    /* Hash */
+    .hash-cell { font-family: monospace; font-size: 11px; color: #8a96a3; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; }
+
+    /* Version tag */
+    .version-tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #e6f1fb; color: #0c447c; font-weight: 600; }
+
+    /* Snapshot modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 14px; padding: 24px; width: min(560px, 95vw); max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal h3 { font-size: 16px; margin-bottom: 12px; }
+    .modal .meta { font-size: 12px; color: #8a96a3; margin-bottom: 14px; }
+    .modal .snapshot-text { font-size: 13px; line-height: 1.7; background: #f8fafb; border: 1px solid #e8ecf0; border-radius: 8px; padding: 14px; margin-bottom: 14px; white-space: pre-wrap; }
+    .modal .hash-full { font-family: monospace; font-size: 11px; color: #5a6472; word-break: break-all; background: #f0f2f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; }
+    .modal-close { margin-top: 4px; }
+
+    .empty-state { padding: 40px; text-align: center; color: #8a96a3; font-size: 13px; }
+    .loading { padding: 24px; text-align: center; color: #8a96a3; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Consentements acceptés</div>
+      <div class="stat-val" id="statAccepted">—</div>
+      <div class="stat-sub">numéros actifs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Refusés</div>
+      <div class="stat-val" id="statRefused">—</div>
+      <div class="stat-sub">ont décliné</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Révoqués (STOP)</div>
+      <div class="stat-val" id="statRevoked">—</div>
+      <div class="stat-sub">ont envoyé STOP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Version CGU actuelle</div>
+      <div class="stat-val" id="statVersion" style="font-size:16px;padding-top:4px;">—</div>
+      <div class="stat-sub" id="statVersionDate">—</div>
+    </div>
+  </div>
+
+  <!-- Table panel -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <div>
+        <div class="panel-title">Registre des consentements</div>
+        <div class="panel-sub" id="tableSubtitle">Chargement…</div>
+      </div>
+      <button class="btn btn-primary" id="refreshBtn">Actualiser</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-pill active" data-filter="all">Tous</button>
+      <button class="filter-pill" data-filter="accepted">Acceptés</button>
+      <button class="filter-pill" data-filter="refused">Refusés</button>
+      <button class="filter-pill" data-filter="revoked">Révoqués</button>
+    </div>
+
+    <div class="search-bar">
+      <input class="search-input" id="searchInput" placeholder="Rechercher par numéro…" />
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Numéro</th>
+            <th>Statut</th>
+            <th>Version CGU</th>
+            <th>Accepté le</th>
+            <th>Hash snapshot</th>
+            <th>Source</th>
+            <th>Rôle déclaré</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="consentTableBody">
+          <tr><td colspan="8" class="loading">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Snapshot modal -->
+  <div class="modal-overlay" id="snapshotModal">
+    <div class="modal">
+      <h3>Texte CGU accepté</h3>
+      <div class="meta" id="modalMeta"></div>
+      <div class="snapshot-text" id="modalSnapshot"></div>
+      <div class="hash-full" id="modalHash"></div>
+      <button class="btn modal-close" id="modalCloseBtn">Fermer</button>
+    </div>
+  </div>
+
+  <script>
+    function esc(v) {
+      return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function fmtDate(v) {
+      if (!v) return '—';
+      const d = new Date(v);
+      if (isNaN(d)) return String(v);
+      return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(d);
+    }
+    function sha256hex(str) {
+      // Use SubtleCrypto for hash
+      const enc = new TextEncoder().encode(str);
+      return crypto.subtle.digest('SHA-256', enc).then(buf =>
+        Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+      );
+    }
+
+    let allRecords = [];
+    let currentFilter = 'all';
+    let currentSearch = '';
+    const hashCache = {};
+
+    async function loadConsents() {
+      try {
+        const r = await fetch('/admin/api/consents');
+        if (!r.ok) throw new Error('Erreur ' + r.status);
+        allRecords = await r.json();
+        renderStats();
+        renderTable();
+        // Pre-compute hashes
+        for (const rec of allRecords) {
+          if (rec.consent_text_snapshot && !hashCache[rec.phone]) {
+            hashCache[rec.phone] = await sha256hex(rec.consent_text_snapshot);
+          }
+        }
+        renderTable(); // re-render with hashes
+      } catch (e) {
+        document.getElementById('consentTableBody').innerHTML =
+          `<tr><td colspan="8" class="empty-state">Erreur: ${esc(e.message)}</td></tr>`;
+      }
+    }
+
+    function renderStats() {
+      const accepted = allRecords.filter(r => r.consent_status === 'accepted').length;
+      const refused  = allRecords.filter(r => r.consent_status === 'refused').length;
+      const revoked  = allRecords.filter(r => r.consent_status === 'revoked').length;
+      document.getElementById('statAccepted').textContent = accepted;
+      document.getElementById('statRefused').textContent = refused;
+      document.getElementById('statRevoked').textContent = revoked;
+      // Get version from accepted records
+      const versioned = allRecords.filter(r => r.consent_version).map(r => r.consent_version);
+      const latestVersion = versioned.length ? versioned[versioned.length - 1] : '—';
+      document.getElementById('statVersion').textContent = latestVersion;
+      document.getElementById('statVersionDate').textContent = `${allRecords.length} enregistrements total`;
+    }
+
+    function getFiltered() {
+      return allRecords.filter(r => {
+        if (currentFilter !== 'all' && r.consent_status !== currentFilter) return false;
+        if (currentSearch && !r.phone.includes(currentSearch)) return false;
+        return true;
+      });
+    }
+
+    function badgeHtml(status) {
+      const map = {
+        accepted: ['badge-accepted', 'Accepté'],
+        refused:  ['badge-refused',  'Refusé'],
+        revoked:  ['badge-revoked',  'Révoqué'],
+        pending:  ['badge-pending',  'En attente'],
+      };
+      const [cls, label] = map[status] || ['badge-pending', status || '—'];
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
+    function renderTable() {
+      const filtered = getFiltered();
+      const tbody = document.getElementById('consentTableBody');
+      document.getElementById('tableSubtitle').textContent =
+        `${filtered.length} enregistrement(s) — ${allRecords.filter(r => r.consent_status === 'accepted').length} acceptés`;
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Aucun enregistrement.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(rec => {
+        const hash = hashCache[rec.phone] || '';
+        const shortHash = hash ? hash.slice(0, 16) + '…' : '—';
+        return `<tr>
+          <td><strong>${esc(rec.phone)}</strong></td>
+          <td>${badgeHtml(rec.consent_status)}</td>
+          <td>${rec.consent_version ? `<span class="version-tag">${esc(rec.consent_version)}</span>` : '—'}</td>
+          <td style="white-space:nowrap;font-size:12px;">${fmtDate(rec.accepted_at)}</td>
+          <td><span class="hash-cell" title="${esc(hash)}">${esc(shortHash)}</span></td>
+          <td style="font-size:12px;color:#8a96a3;">${esc(rec.source || '—')}</td>
+          <td style="font-size:12px;color:#5a6472;">${esc(rec.role_declared || '—')}</td>
+          <td>
+            ${rec.consent_text_snapshot
+              ? `<button class="btn" style="font-size:11px;padding:4px 8px;" onclick="showSnapshot('${esc(rec.phone)}')">Voir CGU</button>`
+              : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function showSnapshot(phone) {
+      const rec = allRecords.find(r => r.phone === phone);
+      if (!rec || !rec.consent_text_snapshot) return;
+      document.getElementById('modalMeta').textContent =
+        `${phone} — accepté le ${fmtDate(rec.accepted_at)} — version ${rec.consent_version || 'inconnue'}`;
+      document.getElementById('modalSnapshot').textContent = rec.consent_text_snapshot;
+      document.getElementById('modalHash').textContent = 'SHA-256: ' + (hashCache[phone] || 'calcul…');
+      document.getElementById('snapshotModal').classList.add('open');
+    }
+
+    document.getElementById('modalCloseBtn').addEventListener('click', () => {
+      document.getElementById('snapshotModal').classList.remove('open');
+    });
+    document.getElementById('snapshotModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+    });
+
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+      });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      currentSearch = e.target.value.trim();
+      renderTable();
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadConsents);
+
+    loadConsents();
+  </script>
+</body>
+</html>

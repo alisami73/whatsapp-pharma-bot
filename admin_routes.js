@@ -702,6 +702,21 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
+// Consentement — Page + API liste complète
+// ---------------------------------------------------------------------------
+
+router.get('/consents', (req, res) => res.sendFile(path.join(adminDir, 'consents.html')));
+
+/**
+ * GET /admin/api/consents
+ * Retourne la liste complète de tous les enregistrements de consentement.
+ */
+router.get('/api/consents', asyncHandler(async (req, res) => {
+  const consents = await storage.getConsents();
+  res.json(consents);
+}));
+
+// ---------------------------------------------------------------------------
 // Consentement - Statut et templates Meta
 // ---------------------------------------------------------------------------
 
