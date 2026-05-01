@@ -1,6 +1,17 @@
 'use strict';
 
 const DEFAULT_PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+const PUBLIC_SITE_PAGE_PATHS = new Set([
+  '/',
+  '/index.html',
+  '/premium.html',
+  '/contact.html',
+  '/actu.html',
+  '/fse.html',
+  '/conformite.html',
+  '/data-cndp.html',
+  '/cgu.html',
+]);
 
 function trimOrigin(value = '') {
   return String(value || '').trim().replace(/\/+$/, '');
@@ -36,9 +47,63 @@ function appendLangQuery(lang) {
   return lang && lang !== 'fr' ? `?lang=${encodeURIComponent(lang)}` : '';
 }
 
+function getPublicSiteHost() {
+  try {
+    return new URL(getPublicSiteOrigin()).host.toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+function getRequestHost(req) {
+  const forwarded = String(req?.headers?.['x-forwarded-host'] || '').split(',')[0].trim();
+  const direct = String(req?.headers?.host || '').trim();
+  return (forwarded || direct).toLowerCase();
+}
+
+function isPublicSiteRequestHost(req) {
+  const publicHost = getPublicSiteHost();
+  const requestHost = getRequestHost(req);
+  return Boolean(publicHost && requestHost && publicHost === requestHost);
+}
+
+function isPublicSitePath(pathname = '/') {
+  const original = String(pathname || '/').trim();
+  const normalized = normalizePublicPath(original);
+
+  if (PUBLIC_SITE_PAGE_PATHS.has(normalized)) {
+    return true;
+  }
+
+  return (
+    original.startsWith('/site/') ||
+    original.startsWith('/answers/')
+  );
+}
+
+function buildPublicRequestRedirectUrl(req) {
+  if (!req || !isPublicSitePath(req.path || req.originalUrl || '/')) {
+    return null;
+  }
+
+  if (isPublicSiteRequestHost(req)) {
+    return null;
+  }
+
+  const path = normalizePublicPath(req.path || req.originalUrl || '/');
+  const search = req.url && req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  return buildPublicSiteUrl(path, search);
+}
+
 module.exports = {
   DEFAULT_PUBLIC_SITE_ORIGIN,
+  PUBLIC_SITE_PAGE_PATHS,
   getPublicSiteOrigin,
+  getPublicSiteHost,
+  getRequestHost,
+  isPublicSiteRequestHost,
+  isPublicSitePath,
+  buildPublicRequestRedirectUrl,
   normalizePublicPath,
   buildPublicSiteUrl,
   buildPublicAssetUrl,

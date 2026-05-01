@@ -23,7 +23,7 @@ const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
-const { buildPublicSiteUrl, appendLangQuery } = require('./modules/public_site');
+const { buildPublicSiteUrl, appendLangQuery, buildPublicRequestRedirectUrl } = require('./modules/public_site');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -58,6 +58,20 @@ const STATES = {
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+app.use((req, res, next) => {
+  if (!['GET', 'HEAD'].includes(req.method)) {
+    return next();
+  }
+
+  const redirectUrl = buildPublicRequestRedirectUrl(req);
+  if (!redirectUrl) {
+    return next();
+  }
+
+  return res.redirect(302, redirectUrl);
+});
+
 app.use('/public', express.static(PUBLIC_DIR));
 app.get('/site/data&cndp.html', (req, res) => {
   const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
