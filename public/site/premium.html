@@ -13,133 +13,6 @@
   <meta property="og:description" content="Découvrez les 8 modules clés de Blink Premium : stocks, inventaire mobile, scan intelligent, achats groupés et plus." />
   <meta property="og:url" content="https://blinkpremium.blinkpharmacie.ma/premium.html" />
   <link rel="stylesheet" href="blink.css" />
-  <style>
-    /* ─── PAGE HERO ─── */
-    .page-hero {
-      background: linear-gradient(135deg, #F0F2F8 0%, #ffffff 100%);
-      padding: 5rem 2rem 4rem;
-      text-align: center;
-      border-bottom: 1px solid var(--blink-border);
-    }
-    .page-hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 0.875rem; }
-    .page-hero p { font-size: 1.0625rem; color: #64748B; max-width: 560px; margin: 0 auto; }
-    .page-hero .anchor-links {
-      display: flex; flex-wrap: wrap; gap: 0.625rem; justify-content: center;
-      margin-top: 2.5rem;
-    }
-    .anchor-link {
-      padding: 0.4rem 1rem; border-radius: 100px;
-      font-size: 0.8125rem; font-weight: 600;
-      background: white; border: 1.5px solid var(--blink-border);
-      color: var(--blink-text); transition: all 0.2s; cursor: pointer;
-    }
-    .anchor-link:hover {
-      border-color: var(--ac);
-      color: var(--ac);
-      background: color-mix(in srgb, var(--ac) 8%, white);
-    }
-
-    /* ─── FEATURE SECTIONS ─── */
-    .feature-section {
-      padding: 6rem 2rem;
-      border-bottom: 1px solid var(--blink-border);
-    }
-    .feature-section:nth-child(odd) { background: white; }
-    .feature-section:nth-child(even) { background: var(--blink-bg); }
-
-    .feature-inner {
-      max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 5rem;
-    }
-    .feature-section.flip .feature-inner { direction: rtl; }
-    .feature-section.flip .feature-inner > * { direction: ltr; }
-
-    .feature-tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--feat-color); margin-bottom: 1rem;
-    }
-    .feature-tag::before {
-      content: ''; width: 8px; height: 8px; border-radius: 50%;
-      background: var(--feat-color);
-    }
-    .feature-content h2 {
-      font-size: clamp(1.625rem, 2.5vw, 2.25rem); font-weight: 800;
-      margin-bottom: 1.125rem; line-height: 1.18;
-    }
-    .feature-content h2 span { color: var(--feat-color); }
-    .feature-content p { font-size: 1rem; color: #64748B; line-height: 1.75; margin-bottom: 1.75rem; }
-    .feature-actions { display: flex; gap: 0.875rem; flex-wrap: wrap; }
-    .feat-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 0.6rem 1.4rem; border-radius: 100px;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-      border: 2px solid transparent;
-    }
-    .feat-btn-primary {
-      background: var(--feat-color); color: white;
-    }
-    .feat-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-    .feat-btn-secondary {
-      background: transparent; border-color: var(--blink-border); color: var(--blink-text);
-    }
-    .feat-btn-secondary:hover { border-color: var(--feat-color); color: var(--feat-color); }
-
-    /* Feature image */
-    .feature-media { position: relative; }
-    .feature-card-frame {
-      background: white; border-radius: 24px;
-      box-shadow: 0 16px 64px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.05);
-      overflow: hidden;
-    }
-    .feature-card-header {
-      padding: 1rem 1.25rem;
-      display: flex; align-items: center; gap: 0.75rem;
-      border-bottom: 1px solid var(--blink-border);
-    }
-    .feature-card-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .feature-card-header .title {
-      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.9rem;
-      color: var(--feat-color);
-    }
-    .feature-card-frame img {
-      width: 100%; display: block;
-    }
-    .feature-card-placeholder {
-      width: 100%; aspect-ratio: 4/3;
-      background: linear-gradient(160deg, var(--blink-bg) 0%, #e8eaf6 100%);
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 1rem; padding: 2.5rem;
-      font-family: 'Courier New', monospace; font-size: 0.75rem;
-      color: var(--blink-muted); text-align: center;
-    }
-    .feature-card-placeholder .ph-icon { font-size: 3rem; opacity: 0.4; }
-
-    /* Number badge */
-    .feature-number {
-      position: absolute; top: -16px; left: -16px;
-      width: 40px; height: 40px; border-radius: 12px;
-      background: var(--feat-color); color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.0625rem;
-      box-shadow: 0 4px 16px color-mix(in srgb, var(--feat-color) 40%, transparent);
-    }
-
-    /* ─── CTA ─── */
-    .cta-banner {
-      padding: 6rem 2rem;
-      background: linear-gradient(135deg, #43a047 0%, #4CAF50 60%, #26C6DA 100%);
-      text-align: center; color: white;
-    }
-    .cta-banner h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 900; color: white; margin-bottom: 0.875rem; }
-    .cta-banner p { font-size: 1.0625rem; opacity: 0.9; margin-bottom: 2rem; }
-
-    @media (max-width: 900px) {
-      .feature-inner { grid-template-columns: 1fr; gap: 2.5rem; }
-      .feature-section.flip .feature-inner { direction: ltr; }
-      .feature-section { padding: 4rem 1.5rem; }
-    }
-  </style>
 </head>
 <body>
   <script src="assets/logo-data.js"></script>
@@ -147,46 +20,210 @@
   <script src="blink-components.js"></script>
   <script>injectNavbar('premium');</script>
 
-  <!-- PAGE HERO -->
-  <div class="page-hero">
-    <p class="section-label" id="premLabel" style="justify-content:center;display:flex;"></p>
-    <h1 id="premH1"></h1>
-    <p id="premSub"></p>
-    <div class="anchor-links" id="anchorLinks"></div>
-  </div>
+  <main class="docs-page">
+    <div class="docs-mobile-toolbar">
+      <button type="button" class="btn btn-outline docs-toolbar-trigger" data-docs-drawer-toggle id="docsToolbarBtn"></button>
+      <a href="contact.html" class="btn btn-primary btn-sm" id="docsToolbarCta"></a>
+    </div>
 
-  <!-- FEATURE SECTIONS -->
-  <div id="featureSections"></div>
+    <div class="docs-layout">
+      <aside class="docs-sidebar" aria-label="Navigation des sections">
+        <div class="docs-sidebar-inner">
+          <div class="docs-sidebar-card">
+            <p class="docs-sidebar-eyebrow" id="docsSidebarEyebrow"></p>
+            <h2 class="docs-sidebar-title" id="docsSidebarTitle"></h2>
+            <p class="docs-sidebar-intro" id="docsSidebarIntro"></p>
+            <nav class="docs-sidebar-nav" data-docs-sidebar-nav></nav>
+            <div class="docs-sidebar-actions">
+              <a href="contact.html" class="btn btn-primary btn-sm" id="docsSidebarCta"></a>
+              <a href="https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium" target="_blank" rel="noreferrer" class="btn btn-whatsapp btn-sm" id="docsSidebarWhatsapp"></a>
+            </div>
+          </div>
+        </div>
+      </aside>
 
-  <!-- CTA -->
-  <section class="cta-banner">
-    <p class="section-label" id="premCtaLabel" style="color:rgba(255,255,255,0.7);justify-content:center;display:flex;margin-bottom:0.75rem;"></p>
-    <h2 class="fade-up" id="premCtaH2"></h2>
-    <p class="fade-up" id="premCtaP"></p>
-    <a id="premCtaBtn" href="contact.html" class="btn btn-white btn-lg fade-up"></a>
-  </section>
+      <div class="docs-main">
+        <section class="docs-hero-section fade-up" id="overview" data-docs-section data-docs-title="Vue d'ensemble">
+          <div class="docs-hero-card">
+            <div class="docs-hero-copy">
+              <p class="section-label" id="premLabel"></p>
+              <h1 id="premH1"></h1>
+              <p id="premSub"></p>
+              <div class="docs-hero-actions">
+                <a href="contact.html" class="btn btn-primary btn-lg" id="premHeroCta"></a>
+                <a href="#migration" class="btn btn-outline btn-lg" id="premHeroSecondary"></a>
+              </div>
+              <div class="docs-chip-row" id="anchorLinks"></div>
+            </div>
+
+            <div class="docs-hero-aside">
+              <div class="docs-stat-card">
+                <strong id="docsStat1Value"></strong>
+                <span id="docsStat1Text"></span>
+              </div>
+              <div class="docs-stat-card">
+                <strong id="docsStat2Value"></strong>
+                <span id="docsStat2Text"></span>
+              </div>
+              <div class="docs-note-card">
+                <strong id="docsNoteTitle"></strong>
+                <ul id="docsNoteList"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="docs-content" id="featureSections"></div>
+
+        <section class="docs-cta-card fade-up" id="cta-demo" data-docs-section data-docs-title="Demande de démonstration">
+          <p class="section-label" id="premCtaLabel"></p>
+          <h2 id="premCtaH2"></h2>
+          <p id="premCtaP"></p>
+          <div class="docs-cta-actions">
+            <a href="contact.html" class="btn btn-primary btn-lg" id="premCtaBtn"></a>
+            <a href="https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium" target="_blank" rel="noreferrer" class="btn btn-whatsapp btn-lg" id="premCtaWhatsapp"></a>
+          </div>
+        </section>
+      </div>
+
+      <aside class="docs-toc" aria-label="Table des matières">
+        <div class="docs-toc-inner">
+          <div class="docs-toc-card">
+            <p class="docs-toc-kicker" id="docsTocKicker"></p>
+            <p id="docsTocIntro"></p>
+            <nav class="docs-toc-nav" data-docs-toc-nav></nav>
+            <div class="docs-toc-helper">
+              <strong id="docsTocHelperTitle"></strong>
+              <p id="docsTocHelperText"></p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="docs-drawer" data-docs-drawer aria-hidden="true">
+      <div class="docs-drawer-panel">
+        <div class="docs-drawer-head">
+          <h2 id="docsDrawerTitle"></h2>
+          <button type="button" class="docs-drawer-close" data-docs-drawer-close aria-label="Fermer la navigation">✕</button>
+        </div>
+        <div class="docs-drawer-body">
+          <nav class="docs-drawer-nav" data-docs-drawer-nav></nav>
+          <div class="docs-sidebar-actions">
+            <a href="contact.html" class="btn btn-primary btn-sm" id="docsDrawerCta"></a>
+            <a href="https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium" target="_blank" rel="noreferrer" class="btn btn-whatsapp btn-sm" id="docsDrawerWhatsapp"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
-  const BASE = "/public/carousel/";
+  const BASE = '/public/carousel/';
   const t = BI18N.t;
   const lang = BI18N.lang;
+  const waHref = 'https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium';
   const lq = (p, hash) => {
     const clean = p === '/' ? '/' : '/' + String(p || '').replace(/^\/+/, '');
     const withLang = lang === 'fr' ? clean : clean + '?lang=' + lang;
     return withLang + (hash ? '#' + hash : '');
   };
 
-  // Static text
-  document.getElementById('premLabel').textContent   = t.prem_label;
-  document.getElementById('premH1').innerHTML        = t.prem_h1;
-  document.getElementById('premSub').textContent     = t.prem_sub;
-  document.getElementById('premCtaLabel').textContent = t.prem_cta_label;
-  document.getElementById('premCtaH2').textContent   = t.prem_cta_h2;
-  document.getElementById('premCtaP').textContent    = t.prem_cta_p;
-  document.getElementById('premCtaBtn').textContent  = t.cta_btn;
-  document.getElementById('premCtaBtn').href         = lq('contact.html');
+  const PAGE_COPY = {
+    fr: {
+      toolbarSections: 'Sections de la page',
+      guideEyebrow: 'Guide produit',
+      guideTitle: 'Explorer Blink Premium',
+      guideIntro: 'Parcourez les 8 modules clés, retrouvez chaque fonctionnalité en un clic et planifiez votre démonstration dès que vous êtes prêt.',
+      heroSecondary: 'Commencer la visite',
+      stat1Value: '8 modules',
+      stat1Text: 'Une suite cohérente pour la migration, l’opérationnel et la performance quotidienne.',
+      stat2Value: 'Mobile + desktop',
+      stat2Text: 'Une expérience pensée pour les équipes en officine, au comptoir comme en mouvement.',
+      noteTitle: 'Ce que vous allez retrouver ici',
+      noteItems: [
+        'Les modules essentiels expliqués de façon claire',
+        'Les bénéfices concrets pour l’équipe officinale',
+        'Un accès direct à la démo et au contact WhatsApp',
+      ],
+      tocKicker: 'Sur cette page',
+      tocIntro: 'Accédez rapidement aux modules ou revenez à la démonstration quand vous êtes prêt.',
+      tocHelperTitle: 'Besoin d’une visite guidée ?',
+      tocHelperText: 'Le bouton de démo reste accessible dans le header, et vous pouvez aussi nous écrire sur WhatsApp.',
+      drawerTitle: 'Navigation',
+      whatsappLabel: 'WhatsApp',
+    },
+    ar: {
+      toolbarSections: 'أقسام الصفحة',
+      guideEyebrow: 'دليل المنتج',
+      guideTitle: 'استكشف Blink Premium',
+      guideIntro: 'تصفّح الوحدات الثمانية الأساسية، واعثر على كل ميزة بنقرة واحدة، وحدد عرضك التوضيحي عندما تكون جاهزاً.',
+      heroSecondary: 'ابدأ الجولة',
+      stat1Value: '8 وحدات',
+      stat1Text: 'مجموعة متكاملة للهجرة والتشغيل والأداء اليومي.',
+      stat2Value: 'جوال + سطح مكتب',
+      stat2Text: 'تجربة مصممة لفِرق الصيدلية، عند الشباك وأثناء التنقل.',
+      noteTitle: 'ما الذي ستجده هنا',
+      noteItems: [
+        'شرح واضح للوحدات الأساسية',
+        'الفوائد العملية لفريق الصيدلية',
+        'وصول مباشر إلى العرض التوضيحي وواتساب',
+      ],
+      tocKicker: 'في هذه الصفحة',
+      tocIntro: 'انتقل بسرعة بين الوحدات أو ارجع إلى طلب العرض عندما تكون جاهزاً.',
+      tocHelperTitle: 'هل تحتاج إلى جولة إرشادية؟',
+      tocHelperText: 'زر العرض يبقى متاحاً في الأعلى، ويمكنك أيضاً مراسلتنا عبر واتساب.',
+      drawerTitle: 'التنقل',
+      whatsappLabel: 'واتساب',
+    },
+    es: {
+      toolbarSections: 'Secciones de la página',
+      guideEyebrow: 'Guía del producto',
+      guideTitle: 'Explorar Blink Premium',
+      guideIntro: 'Recorre los 8 módulos clave, encuentra cada funcionalidad con un clic y planifica tu demo cuando estés listo.',
+      heroSecondary: 'Empezar la visita',
+      stat1Value: '8 módulos',
+      stat1Text: 'Una suite coherente para migración, operaciones y rendimiento diario.',
+      stat2Value: 'Móvil + desktop',
+      stat2Text: 'Una experiencia pensada para el equipo de farmacia, en el mostrador y en movimiento.',
+      noteTitle: 'Lo que encontrarás aquí',
+      noteItems: [
+        'Los módulos esenciales explicados con claridad',
+        'Beneficios concretos para el equipo farmacéutico',
+        'Acceso directo a la demo y al contacto por WhatsApp',
+      ],
+      tocKicker: 'En esta página',
+      tocIntro: 'Accede rápidamente a los módulos o vuelve a la demo cuando quieras.',
+      tocHelperTitle: '¿Necesitas una visita guiada?',
+      tocHelperText: 'El botón de demo permanece visible en el header y también puedes escribirnos por WhatsApp.',
+      drawerTitle: 'Navegación',
+      whatsappLabel: 'WhatsApp',
+    },
+    ru: {
+      toolbarSections: 'Разделы страницы',
+      guideEyebrow: 'Гид по продукту',
+      guideTitle: 'Обзор Blink Premium',
+      guideIntro: 'Изучите 8 ключевых модулей, найдите нужную функцию в один клик и запланируйте демо, когда будете готовы.',
+      heroSecondary: 'Начать обзор',
+      stat1Value: '8 модулей',
+      stat1Text: 'Единая система для миграции, операций и ежедневной эффективности.',
+      stat2Value: 'Мобайл + desktop',
+      stat2Text: 'Опыт, продуманный для аптечной команды — и за прилавком, и в движении.',
+      noteTitle: 'Что вы найдёте здесь',
+      noteItems: [
+        'Понятное описание ключевых модулей',
+        'Практические выгоды для аптечной команды',
+        'Прямой доступ к демо и контакту в WhatsApp',
+      ],
+      tocKicker: 'На этой странице',
+      tocIntro: 'Быстро переходите к модулям или возвращайтесь к запросу демо, когда будете готовы.',
+      tocHelperTitle: 'Нужен быстрый тур?',
+      tocHelperText: 'Кнопка демо остаётся доступной в шапке, и вы также можете написать нам в WhatsApp.',
+      drawerTitle: 'Навигация',
+      whatsappLabel: 'WhatsApp',
+    },
+  };
 
-  // Extended per-language feature data (body + details)
   const FEAT_EXTRA = {
     fr: [
       { body: "Passez à Blink Premium sans perdre votre historique. Nous importons vos clients, vos fournisseurs et toutes vos données avec un accompagnement personnalisé. La transition est fluide, rapide, et sans interruption de votre activité.", details: ["Import clients & fournisseurs", "Historique complet préservé", "Accompagnement Blink dédié", "Migration en quelques jours"] },
@@ -230,84 +267,137 @@
     ],
   };
 
-  const langSuffix = (lang === 'fr') ? '' : '-' + lang;
-  const mediaFiles = [1,2,3,4,5,6,7,8].map(n => `blink-carte-0${n}${langSuffix}.jpg`);
-  const icons      = ["🔄","⚡","📦","📱","🔍","🛒","📊","🚀"];
-
+  const copy = PAGE_COPY[lang] || PAGE_COPY.fr;
+  const langSuffix = lang === 'fr' ? '' : '-' + lang;
+  const mediaFiles = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `blink-carte-0${n}${langSuffix}.jpg`);
+  const icons = ['🔄', '⚡', '📦', '📱', '🔍', '🛒', '📲', '🚀'];
   const baseFeats = BI18N.features;
   const extra = FEAT_EXTRA[lang] || FEAT_EXTRA.fr;
 
-  const FEATURES = baseFeats.map((f, i) => ({
-    ...f,
-    media: mediaFiles[i],
-    icon:  icons[i],
-    body:  extra[i].body,
-    details: extra[i].details,
+  const FEATURES = baseFeats.map((feature, index) => ({
+    ...feature,
+    media: mediaFiles[index],
+    icon: icons[index],
+    body: extra[index].body,
+    details: extra[index].details,
   }));
 
-  // Anchor links
+  document.documentElement.lang = lang;
+  document.body.dir = t.dir || 'ltr';
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  document.getElementById('docsToolbarBtn').textContent = copy.toolbarSections;
+  document.getElementById('docsToolbarCta').textContent = t.nav_cta;
+  document.getElementById('docsToolbarCta').href = lq('contact.html');
+  setText('docsSidebarEyebrow', copy.guideEyebrow);
+  setText('docsSidebarTitle', copy.guideTitle);
+  setText('docsSidebarIntro', copy.guideIntro);
+  document.getElementById('docsSidebarCta').textContent = t.nav_cta;
+  document.getElementById('docsSidebarCta').href = lq('contact.html');
+  document.getElementById('docsSidebarWhatsapp').textContent = copy.whatsappLabel;
+  setText('premLabel', t.prem_label);
+  document.getElementById('premH1').innerHTML = t.prem_h1;
+  setText('premSub', t.prem_sub);
+  document.getElementById('premHeroCta').textContent = t.feat_btn1;
+  document.getElementById('premHeroCta').href = lq('contact.html');
+  document.getElementById('premHeroSecondary').textContent = copy.heroSecondary;
+  setText('docsStat1Value', copy.stat1Value);
+  setText('docsStat1Text', copy.stat1Text);
+  setText('docsStat2Value', copy.stat2Value);
+  setText('docsStat2Text', copy.stat2Text);
+  setText('docsNoteTitle', copy.noteTitle);
+  const noteList = document.getElementById('docsNoteList');
+  copy.noteItems.forEach((item) => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    noteList.appendChild(li);
+  });
+  setText('premCtaLabel', t.prem_cta_label);
+  setText('premCtaH2', t.prem_cta_h2);
+  setText('premCtaP', t.prem_cta_p);
+  document.getElementById('premCtaBtn').textContent = t.cta_btn;
+  document.getElementById('premCtaBtn').href = lq('contact.html');
+  document.getElementById('premCtaWhatsapp').textContent = copy.whatsappLabel;
+  setText('docsTocKicker', copy.tocKicker);
+  setText('docsTocIntro', copy.tocIntro);
+  setText('docsTocHelperTitle', copy.tocHelperTitle);
+  setText('docsTocHelperText', copy.tocHelperText);
+  setText('docsDrawerTitle', copy.drawerTitle);
+  document.getElementById('docsDrawerCta').textContent = t.nav_cta;
+  document.getElementById('docsDrawerCta').href = lq('contact.html');
+  document.getElementById('docsDrawerWhatsapp').textContent = copy.whatsappLabel;
+
   const anchorLinks = document.getElementById('anchorLinks');
-  FEATURES.forEach(f => {
-    const a = document.createElement('a');
-    a.href = `#${f.anchor}`;
-    a.className = 'anchor-link';
-    a.style.setProperty('--ac', f.color);
-    a.textContent = f.title;
-    anchorLinks.appendChild(a);
+  FEATURES.forEach((feature, index) => {
+    const link = document.createElement('a');
+    link.href = `#${feature.anchor}`;
+    link.className = 'docs-chip';
+    link.innerHTML = `<span style="color:${feature.color};font-weight:900;">${String(index + 1).padStart(2, '0')}</span> ${feature.title}`;
+    anchorLinks.appendChild(link);
   });
 
-  // Feature sections
   const container = document.getElementById('featureSections');
-  FEATURES.forEach((f, i) => {
-    const isFlip = i % 2 === 1;
+  FEATURES.forEach((feature, index) => {
     const section = document.createElement('section');
-    section.className = `feature-section${isFlip ? ' flip' : ''}`;
-    section.id = f.anchor;
-    section.style.setProperty('--feat-color', f.color);
+    section.className = 'docs-section fade-up';
+    section.id = feature.anchor;
+    section.dataset.docsSection = '';
+    section.dataset.docsTitle = feature.title;
+    section.style.setProperty('--feat-color', feature.color);
 
-    const detailsHTML = f.details.map(d => `
-      <div style="display:flex;align-items:center;gap:0.625rem;margin-bottom:0.5rem;">
-        <span style="width:18px;height:18px;border-radius:50%;background:color-mix(in srgb,${f.color} 15%,white);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="10" height="10" viewBox="0 0 12 12"><polyline points="1,6 4,9 11,2" stroke="${f.color}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span style="font-size:0.875rem;color:#475569;">${d}</span>
-      </div>
+    const detailsHTML = feature.details.map((detail) => `
+      <li>
+        <span class="docs-feature-check">✓</span>
+        <span>${detail}</span>
+      </li>
     `).join('');
 
     section.innerHTML = `
-      <div class="feature-inner">
-        <div class="feature-media fade-up">
-          <span class="feature-number">${i + 1}</span>
-          <div class="feature-card-frame">
-            <div class="feature-card-header">
-              <div class="feature-card-dot" style="background:${f.color};"></div>
-              <div class="feature-card-dot" style="background:color-mix(in srgb,${f.color} 40%,#ddd);"></div>
-              <span class="title">${f.title}</span>
-            </div>
-            <img src="${BASE}${f.media}" alt="Blink Premium — ${f.title}"
-              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-            <div class="feature-card-placeholder" style="display:none;">
-              <div class="ph-icon">${f.icon}</div>
-              <span>${f.title}</span>
-            </div>
+      <div class="docs-section-grid${index % 2 === 1 ? ' is-reverse' : ''}">
+        <div class="docs-section-content">
+          <div class="docs-section-meta">
+            <span class="docs-section-index">${String(index + 1).padStart(2, '0')}</span>
+            <span class="docs-section-kicker">${feature.title}</span>
+          </div>
+          <h2>${feature.title}</h2>
+          <p>${feature.body}</p>
+          <ul class="docs-feature-list">${detailsHTML}</ul>
+          <div class="docs-section-actions">
+            <a href="${lq('contact.html')}" class="btn btn-primary">${t.feat_btn1}</a>
+            <a href="${lq('contact.html', feature.anchor)}" class="btn btn-outline">${t.feat_btn2}</a>
           </div>
         </div>
-        <div class="feature-content fade-up">
-          <div class="feature-tag">${f.title}</div>
-          <h2>${f.body.split('.')[0]}.</h2>
-          <p>${f.body}</p>
-          <div style="margin-bottom:1.75rem;">${detailsHTML}</div>
-          <div class="feature-actions">
-            <a href="${lq('contact.html')}" class="feat-btn feat-btn-primary">${t.feat_btn1}</a>
-            <a href="${lq('contact.html')}" class="feat-btn feat-btn-secondary">${t.feat_btn2}</a>
+        <div class="docs-section-media">
+          <span class="docs-section-badge" aria-hidden="true">${feature.icon}</span>
+          <div class="docs-media-frame">
+            <div class="docs-media-header">
+              <span class="docs-media-dot" style="background:${feature.color};"></span>
+              <span class="docs-media-dot" style="background:color-mix(in srgb, ${feature.color} 40%, #dbe4ee);"></span>
+              <span class="docs-media-title">${feature.title}</span>
+            </div>
+            <img src="${BASE}${feature.media}" alt="Blink Premium — ${feature.title}" onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
+            <div class="docs-media-placeholder" hidden>
+              <strong>${feature.icon}</strong>
+              <span>${feature.title}</span>
+            </div>
           </div>
         </div>
       </div>
     `;
+
     container.appendChild(section);
   });
 
-  if (typeof initScrollAnimations === 'function') initScrollAnimations();
+  if (typeof initDocsLayout === 'function') {
+    initDocsLayout({ rootSelector: '.docs-page' });
+  }
+  if (typeof initScrollAnimations === 'function') {
+    initScrollAnimations();
+  }
   </script>
 
   <script>injectFooter();</script>
