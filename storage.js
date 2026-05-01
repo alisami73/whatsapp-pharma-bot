@@ -2,9 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 const twilioService = require('./twilio_service');
+const supabaseStore = require('./modules/supabase_store');
 
 const fsp = fs.promises;
-const DATA_DIR = path.join(__dirname, 'data');
+// Allow overriding via env var so a Railway persistent volume can be mounted at a custom path.
+// Set DATA_DIR=/mnt/data in Railway environment variables, then add a volume at /mnt/data.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.info('[storage] DATA_DIR créé:', DATA_DIR);
+}
 
 const DATA_FILES = {
   themes: path.join(DATA_DIR, 'themes.json'),
@@ -15,6 +22,8 @@ const DATA_FILES = {
   messageLogs: path.join(DATA_DIR, 'message_logs.json'),
   // CRM pharmaciens (ajouté pour enrichissement progressif)
   pharmacists: path.join(DATA_DIR, 'pharmacists.json'),
+  // Audit trail réponses IA
+  refOpposables: path.join(DATA_DIR, 'ref_opposables.json'),
 };
 
 const DEFAULT_DATA = {
@@ -105,6 +114,7 @@ const DEFAULT_DATA = {
   subscriptions: [],
   messageLogs: [],
   pharmacists: [],
+  refOpposables: [],
 };
 
 const writeQueues = new Map();
@@ -296,15 +306,26 @@ async function ensureJsonFile(name) {
 
 async function initializeStorage() {
   await Promise.all(Object.keys(DATA_FILES).map((name) => ensureJsonFile(name)));
+  // Warm up Supabase connection check at startup (non-blocking)
+  if (supabaseStore.isEnabled()) supabaseStore.checkAvailable();
 }
 
 async function readJson(name) {
+  // Try Supabase first (persistent across redeploys)
+  if (supabaseStore.isEnabled()) {
+    try {
+      const val = await supabaseStore.read(name);
+      if (val !== null) return val;
+    } catch {}
+  }
+  // File fallback (local dev or before Supabase table is set up)
   await ensureJsonFile(name);
   const raw = await fsp.readFile(DATA_FILES[name], 'utf8');
   return JSON.parse(raw);
 }
 
-async function writeJson(name, value) {
+// Internal: write to the local JSON file (atomic rename).
+function _writeToFile(name, value) {
   const filePath = DATA_FILES[name];
   const tmpPath = `${filePath}.tmp`;
   const payload = JSON.stringify(value, null, 2);
@@ -315,12 +336,24 @@ async function writeJson(name, value) {
     .then(async () => {
       await ensureJsonFile(name);
       await fsp.writeFile(tmpPath, payload);
-      await fsp.rename(tmpPath, filePath); // atomic on Linux: prevents corruption on mid-write crash
+      await fsp.rename(tmpPath, filePath);
       return clone(value);
     });
 
   writeQueues.set(filePath, nextWrite);
   return nextWrite;
+}
+
+async function writeJson(name, value) {
+  if (supabaseStore.isEnabled()) {
+    const ok = await supabaseStore.write(name, value);
+    // Fire-and-forget file backup (silently ignore errors — FS may be read-only on Vercel)
+    _writeToFile(name, value).catch(() => {});
+    if (ok) return clone(value);
+    // Supabase write failed — fall through to file-only write as last resort
+    console.warn(`[storage] Supabase write failed for "${name}", writing to file only.`);
+  }
+  return _writeToFile(name, value);
 }
 
 function buildUniqueId(baseValue, existingIds, fallbackPrefix) {
@@ -960,6 +993,60 @@ async function listPharmacists(limit = 100) {
     .slice(0, limit);
 }
 
+// ---------------------------------------------------------------------------
+// Références opposables — audit trail réponses IA
+// ---------------------------------------------------------------------------
+
+function normalizeRefOpposable(entry) {
+  return {
+    id: String(entry.id || '').trim(),
+    phone: normalizePhone(entry.phone),
+    theme_id: String(entry.theme_id || '').trim() || null,
+    module_type: String(entry.module_type || 'cnss').trim(),
+    question: String(entry.question || '').trim(),
+    answer: String(entry.answer || '').trim(),
+    char_count: Number(entry.char_count) || String(entry.answer || '').length,
+    created_at: entry.created_at || new Date().toISOString(),
+  };
+}
+
+async function getRefOpposables() {
+  const data = await readJson('refOpposables');
+  return Array.isArray(data) ? data.map(normalizeRefOpposable) : [];
+}
+
+async function appendRefOpposable(payload) {
+  const records = await getRefOpposables();
+  const now = new Date().toISOString();
+  const id = buildUniqueId(
+    `ref-${Date.now()}`,
+    new Set(records.map((r) => r.id)),
+    'ref',
+  );
+  const entry = normalizeRefOpposable({
+    ...payload,
+    id,
+    char_count: String(payload.answer || '').length,
+    created_at: now,
+  });
+  records.push(entry);
+  await writeJson('refOpposables', records);
+  return entry;
+}
+
+async function listRefOpposables({ phone, theme_id, limit = 200 } = {}) {
+  const records = await getRefOpposables();
+  return records
+    .slice()
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .filter((r) => {
+      if (phone && !r.phone.includes(String(phone).trim())) return false;
+      if (theme_id && r.theme_id !== theme_id) return false;
+      return true;
+    })
+    .slice(0, limit);
+}
+
 module.exports = {
   DATA_DIR,
   DATA_FILES,
@@ -1003,4 +1090,8 @@ module.exports = {
   savePharmacist,
   getPharmacists,
   listPharmacists,
+  // Références opposables
+  getRefOpposables,
+  appendRefOpposable,
+  listRefOpposables,
 };

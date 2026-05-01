@@ -10,7 +10,11 @@
       "Bash(node --check /Users/Lenovo/whatsapp-pharma-bot/modules/interactive.js)",
       "Bash(node --check /Users/Lenovo/whatsapp-pharma-bot/modules/i18n.js)",
       "Bash(node -e ':*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(python3 -c \"import json,sys; users=json.load\\(sys.stdin\\); [print\\(json.dumps\\(u, indent=2\\)\\) for u in users if u.get\\('current_theme'\\) or u.get\\('current_state'\\) not in [None,'main_menu']]\")",
+      "Bash(node -e ' *)",
+      "Bash(node scripts/embed_and_upload.js)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

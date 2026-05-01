@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 
 const storage = require('./storage');
+const supabaseStore = require('./modules/supabase_store');
 const twilioService = require('./twilio_service');
 const medindex = require('./modules/medindex');
 const monitoring = require('./modules/monitoring');
@@ -19,6 +20,10 @@ const adminDir = path.join(__dirname, 'admin');
 function extractToken(req) {
   const h = String(req.headers.authorization || '');
   if (h.startsWith('Bearer ')) return h.slice(7).trim();
+  // Also accept cookie for browser navigation (no Authorization header on GET pages)
+  const cookieHeader = String(req.headers.cookie || '');
+  const m = cookieHeader.match(/(?:^|;\s*)admin_token=([^;]+)/);
+  if (m) return decodeURIComponent(m[1]);
   return null;
 }
 
@@ -71,12 +76,19 @@ router.post('/api/auth/login', asyncHandler(async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Identifiants incorrects ou compte inactif' });
 
   const token = await adminAuth.createSession(user.id);
+  res.cookie('admin_token', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
   res.json({ token, user: adminAuth.publicUser(user) });
 }));
 
 router.post('/api/auth/logout', asyncHandler(async (req, res) => {
   const token = extractToken(req);
   if (token) await adminAuth.deleteSession(token);
+  res.clearCookie('admin_token');
   res.json({ ok: true });
 }));
 
@@ -89,12 +101,13 @@ router.get('/api/auth/me', asyncHandler(async (req, res) => {
 
 // TEMPORARY DIAGNOSTIC — remove after login is fixed
 router.get('/api/auth/env-check', (req, res) => {
-  const u = process.env.ADMIN_USERNAME || '';
-  const s = process.env.ADMIN_SECRET   || '';
+  const u1 = process.env.BLINK_ADMIN_EMAIL || '';
+  const u2 = process.env.ADMIN_USERNAME    || '';
+  const s  = process.env.ADMIN_SECRET      || '';
   res.json({
-    ADMIN_USERNAME: { set: u.length > 0, length: u.length, prefix: u.slice(0, 6) + '…' },
-    ADMIN_SECRET:   { set: s.length > 0, length: s.length },
-    SESSION_SECRET: { set: !!process.env.SESSION_SECRET },
+    BLINK_ADMIN_EMAIL: { set: u1.length > 0, length: u1.length, prefix: u1.slice(0, 6) + '…' },
+    ADMIN_USERNAME:    { set: u2.length > 0, length: u2.length },
+    ADMIN_SECRET:      { set: s.length > 0,  length: s.length },
   });
 });
 
@@ -690,6 +703,21 @@ router.post(
 );
 
 // ---------------------------------------------------------------------------
+// Consentement — Page + API liste complète
+// ---------------------------------------------------------------------------
+
+router.get('/consents', (req, res) => res.sendFile(path.join(adminDir, 'consents.html')));
+
+/**
+ * GET /admin/api/consents
+ * Retourne la liste complète de tous les enregistrements de consentement.
+ */
+router.get('/api/consents', asyncHandler(async (req, res) => {
+  const consents = await storage.getConsents();
+  res.json(consents);
+}));
+
+// ---------------------------------------------------------------------------
 // Consentement - Statut et templates Meta
 // ---------------------------------------------------------------------------
 
@@ -1095,7 +1123,17 @@ const DEFAULT_ACTUS = [
   { id: '8', titre: 'Rappel — Médicament W® 40mg lots Q1 2026', type: 'rappels', desc: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours. (Données fictives)", labo: 'Laboratoire G', date: '2025-04-24', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
+const ACTUS_KEY = 'actus';
+
 async function readActus() {
+  // Try Supabase first
+  if (supabaseStore.isEnabled()) {
+    try {
+      const val = await supabaseStore.read(ACTUS_KEY);
+      if (val !== null) return Array.isArray(val) ? val : DEFAULT_ACTUS;
+    } catch {}
+  }
+  // File fallback
   try {
     return JSON.parse(await require('fs').promises.readFile(ACTUS_FILE, 'utf8'));
   } catch {
@@ -1104,7 +1142,27 @@ async function readActus() {
 }
 
 async function writeActus(actus) {
-  await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
+  // Supabase primary write
+  if (supabaseStore.isEnabled()) {
+    const ok = await supabaseStore.write(ACTUS_KEY, actus);
+    if (ok) {
+      // Fire-and-forget file backup
+      require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2)).catch(() => {});
+      return;
+    }
+  }
+  // File fallback
+  try {
+    await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
+  } catch (err) {
+    if (err.code === 'EROFS' || err.code === 'ENOENT' || err.code === 'EACCES') {
+      throw Object.assign(
+        new Error('Stockage non disponible (filesystem read-only). Configurez Supabase pour persister les données.'),
+        { status: 503 },
+      );
+    }
+    throw err;
+  }
 }
 
 router.get('/actu', (req, res) => res.sendFile(require('path').join(adminDir, 'actu.html')));

@@ -1,5 +1,87 @@
 # CHAT ALI — whatsapp-pharma-bot
 
+## [2026-05-01] — Migration stockage → Supabase (persistance sur Railway)
+
+### Résumé
+Railway wippe les fichiers JSON à chaque redéploiement car le conteneur est éphémère. Migration vers Supabase KV store : toutes les données (themes, users, consents, actus, etc.) sont maintenant persistées dans Supabase, avec fallback fichier si Supabase est indisponible.
+
+### Décisions / Architecture
+- Nouveau module `modules/supabase_store.js` : table `bot_kv_store (key TEXT PK, value JSONB, updated_at TIMESTAMPTZ)` dans Supabase
+- `storage.js` : `readJson` essaie Supabase d'abord → fallback fichier. `writeJson` écrit dans Supabase (primary) + fichier (background best-effort)
+- `admin_routes.js` : `readActus`/`writeActus` utilisent aussi Supabase via `ACTUS_KEY='actus'`
+- Script de migration : `node scripts/setup_supabase.js` — crée la table si absente (affiche DDL SQL à copier-coller dans Supabase SQL Editor) et migre les fichiers JSON existants
+
+### À faire pour activer
+1. Aller dans Supabase SQL Editor : https://supabase.com/dashboard/project/zefeutnibvynqmrchbjj/sql/new
+2. Exécuter ce SQL :
+   ```sql
+   CREATE TABLE IF NOT EXISTS bot_kv_store (
+     key TEXT PRIMARY KEY,
+     value JSONB NOT NULL DEFAULT '{}',
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   );
+   ```
+3. Lancer `node scripts/setup_supabase.js` pour migrer les données JSON locales
+4. Redéployer sur Railway — les données persistent désormais
+
+### À retenir pour la prochaine session
+- Si Supabase non configuré ou table absente : bot fonctionne en mode fichier (0 breaking change)
+- `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` déjà dans `.env` et Railway
+- Ne plus utiliser Railway Volumes — Supabase est la source de vérité
+
+---
+
+## [2026-04-29] — Flux SAV / Contact web : comportements différenciés + onboarding
+
+### Résumé
+Le flux contact est maintenant séparé en deux branches selon l'origine du message. Le lien wa.me de la page web déclenche : email silencieux + accusé + onboarding complet (langue → consentement → carousel 5 cartes). Le lien SAV reste un dead-end (ack + stop, pas de chatbot).
+
+### Architecture finale
+
+```
+Message WhatsApp entrant
+    → isSavMessage ? → detectSavSource
+        ┌─ "sav"         → email fire-and-forget
+        │                 + ack TwiML (SAV_ACK_MESSAGE)
+        │                 + RETURN (jamais d'IA/onboarding)
+        │
+        └─ "web_contact" → email fire-and-forget
+                          + ack outbound (WEB_CONTACT_ACK_MESSAGE)
+                          + PAS de return → onboarding normal
+                              langue → consentement → carousel 5 cartes
+    → null              → chatbot normal (inchangé)
+```
+
+### Détection (`modules/sav.js`)
+| Trigger | Source retournée |
+|---|---|
+| Corps commence par `SAV -` (insensible à la casse) | `sav` |
+| Corps contient `[SAV]` | `sav` |
+| Corps commence par `Bonjour, j'ai une question sur Blink Premium` (lien wa.me) | `web_contact` |
+
+### Emails selon l'origine
+| Source | Sujet email | Champ "Source" |
+|---|---|---|
+| `web_contact` | `Nouvelle demande Contact WhatsApp - Blink Premium` | `Page web Blink Premium (Bouton Contact)` |
+| `sav` | `Nouvelle demande SAV WhatsApp - Blink Premium` | `Page web Blink Premium (SAV)` |
+
+### Lien wa.me concerné
+`https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium`
+
+### Décisions clés
+- Welcome message supprimé pour `web_contact` (l'ack le remplace)
+- `ensureUser` appelé pour `web_contact` → utilisateur créé en état `AWAITING_LANGUAGE`
+- L'envoi email et l'ack outbound sont fire-and-forget (pas de délai sur la réponse TwiML)
+- Pour `web_contact`, le message lui-même ("Bonjour…") ne match aucune langue → `sendLanguageScreen` se déclenche naturellement
+
+### À retenir pour la prochaine session
+- Les variables `CONTACT_EMAIL_PROVIDER`, `CONTACT_GRAPH_*` ou `CONTACT_SMTP_*` doivent être configurées sur Railway pour que l'email SAV fonctionne
+- Pour tester : envoyer depuis WhatsApp un message "SAV - mon problème…" ou un message contenant "[SAV]"
+- Les logs Railway afficheront `[sav] demande SAV détectée` puis `[sav] email transmis à contact@blinkpharma.ma`
+
+---
+
+
 ## [2026-04-26] — Architecture URL-button : Explorer ouvre des pages web + endpoint /api/ask
 
 ### Résumé

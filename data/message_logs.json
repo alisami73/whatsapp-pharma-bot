@@ -358,5 +358,159 @@
     },
     "created_at": "2026-04-12T09:16:41.910Z",
     "updated_at": "2026-04-12T09:16:41.910Z"
+  },
+  {
+    "id": "message-1776562536875",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600008888",
+    "theme_id": null,
+    "body": "STOP",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "awaiting_language"
+    },
+    "created_at": "2026-04-19T01:35:36.875Z",
+    "updated_at": "2026-04-19T01:35:36.875Z"
+  },
+  {
+    "id": "message-1776562536878",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600008888",
+    "theme_id": null,
+    "body": "Bonjour",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-19T01:35:36.878Z",
+    "updated_at": "2026-04-19T01:35:36.878Z"
+  },
+  {
+    "id": "message-1776562552130",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212600006666",
+    "theme_id": null,
+    "body": "{\"screen\":\"home_screen\",\"data\":{\"consent_choice\":\"accept\",\"role_choice\":\"titulaire\",\"entry_choice\":\"faq\"}}",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": {
+        "screen": "home_screen",
+        "data": {
+          "consent_choice": "accept",
+          "role_choice": "titulaire",
+          "entry_choice": "faq"
+        }
+      },
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-19T01:35:52.130Z",
+    "updated_at": "2026-04-19T01:35:52.130Z"
+  },
+  {
+    "id": "message-1776583441799",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212611110002",
+    "theme_id": null,
+    "body": "Textes et règlements",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "main_menu"
+    },
+    "created_at": "2026-04-19T07:24:01.799Z",
+    "updated_at": "2026-04-19T07:24:01.799Z"
+  },
+  {
+    "id": "message-1776583459109",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212611110003",
+    "theme_id": null,
+    "body": "Textes et règlements",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "main_menu"
+    },
+    "created_at": "2026-04-19T07:24:19.109Z",
+    "updated_at": "2026-04-19T07:24:19.109Z"
+  },
+  {
+    "id": "message-1776583485964",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212611110004",
+    "theme_id": null,
+    "body": "Textes et règlements",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "main_menu"
+    },
+    "created_at": "2026-04-19T07:24:45.964Z",
+    "updated_at": "2026-04-19T07:24:45.964Z"
+  },
+  {
+    "id": "message-1776584147120",
+    "direction": "inbound",
+    "channel": "whatsapp",
+    "phone": "whatsapp:+212611119999",
+    "theme_id": null,
+    "body": "Voir CGU complètes",
+    "status": "received",
+    "provider": "twilio",
+    "provider_message_sid": null,
+    "error_code": null,
+    "error_message": null,
+    "metadata": {
+      "payload": null,
+      "interactive_data": null,
+      "profile_name": null,
+      "current_state": "awaiting_consent"
+    },
+    "created_at": "2026-04-19T07:35:47.121Z",
+    "updated_at": "2026-04-19T07:35:47.121Z"
   }
 ]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "1bd5a09f-9a19-4780-85f4-7b2b5f0c4c0d",
+    "email": "ali.sami@blinkpharma.ma",
+    "name": "Super Admin",
+    "role": "superadmin",
+    "status": "active",
+    "password_hash": "57fa934a3fe5524d2a8e1723c68207592e5a2bcac4cc817200ed903fc4b8365c",
+    "password_salt": "8bf2af66e97c74a61e6411b723491ec1",
+    "invite_token": null,
+    "invite_expires_at": null,
+    "created_at": "2026-04-30T15:27:59.726Z",
+    "last_login_at": "2026-04-30T15:39:58.932Z"
+  }
+]

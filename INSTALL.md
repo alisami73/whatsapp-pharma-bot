@@ -90,10 +90,26 @@ Définir `PUBLIC_BASE_URL=https://abc123.ngrok.io` dans `.env` et configurer l'U
 | `TWILIO_ACCOUNT_SID` | Oui | Account SID Twilio |
 | `TWILIO_AUTH_TOKEN` | Oui | Auth Token Twilio |
 | `TWILIO_MESSAGING_SERVICE_SID` | Ou | SID du Messaging Service (recommandé) |
-| `TWILIO_WHATSAPP_FROM` | Ou | Numéro WhatsApp direct (`whatsapp:+14155238886`) |
+| `TWILIO_WHATSAPP_FROM` | Ou | Numéro WhatsApp direct (`whatsapp:+212768782598`) |
 | `PUBLIC_BASE_URL` | Oui | URL HTTPS publique du déploiement |
 | `TWILIO_STATUS_CALLBACK_URL` | Non | Override URL status callback |
 | `TWILIO_ALLOW_MANUAL_SEND_WITHOUT_CONSENT` | Non | `true` pour tests admin sans opt-in |
+| `CONTACT_FORM_TO` | Non | Email destinataire du formulaire contact (defaut: `contact@blinkpharma.ma`) |
+| `CONTACT_FORM_FROM` | Non | Expediteur email du formulaire contact |
+| `CONTACT_EMAIL_PROVIDER` | Non | `smtp` (défaut) ou `msgraph` pour Microsoft Graph via HTTPS |
+| `CONTACT_GRAPH_TENANT_ID` | Non | Tenant ID Microsoft Entra pour l'envoi via Graph |
+| `CONTACT_GRAPH_CLIENT_ID` | Non | Client ID de l'application Microsoft Entra |
+| `CONTACT_GRAPH_CLIENT_SECRET` | Non | Client secret de l'application Microsoft Entra |
+| `CONTACT_GRAPH_USER` | Non | Mailbox Microsoft 365 utilisée pour envoyer le message |
+| `CONTACT_GRAPH_TIMEOUT_MS` | Non | Timeout Graph (défaut: `15000`) |
+| `CONTACT_SMTP_URL` | Non | URL SMTP complete pour l'envoi des leads contact |
+| `CONTACT_SMTP_HOST` | Non | Host SMTP si `CONTACT_SMTP_URL` n'est pas utilise |
+| `CONTACT_SMTP_PORT` | Non | Port SMTP si `CONTACT_SMTP_URL` n'est pas utilise |
+| `CONTACT_SMTP_SECURE` | Non | `true` pour SMTPS/TLS implicite, sinon `false` |
+| `CONTACT_SMTP_REQUIRE_TLS` | Non | `true` pour imposer STARTTLS/TLS sur la connexion SMTP |
+| `CONTACT_SMTP_USER` | Non | Utilisateur SMTP si authentification requise |
+| `CONTACT_SMTP_PASS` | Non | Mot de passe SMTP si authentification requise |
+| `CONTACT_SMTP_TIMEOUT_MS` | Non | Timeout SMTP (défaut: `15000`) |
 | `MEDINDEX_API_URL` | Non | URL API MedIndex (base démo si absent) |
 | `MEDINDEX_API_KEY` | Non | Clé API MedIndex |
 | `BLINK_API_URL` | Non | URL API Blink Pharma |
@@ -102,6 +118,36 @@ Définir `PUBLIC_BASE_URL=https://abc123.ngrok.io` dans `.env` et configurer l'U
 | `SOBRUS_API_KEY` | Non | Clé API Sobrus |
 | `MONITORING_TIMEOUT_MS` | Non | Timeout APIs monitoring (défaut: 10000) |
 | `PORT` | Non | Port local (défaut: 3000) |
+
+Exemple recommande sur Railway avec Microsoft Graph (pas de SMTP sortant) :
+
+```env
+CONTACT_FORM_TO=contact@blinkpharma.ma
+CONTACT_FORM_FROM="Blink Pharma <contact@blinkpharma.ma>"
+CONTACT_EMAIL_PROVIDER=msgraph
+CONTACT_GRAPH_TENANT_ID=<tenant-id>
+CONTACT_GRAPH_CLIENT_ID=<client-id>
+CONTACT_GRAPH_CLIENT_SECRET=<client-secret>
+CONTACT_GRAPH_USER=contact@blinkpharma.ma
+```
+
+Exemple Microsoft 365 / Office 365 en SMTP :
+
+```env
+CONTACT_FORM_TO=contact@blinkpharma.ma
+CONTACT_FORM_FROM="Blink Pharma <contact@blinkpharma.ma>"
+CONTACT_SMTP_HOST=smtp.office365.com
+CONTACT_SMTP_PORT=587
+CONTACT_SMTP_SECURE=false
+CONTACT_SMTP_REQUIRE_TLS=true
+CONTACT_SMTP_USER=contact@blinkpharma.ma
+CONTACT_SMTP_PASS=<mot-de-passe-ou-app-password>
+```
+
+Notes importantes :
+
+- Railway n'autorise SMTP sortant qu'en plan Pro ou superieur. Sur Free, Trial et Hobby, utilisez `CONTACT_EMAIL_PROVIDER=msgraph` ou un provider email via API HTTPS.
+- Pour Microsoft 365 en SMTP, verifiez aussi que SMTP AUTH est autorise pour la mailbox cible si vous restez sur `smtp.office365.com`.
 
 ---
 
