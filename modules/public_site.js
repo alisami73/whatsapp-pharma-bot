@@ -55,16 +55,27 @@ function getPublicSiteHost() {
   }
 }
 
+function getRequestHosts(req) {
+  const forwardedHosts = String(req?.headers?.['x-forwarded-host'] || '')
+    .split(',')
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter(Boolean);
+  const directHost = String(req?.headers?.host || '').trim().toLowerCase();
+
+  return Array.from(new Set([
+    ...(directHost ? [directHost] : []),
+    ...forwardedHosts,
+  ]));
+}
+
 function getRequestHost(req) {
-  const forwarded = String(req?.headers?.['x-forwarded-host'] || '').split(',')[0].trim();
-  const direct = String(req?.headers?.host || '').trim();
-  return (forwarded || direct).toLowerCase();
+  return getRequestHosts(req)[0] || '';
 }
 
 function isPublicSiteRequestHost(req) {
   const publicHost = getPublicSiteHost();
-  const requestHost = getRequestHost(req);
-  return Boolean(publicHost && requestHost && publicHost === requestHost);
+  const requestHosts = getRequestHosts(req);
+  return Boolean(publicHost && requestHosts.some((host) => host === publicHost));
 }
 
 function isPublicSitePath(pathname = '/') {
@@ -100,6 +111,7 @@ module.exports = {
   PUBLIC_SITE_PAGE_PATHS,
   getPublicSiteOrigin,
   getPublicSiteHost,
+  getRequestHosts,
   getRequestHost,
   isPublicSiteRequestHost,
   isPublicSitePath,

@@ -632,6 +632,14 @@ async function setCnssQuestionState(user, themeId) {
   return storage.saveUser({ ...user, current_theme: themeId, current_state: STATES.AWAITING_CNSS_QUESTION });
 }
 
+function scheduleNonBlocking(label, task) {
+  Promise.resolve()
+    .then(task)
+    .catch((err) => {
+      console.error(`[async] ${label} failed:`, err && err.message ? err.message : err);
+    });
+}
+
 // Tente d'envoyer le menu principal en interactif (list-picker).
 // Retourne true si le message a été envoyé via l'API Twilio, false sinon.
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
@@ -654,16 +662,16 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
     console.log(`[explorer] sendExplorerCarousel result: ${result ? result.sid : 'null'}`);
     if (result) {
       if (prefix) {
-        await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
+        scheduleNonBlocking('send explorer prefix', () => twilioService.sendWhatsAppMessage({ to: phone, body: prefix }));
       }
-      await storage.appendMessageLog({
+      scheduleNonBlocking('log explorer carousel', () => storage.appendMessageLog({
         direction: 'outbound',
         phone,
         body: '[interactive:explorer_carousel]',
         status: result.status || 'queued',
         provider_message_sid: result.sid,
         metadata: { source: 'explorer_carousel' },
-      });
+      }));
     } else {
       console.warn('[explorer] sendExplorerCarousel returned null — sending text fallback');
       const response = new MessagingResponse();
@@ -1222,7 +1230,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       _wClient.messages.create(_wPayload).catch(err => console.error('[welcome]', err.message));
     }
 
-    await storage.appendMessageLog({
+    scheduleNonBlocking('log inbound message', () => storage.appendMessageLog({
       direction: 'inbound',
       phone: context.phone,
       theme_id: user.current_theme || null,
@@ -1235,7 +1243,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         profile_name: req.body.ProfileName || null,
         current_state: user.current_state || null,
       },
-    });
+    }));
 
     const handledFlowSubmission = await handleOnboardingFlowSubmission(response, user, context);
     if (handledFlowSubmission) {
@@ -1362,13 +1370,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         try {
           const consentResult = await interactive.sendConsentScreen(context.phone, chosenLang);
           if (consentResult) {
-            await storage.appendMessageLog({
+            scheduleNonBlocking('log consent interactive', () => storage.appendMessageLog({
               direction: 'outbound', phone: context.phone,
               body: `[interactive:consent_${chosenLang}]`,
               status: consentResult.status || 'queued',
               provider_message_sid: consentResult.sid,
               metadata: { source: 'interactive_consent', lang: chosenLang },
-            });
+            }));
             res.type('text/xml').send(buildEmptyTwiml());
             return;
           }
@@ -1386,13 +1394,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       try {
         const langResult = await interactive.sendLanguageScreen(context.phone);
         if (langResult) {
-          await storage.appendMessageLog({
+          scheduleNonBlocking('log language interactive', () => storage.appendMessageLog({
             direction: 'outbound', phone: context.phone,
             body: '[interactive:language_carousel]',
             status: langResult.status || 'queued',
             provider_message_sid: langResult.sid,
             metadata: { source: 'interactive_language' },
-          });
+          }));
           res.type('text/xml').send(buildEmptyTwiml());
           return;
         }

@@ -38,6 +38,22 @@ test('buildPublicRequestRedirectUrl does not redirect when already on the custom
   assert.equal(publicSite.buildPublicRequestRedirectUrl(req), null);
 });
 
+test('buildPublicRequestRedirectUrl does not loop when host is custom but x-forwarded-host is different', () => {
+  process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+
+  const req = {
+    path: '/contact.html',
+    originalUrl: '/contact.html?lang=fr',
+    url: '/contact.html?lang=fr',
+    headers: {
+      host: 'blinkpremium.blinkpharmacie.ma',
+      'x-forwarded-host': 'whatsapp-pharma-bot-production.up.railway.app',
+    },
+  };
+
+  assert.equal(publicSite.buildPublicRequestRedirectUrl(req), null);
+});
+
 test('buildPublicRequestRedirectUrl ignores webhook and API routes', () => {
   process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
 
