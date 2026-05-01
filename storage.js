@@ -7,6 +7,10 @@ const fsp = fs.promises;
 // Allow overriding via env var so a Railway persistent volume can be mounted at a custom path.
 // Set DATA_DIR=/mnt/data in Railway environment variables, then add a volume at /mnt/data.
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.info('[storage] DATA_DIR créé:', DATA_DIR);
+}
 
 const DATA_FILES = {
   themes: path.join(DATA_DIR, 'themes.json'),
