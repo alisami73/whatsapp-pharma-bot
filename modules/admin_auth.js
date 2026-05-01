@@ -130,10 +130,13 @@ async function verifyPassword(email, password) {
 
   console.log('[admin-auth] login attempt:', {
     inputEmail,
-    envUsername_set: Boolean(rawUsername),
-    envSecret_set:   Boolean(envSecret),
+    envEmail_prefix: envEmail ? envEmail.slice(0, 8) + '…' : '(not set)',
+    envEmail_length: envEmail.length,
+    inputEmail_length: inputEmail.length,
     email_match:     inputEmail === envEmail,
-    pass_match:      inputPass  === envSecret,
+    envSecret_length: envSecret.length,
+    inputPass_length: inputPass.length,
+    pass_match:      inputPass === envSecret,
   });
 
   if (envEmail && envSecret && inputEmail === envEmail && inputPass === envSecret) {
