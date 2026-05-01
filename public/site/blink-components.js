@@ -23,8 +23,7 @@ function langPath(pathname, lang) {
 function langUrl(targetLang) {
   const u = new URL(window.location.href);
   u.pathname = sitePath(u.pathname);
-  if (targetLang === 'fr') u.searchParams.delete('lang');
-  else u.searchParams.set('lang', targetLang);
+  u.searchParams.set('lang', targetLang || 'fr');
   return `${u.pathname}${u.search}${u.hash}`;
 }
 
