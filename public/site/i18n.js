@@ -8,8 +8,6 @@
   localStorage.setItem('blink_lang', lang);
   window.BLANG = lang;
 
-  const BASE = 'https://whatsapp-pharma-bot-production.up.railway.app/site/';
-
   // ─── FEATURES per language ───────────────────────────────────────────────
   const FEATURES_FR = [
     { title:"Migration simplifiée",  claim:"Passage sans friction vers Blink — zéro perte de données.",           category:"LOGISTIQUE",  color:"#3F51B5", bg:"#1a237e", icon:"📦", anchor:"migration",        badge:"Données importées",        badgeIcon:"📦" },

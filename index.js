@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const path = require('path');
 const twilio = require('twilio');
 
 const adminRoutes = require('./admin_routes');
@@ -22,10 +23,14 @@ const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
+const { buildPublicSiteUrl, appendLangQuery } = require('./modules/public_site');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const { MessagingResponse } = twilio.twiml;
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const PUBLIC_SITE_DIR = path.join(PUBLIC_DIR, 'site');
+const ANSWERS_DIR = path.join(PUBLIC_DIR, 'answers');
 
 const STATES = {
   AWAITING_LANGUAGE: 'awaiting_language',              // Écran 1 — sélection langue
@@ -53,12 +58,13 @@ const STATES = {
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use('/public', express.static(require('path').join(__dirname, 'public')));
+app.use('/public', express.static(PUBLIC_DIR));
 app.get('/site/data&cndp.html', (req, res) => {
   const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
-  res.redirect(301, `/site/data-cndp.html${queryString}`);
+  res.redirect(301, `/data-cndp.html${queryString}`);
 });
-app.use('/site', express.static(require('path').join(__dirname, 'public', 'site')));
+app.use('/site', express.static(PUBLIC_SITE_DIR));
+app.use(express.static(PUBLIC_SITE_DIR, { index: false }));
 app.use('/admin', adminRoutes);
 
 // MedIndex relay — WhatsApp URL-button cards must link to our domain;
@@ -81,11 +87,11 @@ app.get('/api/actus', async (req, res) => {
 // ── Answer pages (FSE + Conformité) ─────────────────────────────────────────
 // GET /answers/:topic/:id → serve the answer HTML page
 app.get('/answers/:topic/:lang/:id', (req, res) => {
-  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+  res.sendFile(path.join(ANSWERS_DIR, 'answer.html'));
 });
 
 app.get('/answers/:topic/:id', (req, res) => {
-  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+  res.sendFile(path.join(ANSWERS_DIR, 'answer.html'));
 });
 
 // GET /api/answers/:id → JSON API fetched by the answer page
@@ -104,7 +110,7 @@ app.get('/api/answers/:id', async (req, res) => {
 
 // GET /history/:phoneHash → user answer history (optional page)
 app.get('/history/:phoneHash', (req, res) => {
-  res.sendFile(require('path').join(__dirname, 'public', 'answers', 'answer.html'));
+  res.sendFile(path.join(ANSWERS_DIR, 'answer.html'));
 });
 
 // POST /api/ask — Web Q&A endpoint for FSE and Conformité pages
@@ -232,6 +238,10 @@ function getRequestContext(req) {
 
 function buildEmptyTwiml() {
   return new MessagingResponse().toString();
+}
+
+function buildPublicPageUrl(pagePath, lang = 'fr') {
+  return buildPublicSiteUrl(pagePath, appendLangQuery(lang));
 }
 
 // Les textes de consentement sont désormais gérés par modules/consent.js.
@@ -840,10 +850,8 @@ async function startThemePrimaryAction(response, user, theme) {
 
   if (theme.id === 'software') {
     const lang = getUserLang(user);
-    const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-    const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-    response.message(`💎 Blink Premium\n\n${base}/site/${langSuffix}`);
+    response.message(`💎 Blink Premium\n\n${buildPublicPageUrl('/', lang)}`);
     return;
   }
 
@@ -872,12 +880,10 @@ async function startThemePrimaryAction(response, user, theme) {
 
   // FSE, Conformité, Actualités → open web page (in-app browser)
   const lang = getUserLang(user);
-  const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-  const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
   const WEB_THEME_URLS = {
-    fse:                    `${base}/site/fse.html${langSuffix}`,
-    conformites:            `${base}/site/conformite.html${langSuffix}`,
-    'nouveautes-medicaments': `${base}/site/actu.html${langSuffix}`,
+    fse:                      buildPublicPageUrl('/fse.html', lang),
+    conformites:              buildPublicPageUrl('/conformite.html', lang),
+    'nouveautes-medicaments': buildPublicPageUrl('/actu.html', lang),
   };
   if (WEB_THEME_URLS[theme.id]) {
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
@@ -1093,13 +1099,21 @@ async function handleMonitoringChoice(response, user, theme, normalizedMessage) 
 }
 
 app.get('/', (req, res) => {
-  const acceptHeader = String(req.get('accept') || '').toLowerCase();
+  res.sendFile(path.join(PUBLIC_SITE_DIR, 'index.html'));
+});
 
-  if (acceptHeader.includes('text/html')) {
-    res.redirect('/admin');
-    return;
-  }
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    admin: '/admin',
+    webhook: '/webhook/whatsapp',
+    twilioWhatsappWebhook: '/webhooks/twilio/whatsapp',
+    twilioWhatsappFallback: '/webhooks/twilio/whatsapp/fallback',
+    statusCallback: '/webhook/twilio/status',
+  });
+});
 
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     admin: '/admin',
@@ -1498,15 +1512,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     // ── Explorer carousel payload → open web page (URL-button architecture) ─────
     if (explorer.isExplorerPayload(controlValue)) {
       const themeId = explorer.resolveExplorerPayload(controlValue);
-      const base    = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
 
       const WEB_URLS = {
-        'software':              `${base}/site/${langSuffix}`,
-        'nouveautes-medicaments':`${base}/site/actu.html${langSuffix}`,
-        'fse':                   `${base}/site/fse.html${langSuffix}`,
-        'conformites':           `${base}/site/conformite.html${langSuffix}`,
-        'medindex':              'https://medindex.ma',
+        'software':               buildPublicPageUrl('/', lang),
+        'nouveautes-medicaments': buildPublicPageUrl('/actu.html', lang),
+        'fse':                    buildPublicPageUrl('/fse.html', lang),
+        'conformites':            buildPublicPageUrl('/conformite.html', lang),
+        'medindex':               buildPublicSiteUrl('/go/medindex'),
       };
 
       const WEB_LABELS = {
@@ -1643,10 +1655,8 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     // Users stuck here from old sessions receive the web page URL.
     if (user.current_state === STATES.AWAITING_FSE_QUESTION ||
         user.current_state === STATES.AWAITING_CONFORMITE_QUESTION) {
-      const base      = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
       const isFse     = user.current_state === STATES.AWAITING_FSE_QUESTION;
-      const url       = isFse ? `${base}/site/fse.html${langSuffix}` : `${base}/site/conformite.html${langSuffix}`;
+      const url       = isFse ? buildPublicPageUrl('/fse.html', lang) : buildPublicPageUrl('/conformite.html', lang);
       const label     = isFse ? '📋 FSE CNSS' : '⚖️ Conformité Pharma';
       await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
       response.message(`${label}\n\n${url}`);
@@ -1680,19 +1690,15 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     if (user.current_state === STATES.BROWSING_SW_CALLBACK_SUB ||
         user.current_state === STATES.BROWSING_SW_BENEFITS_FAQ ||
         user.current_state === STATES.BROWSING_SOFTWARE_CAROUSEL) {
-      const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
       await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-      response.message(`💎 Blink Premium\n\n${base}/site/${langSuffix}`);
+      response.message(`💎 Blink Premium\n\n${buildPublicPageUrl('/', lang)}`);
       res.type('text/xml').send(response.toString());
       return;
     }
 
     if (user.current_state === STATES.BROWSING_SW_DATA_FAQ) {
-      const base = (process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app').replace(/\/+$/, '');
-      const langSuffix = (lang && lang !== 'fr') ? `?lang=${lang}` : '';
       await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-      response.message(`🔒 Mes données & CNDP\n\n${base}/site/data-cndp.html${langSuffix}`);
+      response.message(`🔒 Mes données & CNDP\n\n${buildPublicPageUrl('/data-cndp.html', lang)}`);
       res.type('text/xml').send(response.toString());
       return;
     }
@@ -1815,6 +1821,7 @@ if (require.main === module) {
   storage
     .initializeStorage()
     .then(() => require('./modules/admin_auth').bootstrapSuperAdmin())
+    .then(() => require('./modules/public_templates').ensurePublicTemplates())
     .then(() => {
       app.listen(PORT, () => {
         console.log(`WhatsApp pharmacy assistant running on port ${PORT}`);

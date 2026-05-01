@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mes données & CNDP — Blink Premium</title>
   <meta
@@ -342,7 +342,10 @@
   <script>
     const lang = (window.BI18N && window.BI18N.lang) || 'fr';
     const isRtl = lang === 'ar';
-    const lq = (p) => (lang === 'fr' ? p : `${p}?lang=${lang}`);
+    const lq = (p) => {
+      const clean = p === '/' ? '/' : '/' + String(p || '').replace(/^\/+/, '');
+      return lang === 'fr' ? clean : `${clean}?lang=${lang}`;
+    };
 
     const COPY = {
       fr: {

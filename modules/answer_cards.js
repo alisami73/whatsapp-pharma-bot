@@ -5,17 +5,16 @@ const path = require('path');
 
 const twilioService = require('../twilio_service');
 const answerPages = require('./answer_pages');
+const { buildPublicAssetUrl } = require('./public_site');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const DEFAULT_PUBLIC_BASE_URL = 'https://whatsapp-pharma-bot-production.up.railway.app';
-
 const TOPIC_META = {
   fse: {
     asset: 'public/carousel/fse.jpg',
     copy: {
       fr: {
-        friendlyName: 'blink_answer_card_fse_v1_fr',
+        friendlyName: 'blink_answer_card_fse_v2_fr',
         button: 'Voir les détails',
         footer: 'Blink Premium',
         intro: '📋 Soins Électroniques — FSE CNSS',
@@ -23,7 +22,7 @@ const TOPIC_META = {
         textFallback: 'Ouvrez la page détaillée :',
       },
       ar: {
-        friendlyName: 'blink_answer_card_fse_v1_ar',
+        friendlyName: 'blink_answer_card_fse_v2_ar',
         button: 'عرض التفاصيل',
         footer: 'Blink Premium',
         intro: '📋 ورقة العلاج الإلكترونية — CNSS',
@@ -31,7 +30,7 @@ const TOPIC_META = {
         textFallback: 'افتحوا الصفحة التفصيلية:',
       },
       es: {
-        friendlyName: 'blink_answer_card_fse_v1_es',
+        friendlyName: 'blink_answer_card_fse_v2_es',
         button: 'Ver detalles',
         footer: 'Blink Premium',
         intro: '📋 Hoja Electrónica de Cuidados — CNSS',
@@ -39,7 +38,7 @@ const TOPIC_META = {
         textFallback: 'Abra la página detallada:',
       },
       ru: {
-        friendlyName: 'blink_answer_card_fse_v1_ru',
+        friendlyName: 'blink_answer_card_fse_v2_ru',
         button: 'Подробнее',
         footer: 'Blink Premium',
         intro: '📋 Электронный листок лечения — CNSS',
@@ -52,7 +51,7 @@ const TOPIC_META = {
     asset: 'public/carousel/conformite-pharma.jpg',
     copy: {
       fr: {
-        friendlyName: 'blink_answer_card_conformites_v1_fr',
+        friendlyName: 'blink_answer_card_conformites_v2_fr',
         button: 'Voir les détails',
         footer: 'Blink Premium',
         intro: '⚖️ Conformité Pharma',
@@ -60,7 +59,7 @@ const TOPIC_META = {
         textFallback: 'Ouvrez la page détaillée :',
       },
       ar: {
-        friendlyName: 'blink_answer_card_conformites_v1_ar',
+        friendlyName: 'blink_answer_card_conformites_v2_ar',
         button: 'عرض التفاصيل',
         footer: 'Blink Premium',
         intro: '⚖️ الامتثال الصيدلي',
@@ -68,7 +67,7 @@ const TOPIC_META = {
         textFallback: 'افتحوا الصفحة التفصيلية:',
       },
       es: {
-        friendlyName: 'blink_answer_card_conformites_v1_es',
+        friendlyName: 'blink_answer_card_conformites_v2_es',
         button: 'Ver detalles',
         footer: 'Blink Premium',
         intro: '⚖️ Conformidad Farmacéutica',
@@ -76,7 +75,7 @@ const TOPIC_META = {
         textFallback: 'Abra la página detallada:',
       },
       ru: {
-        friendlyName: 'blink_answer_card_conformites_v1_ru',
+        friendlyName: 'blink_answer_card_conformites_v2_ru',
         button: 'Подробнее',
         footer: 'Blink Premium',
         intro: '⚖️ Фармацевтическое соответствие',
@@ -93,15 +92,6 @@ function normalizeLang(lang = 'fr') {
 
 function normalizeTopic(topic = 'fse') {
   return answerPages.normalizeTopic(topic);
-}
-
-function getPublicBaseUrl() {
-  const configuredBaseUrl = String(twilioService.getTwilioConfig().publicBaseUrl || '').trim();
-  return (configuredBaseUrl || DEFAULT_PUBLIC_BASE_URL).replace(/\/+$/, '');
-}
-
-function buildAbsoluteUrl(relativePath) {
-  return `${getPublicBaseUrl()}/${String(relativePath || '').replace(/^\/+/, '')}`;
 }
 
 function readCache() {
@@ -189,7 +179,7 @@ function buildAnswerCardSpec(topic, lang) {
       'whatsapp/card': {
         body: '{{1}}',
         footer: copy.footer,
-        media: [buildAbsoluteUrl(TOPIC_META[safeTopic].asset)],
+        media: [buildPublicAssetUrl(TOPIC_META[safeTopic].asset)],
         actions: [
           {
             type: 'URL',
@@ -244,9 +234,7 @@ async function sendAnswerCard(to, { topic, id, lang = 'fr', question, answer }) 
 
   const safeTopic = normalizeTopic(topic);
   const safeLang = normalizeLang(lang);
-  const cacheKey = `answer_card_v1_${safeTopic}_${safeLang}`;
-  const spec = buildAnswerCardSpec(safeTopic, safeLang);
-  const sid = await createOrFetchTemplate(cacheKey, spec);
+  const sid = await ensureAnswerCardTemplate(safeTopic, safeLang);
   if (!sid) return null;
 
   const config = twilioService.getTwilioConfig();
@@ -275,6 +263,32 @@ async function sendAnswerCard(to, { topic, id, lang = 'fr', question, answer }) 
   return client.messages.create(payload);
 }
 
+async function ensureAnswerCardTemplate(topic, lang = 'fr') {
+  if (!twilioService.isTwilioConfigured()) return null;
+
+  const safeTopic = normalizeTopic(topic);
+  const safeLang = normalizeLang(lang);
+  const cacheKey = `answer_card_v2_${safeTopic}_${safeLang}`;
+  const spec = buildAnswerCardSpec(safeTopic, safeLang);
+  return createOrFetchTemplate(cacheKey, spec);
+}
+
+async function ensureAnswerCardTemplates() {
+  const results = [];
+  for (const topic of ['fse', 'conformites']) {
+    for (const lang of ['fr', 'ar', 'es', 'ru']) {
+      try {
+        const sid = await ensureAnswerCardTemplate(topic, lang);
+        results.push({ topic, lang, sid });
+      } catch (error) {
+        console.error(`[answer_cards] bootstrap failed for ${topic}/${lang}: ${error.message}`);
+        results.push({ topic, lang, sid: null, error: error.message });
+      }
+    }
+  }
+  return results;
+}
+
 module.exports = {
   TOPIC_META,
   normalizeLang,
@@ -282,5 +296,7 @@ module.exports = {
   buildAnswerCardBody,
   buildAnswerFallbackText,
   buildAnswerCardSpec,
+  ensureAnswerCardTemplate,
+  ensureAnswerCardTemplates,
   sendAnswerCard,
 };

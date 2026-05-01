@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blink Premium — Gestion de pharmacie modernisée</title>
   <meta name="description" content="Blink Premium modernise la gestion de votre pharmacie au Maroc. Stocks, ventes, fournisseurs, inventaire mobile et bien plus." />
@@ -322,7 +322,11 @@
   const t = BI18N.t;
   const FEATURES = BI18N.features;
   const MODULES = BI18N.modules;
-  const lq = (p, hash) => (BI18N.lang === 'fr' ? p : p + '?lang=' + BI18N.lang) + (hash ? '#' + hash : '');
+  const lq = (p, hash) => {
+    const clean = p === '/' ? '/' : '/' + String(p || '').replace(/^\/+/, '');
+    const withLang = BI18N.lang === 'fr' ? clean : clean + '?lang=' + BI18N.lang;
+    return withLang + (hash ? '#' + hash : '');
+  };
 
   // Fill static text
   document.getElementById('heroBadgeText').textContent = t.hero_badge;

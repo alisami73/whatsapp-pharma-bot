@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const { getPublicSiteOrigin } = require('./public_site');
 
 const TABLE = 'chatbot_answer_history';
 const LOCAL_STORE_PATH = String(process.env.ANSWER_HISTORY_FILE || '').trim()
@@ -38,9 +39,7 @@ function hashPhone(phone) {
 }
 
 function getBaseUrl() {
-  return String(
-    process.env.PUBLIC_BASE_URL || 'https://whatsapp-pharma-bot-production.up.railway.app'
-  ).replace(/\/+$/, '');
+  return getPublicSiteOrigin();
 }
 
 function normalizeTopic(topic) {

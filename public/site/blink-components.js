@@ -5,11 +5,27 @@ const LOGO_ICON_IMG = () => `<span style="display:inline-flex;overflow:hidden;wi
   <img src="${BLINK_LOGO_DATA_URL}" alt="Blink" style="height:38px;width:auto;max-width:none;display:block;">
 </span>`;
 
+function sitePath(pathname) {
+  const raw = String(pathname || '').trim();
+  if (!raw || raw === '/') return '/';
+  const withoutSitePrefix = raw.replace(/^\/?site(?=\/|$)/, '');
+  const cleaned = withoutSitePrefix.replace(/^\/+/, '');
+  return cleaned ? `/${cleaned}` : '/';
+}
+
+function langPath(pathname, lang) {
+  const basePath = sitePath(pathname);
+  if (!lang || lang === 'fr') return basePath;
+  return `${basePath}?lang=${encodeURIComponent(lang)}`;
+}
+
 // ─── Language selector helper ────────────────────────────────────────────────
 function langUrl(targetLang) {
   const u = new URL(window.location.href);
-  u.searchParams.set('lang', targetLang);
-  return u.toString();
+  u.pathname = sitePath(u.pathname);
+  if (targetLang === 'fr') u.searchParams.delete('lang');
+  else u.searchParams.set('lang', targetLang);
+  return `${u.pathname}${u.search}${u.hash}`;
 }
 
 const LANG_FLAGS = { fr: '🇫🇷', ar: '🇲🇦', es: '🇪🇸', ru: '🇷🇺' };
@@ -49,21 +65,22 @@ function buildLangSelector() {
 function injectNavbar(activePage) {
   const t = (typeof BI18N !== 'undefined') ? BI18N.t : null;
   const lq = (p) => {
-    if (typeof BI18N === 'undefined' || BI18N.lang === 'fr') return p;
-    return p + '?lang=' + BI18N.lang;
+    if (typeof BI18N === 'undefined') return sitePath(p);
+    return langPath(p, BI18N.lang);
   };
+  const homeHref = lq('/');
 
   const links = [
-    { label: t ? t.nav_home     : 'Accueil',          href: lq('index.html'),   id: 'home' },
+    { label: t ? t.nav_home     : 'Accueil',          href: homeHref,           id: 'home' },
     { label: t ? t.nav_features : 'Fonctionnalités',  href: lq('premium.html'), id: 'premium' },
-    { label: (t && t.nav_actu) ? t.nav_actu : 'Actu', href: 'actu.html',        id: 'actu' },
+    { label: (t && t.nav_actu) ? t.nav_actu : 'Actu', href: lq('actu.html'),    id: 'actu' },
     { label: t ? t.nav_contact  : 'Contact',          href: lq('contact.html'), id: 'contact' },
   ];
   const ctaLabel = t ? t.nav_cta : 'Demander une démo';
 
   const navHTML = `
   <nav class="navbar">
-    <a href="${lq('index.html')}" class="navbar-logo">
+    <a href="${homeHref}" class="navbar-logo">
       ${LOGO_ICON_IMG()}
       <span class="navbar-wordmark">blink <strong>premium</strong></span>
     </a>
@@ -114,9 +131,10 @@ function injectNavbar(activePage) {
 function injectFooter() {
   const t = (typeof BI18N !== 'undefined') ? BI18N.t : null;
   const lq = (p) => {
-    if (typeof BI18N === 'undefined' || BI18N.lang === 'fr') return p;
-    return p + '?lang=' + BI18N.lang;
+    if (typeof BI18N === 'undefined') return sitePath(p);
+    return langPath(p, BI18N.lang);
   };
+  const homeHref = lq('/');
   const ft = {
     desc:    t ? t.footer_desc    : 'La solution SaaS de gestion de pharmacie pensée pour les pharmaciens marocains.',
     nav:     t ? t.footer_nav     : 'Navigation',
@@ -146,7 +164,7 @@ function injectFooter() {
       <div class="footer-col">
         <h4>${ft.nav}</h4>
         <ul>
-          <li><a href="${lq('index.html')}">${t ? t.nav_home : 'Accueil'}</a></li>
+          <li><a href="${homeHref}">${t ? t.nav_home : 'Accueil'}</a></li>
           <li><a href="${lq('premium.html')}">${t ? t.nav_features : 'Fonctionnalités'}</a></li>
           <li><a href="${lq('contact.html')}">${t ? t.nav_contact : 'Contact'}</a></li>
           <li><a href="${lq('contact.html')}">${ft.navCta}</a></li>

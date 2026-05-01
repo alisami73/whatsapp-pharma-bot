@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demander une démo — Blink Premium</title>
   <meta name="description" content="Demandez une démo gratuite de Blink Premium. Un conseiller vous contacte sous 24h." />
@@ -355,7 +355,10 @@
 
   <script>
   const t = BI18N.t;
-  const lq = (p) => BI18N.lang === 'fr' ? p : p + '?lang=' + BI18N.lang;
+  const lq = (p) => {
+    const clean = p === '/' ? '/' : '/' + String(p || '').replace(/^\/+/, '');
+    return BI18N.lang === 'fr' ? clean : clean + '?lang=' + BI18N.lang;
+  };
 
   // Apply translations to hero
   document.getElementById('contLabel').textContent = t.cont_label;

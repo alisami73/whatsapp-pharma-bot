@@ -33,13 +33,16 @@ test('answer_pages saves and retrieves answers using local fallback storage', as
 });
 
 test('answer_pages builds language-aware answer URLs', () => {
+  process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+  delete require.cache[require.resolve('../modules/answer_pages')];
   const answerPages = require('../modules/answer_pages');
   assert.equal(
     answerPages.buildAnswerUrl('fse', 'demo-id', 'fr'),
-    'https://whatsapp-pharma-bot-production.up.railway.app/answers/fse/fr/demo-id',
+    'https://blinkpremium.blinkpharmacie.ma/answers/fse/fr/demo-id',
   );
   assert.equal(
     answerPages.buildAnswerUrl('conformite', 'demo-id', 'ar'),
-    'https://whatsapp-pharma-bot-production.up.railway.app/answers/conformites/ar/demo-id',
+    'https://blinkpremium.blinkpharmacie.ma/answers/conformites/ar/demo-id',
   );
+  delete process.env.PUBLIC_SITE_ORIGIN;
 });

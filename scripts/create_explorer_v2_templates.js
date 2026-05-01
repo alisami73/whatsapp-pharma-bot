@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * scripts/create_explorer_v2_templates.js  (now creates v3 templates)
+ * scripts/create_explorer_v2_templates.js  (now creates v4 templates)
  *
- * Creates the 4 Explorer v3 carousel templates (URL buttons with relay URLs) in Twilio.
+ * Creates the 4 Explorer v4 carousel templates (URL buttons with relay URLs) in Twilio.
  * Run once, then submit each template for Meta UTILITY approval via the Twilio Console.
  * The bot auto-creates and caches these on first use via resolveTemplate — this script
  * is only needed to pre-create them or force a rebuild.
@@ -84,7 +84,7 @@ async function main() {
   }
 
   console.log('\n── NEXT STEPS ──────────────────────────────────────────');
-  console.log('1. In Twilio Console → Content Templates → submit each blink_explorer_v3_* for approval');
+  console.log('1. In Twilio Console → Content Templates → submit each blink_explorer_v4_* for approval');
   console.log('2. Category: UTILITY (service info, not promotional)');
   console.log('3. The bot caches SIDs automatically — no code change needed after approval');
 }

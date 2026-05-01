@@ -21,10 +21,10 @@ const fs = require('fs');
 const path = require('path');
 const twilioService = require('../twilio_service');
 const { t } = require('./i18n');
+const { buildPublicAssetUrl, buildPublicSiteUrl } = require('./public_site');
 
 const CACHE_PATH = path.join(__dirname, '..', 'data', 'interactive_templates.json');
 const TEMPLATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 jours
-const DEFAULT_PUBLIC_BASE_URL = 'https://whatsapp-pharma-bot-production.up.railway.app';
 
 function isInteractiveEnabled() {
   return String(process.env.INTERACTIVE_MESSAGES_ENABLED || '').toLowerCase() === 'true';
@@ -54,13 +54,8 @@ function isFresh(entry) {
 
 // ─── Template specs ───────────────────────────────────────────────────────────
 
-function getPublicBaseUrl() {
-  const configuredBaseUrl = String(twilioService.getTwilioConfig().publicBaseUrl || '').trim();
-  return (configuredBaseUrl || DEFAULT_PUBLIC_BASE_URL).replace(/\/+$/, '');
-}
-
 function buildAbsoluteUrl(relativePath) {
-  return `${getPublicBaseUrl()}/${String(relativePath || '').replace(/^\/+/, '')}`;
+  return buildPublicAssetUrl(relativePath);
 }
 
 function normalizeInteractiveLang(lang = 'fr') {
@@ -69,7 +64,7 @@ function normalizeInteractiveLang(lang = 'fr') {
 
 function buildCguUrl(lang = 'fr') {
   const safeLang = normalizeInteractiveLang(lang);
-  const fallbackBaseUrl = buildAbsoluteUrl('site/cgu.html');
+  const fallbackBaseUrl = buildPublicSiteUrl('/cgu.html');
   const configuredUrl = String(process.env.CGU_URL || fallbackBaseUrl).trim() || fallbackBaseUrl;
 
   try {

@@ -8,7 +8,7 @@ const answerCards = require('../modules/answer_cards');
 test('answer card spec for FSE uses branded media and URL button', () => {
   const spec = answerCards.buildAnswerCardSpec('fse', 'fr');
 
-  assert.equal(spec.friendlyName, 'blink_answer_card_fse_v1_fr');
+  assert.equal(spec.friendlyName, 'blink_answer_card_fse_v2_fr');
   assert.ok(spec.types['whatsapp/card']);
   assert.match(spec.types['whatsapp/card'].media[0], /public\/carousel\/fse\.jpg$/);
   assert.equal(spec.types['whatsapp/card'].actions[0].type, 'URL');

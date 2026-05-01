@@ -77,7 +77,7 @@ function normalizeContactLead(payload = {}) {
     logiciel: sanitizeSingleLine(payload.logiciel, 80),
     message: sanitizeMultiLine(payload.message, 3000),
     lang: normalizeLang(payload.lang),
-    sourcePage: sanitizeSingleLine(payload.sourcePage || '/site/contact.html', 200),
+    sourcePage: sanitizeSingleLine(payload.sourcePage || '/contact.html', 200),
   };
 }
 
