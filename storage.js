@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const twilioService = require('./twilio_service');
+const supabaseStore = require('./modules/supabase_store');
 
 const fsp = fs.promises;
 // Allow overriding via env var so a Railway persistent volume can be mounted at a custom path.
@@ -305,15 +306,26 @@ async function ensureJsonFile(name) {
 
 async function initializeStorage() {
   await Promise.all(Object.keys(DATA_FILES).map((name) => ensureJsonFile(name)));
+  // Warm up Supabase connection check at startup (non-blocking)
+  if (supabaseStore.isEnabled()) supabaseStore.checkAvailable();
 }
 
 async function readJson(name) {
+  // Try Supabase first (persistent across redeploys)
+  if (supabaseStore.isEnabled()) {
+    try {
+      const val = await supabaseStore.read(name);
+      if (val !== null) return val;
+    } catch {}
+  }
+  // File fallback (local dev or before Supabase table is set up)
   await ensureJsonFile(name);
   const raw = await fsp.readFile(DATA_FILES[name], 'utf8');
   return JSON.parse(raw);
 }
 
-async function writeJson(name, value) {
+// Internal: write to the local JSON file (atomic rename).
+function _writeToFile(name, value) {
   const filePath = DATA_FILES[name];
   const tmpPath = `${filePath}.tmp`;
   const payload = JSON.stringify(value, null, 2);
@@ -324,12 +336,24 @@ async function writeJson(name, value) {
     .then(async () => {
       await ensureJsonFile(name);
       await fsp.writeFile(tmpPath, payload);
-      await fsp.rename(tmpPath, filePath); // atomic on Linux: prevents corruption on mid-write crash
+      await fsp.rename(tmpPath, filePath);
       return clone(value);
     });
 
   writeQueues.set(filePath, nextWrite);
   return nextWrite;
+}
+
+async function writeJson(name, value) {
+  if (supabaseStore.isEnabled()) {
+    const ok = await supabaseStore.write(name, value);
+    // Fire-and-forget file backup (silently ignore errors — FS may be read-only on Vercel)
+    _writeToFile(name, value).catch(() => {});
+    if (ok) return clone(value);
+    // Supabase write failed — fall through to file-only write as last resort
+    console.warn(`[storage] Supabase write failed for "${name}", writing to file only.`);
+  }
+  return _writeToFile(name, value);
 }
 
 function buildUniqueId(baseValue, existingIds, fallbackPrefix) {

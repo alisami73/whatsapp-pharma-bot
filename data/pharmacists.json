@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "phone": "whatsapp:+212600006666",
+    "name": null,
+    "pharmacy_name": null,
+    "city": null,
+    "role": "titulaire",
+    "entry_choice": "faq",
+    "software": null,
+    "software_pharmacy_id": null,
+    "onboarding_completed": true,
+    "created_at": "2026-04-19T01:35:52.131Z",
+    "updated_at": "2026-04-19T07:24:01.797Z"
+  },
+  {
+    "phone": "whatsapp:+212611110001",
+    "name": null,
+    "pharmacy_name": null,
+    "city": null,
+    "role": "titulaire",
+    "entry_choice": null,
+    "software": null,
+    "software_pharmacy_id": null,
+    "onboarding_completed": true,
+    "created_at": "2026-04-19T07:24:01.797Z",
+    "updated_at": "2026-04-19T07:24:01.797Z"
+  }
+]

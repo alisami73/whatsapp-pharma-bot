@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "phone": "whatsapp:+212600007777",
+    "current_state": "awaiting_consent",
+    "user_language": "ar",
+    "authenticated": false,
+    "current_theme": null,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212600008888",
+    "current_theme": null,
+    "current_state": "awaiting_consent",
+    "user_language": null,
+    "authenticated": false,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212600006666",
+    "current_state": "main_menu",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": null,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212611110001",
+    "current_state": "main_menu",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": null,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212611110002",
+    "current_state": "main_menu",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": null,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212611110003",
+    "current_state": "awaiting_cnss_question",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": "regulations",
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212611110004",
+    "current_state": "awaiting_cnss_question",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": "regulations",
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  },
+  {
+    "phone": "whatsapp:+212611119999",
+    "current_state": "awaiting_consent",
+    "user_language": "fr",
+    "authenticated": false,
+    "current_theme": null,
+    "updated_at": "2026-04-19T07:35:47.118Z"
+  }
+]

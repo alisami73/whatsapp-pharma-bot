@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 
 const storage = require('./storage');
+const supabaseStore = require('./modules/supabase_store');
 const twilioService = require('./twilio_service');
 const medindex = require('./modules/medindex');
 const monitoring = require('./modules/monitoring');
@@ -1122,7 +1123,17 @@ const DEFAULT_ACTUS = [
   { id: '8', titre: 'Rappel — Médicament W® 40mg lots Q1 2026', type: 'rappels', desc: "Précaution suite à un défaut de stabilité observé. Retrait du marché en cours. (Données fictives)", labo: 'Laboratoire G', date: '2025-04-24', urgent: false, published: true, priceDir: '', priceVal: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
+const ACTUS_KEY = 'actus';
+
 async function readActus() {
+  // Try Supabase first
+  if (supabaseStore.isEnabled()) {
+    try {
+      const val = await supabaseStore.read(ACTUS_KEY);
+      if (val !== null) return Array.isArray(val) ? val : DEFAULT_ACTUS;
+    } catch {}
+  }
+  // File fallback
   try {
     return JSON.parse(await require('fs').promises.readFile(ACTUS_FILE, 'utf8'));
   } catch {
@@ -1131,11 +1142,24 @@ async function readActus() {
 }
 
 async function writeActus(actus) {
+  // Supabase primary write
+  if (supabaseStore.isEnabled()) {
+    const ok = await supabaseStore.write(ACTUS_KEY, actus);
+    if (ok) {
+      // Fire-and-forget file backup
+      require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2)).catch(() => {});
+      return;
+    }
+  }
+  // File fallback
   try {
     await require('fs').promises.writeFile(ACTUS_FILE, JSON.stringify(actus, null, 2));
   } catch (err) {
     if (err.code === 'EROFS' || err.code === 'ENOENT' || err.code === 'EACCES') {
-      throw Object.assign(new Error('Stockage non disponible sur cette instance (filesystem read-only). Utilisez l\'admin Railway pour modifier le contenu.'), { status: 503 });
+      throw Object.assign(
+        new Error('Stockage non disponible (filesystem read-only). Configurez Supabase pour persister les données.'),
+        { status: 503 },
+      );
     }
     throw err;
   }
