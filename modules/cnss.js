@@ -22,12 +22,10 @@ const legalKb = require('./legal_kb');
 const supabaseKb = require('./supabase_kb');
 const qualityScorer = require('./quality_scorer');
 const embeddedFaqFallbacks = require('./embedded_faq_fallbacks');
+const runtimePaths = require('./runtime_paths');
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
-const KNOWLEDGE_DIR = path.join(__dirname, '..', 'data', 'knowledge');
-const LEGAL_CHUNKS_DIR = path.join(__dirname, '..', 'data', 'legal_kb', 'chunks');
-const LEGAL_PROMPT_PATH = path.join(__dirname, '..', 'data', 'prompts', 'legal_rag_system_prompt.md');
 const MAX_RESPONSE_CHARS = 2200; // Laisse de la place a une reponse utile et citee
 const MAX_CONTEXT_CHARS = 12000; // Limite contexte envoyé au LLM
 const MAX_LEGAL_CONTEXT_CHARS = 14000;
@@ -144,38 +142,51 @@ function normalizeText(value) {
         .trim();
 }
 
-function selectKnowledgeFiles(scope) {
-    if (!fs.existsSync(KNOWLEDGE_DIR)) {
-        return [];
-    }
-
-    const allFiles = fs.readdirSync(KNOWLEDGE_DIR)
-        .filter((f) => f.endsWith('.txt') || f.endsWith('.md'))
-        .sort();
-
+function getKnowledgeFilesWithDir(scope) {
     const normalizedScope = normalizeScope(scope);
+    const merged = new Map();
+
+    runtimePaths.getKnowledgeDirCandidates().forEach((dir) => {
+        if (!dir || !fs.existsSync(dir)) {
+            return;
+        }
+
+        fs.readdirSync(dir)
+            .filter((file) => file.endsWith('.txt') || file.endsWith('.md'))
+            .sort()
+            .forEach((file) => {
+                if (!merged.has(file)) {
+                    merged.set(file, { dir, name: file });
+                }
+            });
+    });
+
+    const allFiles = Array.from(merged.values());
 
     if (normalizedScope === 'fse') {
-        const scopedFiles = allFiles.filter((f) => /fse/i.test(f));
+        const scopedFiles = allFiles.filter((entry) => /fse/i.test(entry.name));
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
     if (normalizedScope === 'cnss') {
-        const scopedFiles = allFiles.filter((f) => /cnss/i.test(f));
+        const scopedFiles = allFiles.filter((entry) => /cnss/i.test(entry.name));
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
     if (normalizedScope === 'cndp') {
-        const scopedFiles = allFiles.filter((f) => /cndp/i.test(f));
+        const scopedFiles = allFiles.filter((entry) => /(cndp|conformit)/i.test(entry.name));
         return scopedFiles.length ? scopedFiles : allFiles;
     }
 
-    // Thème fusionné conformites = tout le corpus (CNDP + CNSS + règlements)
     if (normalizedScope === 'conformites') {
         return allFiles;
     }
 
     return allFiles;
+}
+
+function selectKnowledgeFiles(scope) {
+    return getKnowledgeFilesWithDir(scope).map((entry) => entry.name);
 }
 
 function buildScopeLabel(scope) {
@@ -406,13 +417,15 @@ function loadFaqContext(scope) {
         _faqContextCache = {};
     }
 
-    if (!fs.existsSync(KNOWLEDGE_DIR)) {
+    const knowledgeDirs = runtimePaths.getKnowledgeDirCandidates().filter((dir) => fs.existsSync(dir));
+
+    if (!knowledgeDirs.length) {
         console.warn('[CNSS] Dossier data/knowledge/ introuvable. Module en mode dégradé.');
         _faqContextCache[normalizedScope] = getEmbeddedFaqContext(scope, 'knowledge dir missing');
         return _faqContextCache[normalizedScope];
     }
 
-    const files = selectKnowledgeFiles(scope);
+    const files = getKnowledgeFilesWithDir(scope);
 
     if (files.length === 0) {
         console.warn('[CNSS] Aucun fichier .txt/.md dans data/knowledge/. Module en mode dégradé.');
@@ -420,9 +433,9 @@ function loadFaqContext(scope) {
         return _faqContextCache[normalizedScope];
     }
 
-    const parts = files.map((f) => {
-        const content = fs.readFileSync(path.join(KNOWLEDGE_DIR, f), 'utf-8').trim();
-        return `=== Source: ${f} ===\n${content}`;
+    const parts = files.map(({ dir, name }) => {
+        const content = fs.readFileSync(path.join(dir, name), 'utf-8').trim();
+        return `=== Source: ${name} ===\n${content}`;
     });
 
     let context = parts.join('\n\n');
@@ -452,8 +465,9 @@ function loadSystemPrompt() {
     }
 
     try {
-        if (fs.existsSync(LEGAL_PROMPT_PATH)) {
-            const content = fs.readFileSync(LEGAL_PROMPT_PATH, 'utf-8').trim();
+        const promptPath = runtimePaths.resolveExistingFile(runtimePaths.getLegalPromptPathCandidates());
+        if (promptPath) {
+            const content = fs.readFileSync(promptPath, 'utf-8').trim();
             if (content) {
                 _systemPromptCache = content;
                 return _systemPromptCache;
@@ -835,21 +849,33 @@ function loadLegalChunks() {
         return _legalChunksCache;
     }
 
-    if (!fs.existsSync(LEGAL_CHUNKS_DIR)) {
+    const chunkDirs = runtimePaths.getLegalChunksDirCandidates().filter((dir) => fs.existsSync(dir));
+    if (!chunkDirs.length) {
         console.warn('[CNSS] Dossier data/legal_kb/chunks/ introuvable.');
         _legalChunksCache = [];
         return _legalChunksCache;
     }
 
-    const files = fs.readdirSync(LEGAL_CHUNKS_DIR)
-        .filter((file) => file.endsWith('.json'))
-        .sort();
+    const files = [];
+    const seen = new Set();
+    chunkDirs.forEach((dir) => {
+        fs.readdirSync(dir)
+            .filter((file) => file.endsWith('.json'))
+            .sort()
+            .forEach((file) => {
+                const key = `${dir}::${file}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    files.push({ dir, file });
+                }
+            });
+    });
 
     const chunks = [];
 
-    files.forEach((file) => {
+    files.forEach(({ dir, file }) => {
         try {
-            const raw = JSON.parse(fs.readFileSync(path.join(LEGAL_CHUNKS_DIR, file), 'utf-8'));
+            const raw = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
             const chunkList = Array.isArray(raw)
                 ? raw
                 : Array.isArray(raw?.chunks)

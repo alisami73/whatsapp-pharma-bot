@@ -7,6 +7,7 @@ const twilio = require('twilio');
 const adminRoutes = require('./admin_routes');
 const storage = require('./storage');
 const twilioService = require('./twilio_service');
+const adminKbStore = require('./modules/admin_kb_store');
 
 // Modules métier
 const medindex = require('./modules/medindex');
@@ -56,8 +57,8 @@ const STATES = {
   AWAITING_CNSS_QUESTION: 'awaiting_cnss_question',
 };
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: false, limit: '5mb' }));
+app.use(express.json({ limit: '25mb' }));
 
 app.use((req, res, next) => {
   if (!['GET', 'HEAD'].includes(req.method)) {
@@ -80,6 +81,14 @@ app.get('/site/data&cndp.html', (req, res) => {
 app.use('/site', express.static(PUBLIC_SITE_DIR));
 app.use(express.static(PUBLIC_SITE_DIR, { index: false }));
 app.use('/admin', adminRoutes);
+
+adminKbStore.ensureMaterializedAssets()
+  .then(() => {
+    console.info('[admin-kb] Assets runtime matérialisés.');
+  })
+  .catch((error) => {
+    console.warn('[admin-kb] Impossible de matérialiser les assets runtime:', error.message);
+  });
 
 // MedIndex relay — WhatsApp URL-button cards must link to our domain;
 // this redirects to the real site so both iOS and Android work.

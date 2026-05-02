@@ -9,12 +9,13 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const azureAiSearch = require('../modules/azure_ai_search');
 const legalKb = require('../modules/legal_kb');
+const runtimePaths = require('../modules/runtime_paths');
 
 const ROOT = path.join(__dirname, '..');
-const LEGAL_KB_DIR = path.join(ROOT, 'data', 'legal_kb');
-const LEGAL_CHUNKS_DIR = path.join(LEGAL_KB_DIR, 'chunks');
-const LEGAL_INDEXES_DIR = path.join(LEGAL_KB_DIR, 'indexes');
-const LEGAL_BACKUPS_DIR = path.join(ROOT, 'data', 'legal_kb_backups');
+const LEGAL_KB_DIR = path.join(runtimePaths.getPreferredDataDir(), 'legal_kb');
+const LEGAL_CHUNKS_DIR = runtimePaths.getPreferredLegalChunksDir();
+const LEGAL_INDEXES_DIR = runtimePaths.getPreferredLegalIndexesDir();
+const LEGAL_BACKUPS_DIR = path.join(runtimePaths.getPreferredDataDir(), 'legal_kb_backups');
 const BUILD_SCRIPT = path.join(ROOT, 'scripts', 'build_legal_kb.py');
 
 function parseArgs(argv) {
@@ -59,13 +60,17 @@ function detectEmbeddingRuntime() {
 }
 
 function listChunkFiles() {
-  if (!fs.existsSync(LEGAL_CHUNKS_DIR)) {
-    return [];
-  }
-
-  return fs.readdirSync(LEGAL_CHUNKS_DIR)
-    .filter((file) => file.endsWith('.json'))
-    .sort();
+  const files = [];
+  runtimePaths.getLegalChunksDirCandidates().forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      return;
+    }
+    fs.readdirSync(dir)
+      .filter((file) => file.endsWith('.json'))
+      .sort()
+      .forEach((file) => files.push({ dir, file }));
+  });
+  return files;
 }
 
 function loadChunks() {
@@ -73,7 +78,7 @@ function loadChunks() {
   const chunks = [];
 
   files.forEach((file) => {
-    const payload = JSON.parse(fs.readFileSync(path.join(LEGAL_CHUNKS_DIR, file), 'utf8'));
+    const payload = JSON.parse(fs.readFileSync(path.join(file.dir, file.file), 'utf8'));
     const list = Array.isArray(payload)
       ? payload
       : Array.isArray(payload?.chunks)

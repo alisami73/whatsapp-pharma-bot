@@ -4,9 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const azureAiSearch = require('./azure_ai_search');
 const supabaseKb = require('./supabase_kb');
-
-const LEGAL_CHUNKS_DIR = path.join(__dirname, '..', 'data', 'legal_kb', 'chunks');
-const LEGAL_HYBRID_INDEX_PATH = path.join(__dirname, '..', 'data', 'legal_kb', 'indexes', 'legal_hybrid_index.json');
+const runtimePaths = require('./runtime_paths');
 
 const MAX_EMBEDDING_TEXT_CHARS = 2400;
 const BM25_K1 = 1.5;
@@ -303,8 +301,9 @@ function loadHybridIndex() {
   }
 
   try {
-    if (fs.existsSync(LEGAL_HYBRID_INDEX_PATH)) {
-      _hybridIndexCache = JSON.parse(fs.readFileSync(LEGAL_HYBRID_INDEX_PATH, 'utf8'));
+    const indexPath = runtimePaths.resolveExistingFile(runtimePaths.getLegalHybridIndexPathCandidates());
+    if (indexPath) {
+      _hybridIndexCache = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
       return _hybridIndexCache;
     }
   } catch (error) {
@@ -325,7 +324,8 @@ function loadChunkEntries() {
     }));
   }
 
-  if (!fs.existsSync(LEGAL_CHUNKS_DIR)) {
+  const chunkDirs = runtimePaths.getLegalChunksDirCandidates().filter((dir) => fs.existsSync(dir));
+  if (!chunkDirs.length) {
     console.warn(
       '[legal-kb] data/legal_kb/chunks introuvable. ' +
       'Vérifiez si un volume Railway masque /app/data ou si le déploiement ne contient pas les chunks légaux attendus.'
@@ -333,9 +333,13 @@ function loadChunkEntries() {
     return [];
   }
 
-  const files = fs.readdirSync(LEGAL_CHUNKS_DIR)
-    .filter((file) => file.endsWith('.json'))
-    .sort();
+  const files = [];
+  chunkDirs.forEach((dir) => {
+    fs.readdirSync(dir)
+      .filter((file) => file.endsWith('.json'))
+      .sort()
+      .forEach((file) => files.push({ dir, file }));
+  });
 
   if (!files.length) {
     console.warn(
@@ -347,9 +351,9 @@ function loadChunkEntries() {
 
   const chunks = [];
 
-  files.forEach((file) => {
+  files.forEach(({ dir, file }) => {
     try {
-      const payload = JSON.parse(fs.readFileSync(path.join(LEGAL_CHUNKS_DIR, file), 'utf8'));
+      const payload = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
       const list = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.chunks)
@@ -933,7 +937,7 @@ function buildLegalContext(results, options = {}) {
 }
 
 module.exports = {
-  LEGAL_HYBRID_INDEX_PATH,
+  LEGAL_HYBRID_INDEX_PATH: runtimePaths.getLegalHybridIndexPathCandidates()[0],
   buildCitationLabel,
   buildEmbeddingText,
   buildLegalContext,

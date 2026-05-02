@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const { spawn } = require('child_process');
 
 const storage = require('./storage');
 const supabaseStore = require('./modules/supabase_store');
@@ -9,6 +10,10 @@ const monitoring = require('./modules/monitoring');
 const consent = require('./modules/consent');
 const onboardingFlow = require('./modules/onboarding_flow');
 const adminAuth = require('./modules/admin_auth');
+const cnss = require('./modules/cnss');
+const legalKb = require('./modules/legal_kb');
+const adminKbStore = require('./modules/admin_kb_store');
+const runtimePaths = require('./modules/runtime_paths');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
@@ -309,6 +314,33 @@ function validateTopicPayload(body) {
   };
 }
 
+function validateFaqPublishPayload(body) {
+  const title = String(body.title || body.question || '').trim();
+  const question = String(body.question || body.title || '').trim();
+  const answer = String(body.answer || '').trim();
+
+  if (!title) {
+    return { error: 'title is required' };
+  }
+
+  if (!question) {
+    return { error: 'question is required' };
+  }
+
+  if (!answer) {
+    return { error: 'answer is required' };
+  }
+
+  return {
+    value: {
+      title,
+      question,
+      answer,
+      keywords: parseKeywords(body.keywords),
+    },
+  };
+}
+
 function validateSendMessagePayload(body) {
   const phone = String(body.phone || '').trim();
   const themeId = String(body.theme_id || '').trim();
@@ -347,6 +379,102 @@ function buildThemeOutboundMessage(theme, customMessage) {
   }
 
   return lines.join('\n\n');
+}
+
+function refreshThemeKnowledgeCaches(themeId) {
+  if (themeId === 'fse' || themeId === 'conformites') {
+    cnss.reloadFaqContext(themeId);
+  }
+  legalKb.invalidateCaches();
+}
+
+async function runLegalReindex(themeId) {
+  const job = await adminKbStore.recordJob({
+    theme_id: themeId,
+    type: 'legal_reindex',
+    status: 'running',
+    summary: 'Réindexation conformité en cours',
+    details: {
+      embedding_deployment: process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT || process.env.OPENAI_EMBEDDING_MODEL || null,
+      low_ocr_active: Boolean(
+        process.env.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT && process.env.AZURE_DOCUMENT_INTELLIGENCE_KEY,
+      ),
+    },
+  });
+
+  const scriptPath = path.join(runtimePaths.ROOT_DIR, 'scripts', 'reindex_legal_kb.js');
+
+  return await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [scriptPath, '--skip-build', '--no-backup'], {
+      cwd: runtimePaths.ROOT_DIR,
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (chunk) => {
+      stdout += String(chunk || '');
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += String(chunk || '');
+    });
+
+    child.on('error', async (error) => {
+      await adminKbStore.recordJob({
+        id: job.id,
+        theme_id: themeId,
+        type: 'legal_reindex',
+        status: 'failed',
+        summary: 'Réindexation conformité échouée',
+        details: {
+          error: error.message,
+          stdout,
+          stderr,
+        },
+      });
+      reject(error);
+    });
+
+    child.on('close', async (code) => {
+      if (code === 0) {
+        let report = null;
+        try {
+          report = JSON.parse(stdout.trim().split('\n').filter(Boolean).pop() || 'null');
+        } catch {}
+        await adminKbStore.recordJob({
+          id: job.id,
+          theme_id: themeId,
+          type: 'legal_reindex',
+          status: 'success',
+          summary: 'Réindexation conformité terminée',
+          details: {
+            code,
+            report,
+            stderr: stderr.trim() || null,
+          },
+        });
+        resolve({ code, report, stderr: stderr.trim() || null });
+        return;
+      }
+
+      const error = new Error(stderr.trim() || stdout.trim() || 'Legal reindex failed');
+      await adminKbStore.recordJob({
+        id: job.id,
+        theme_id: themeId,
+        type: 'legal_reindex',
+        status: 'failed',
+        summary: 'Réindexation conformité échouée',
+        details: {
+          code,
+          stdout,
+          stderr,
+        },
+      });
+      reject(error);
+    });
+  });
 }
 
 async function appendMessageLogSafely(payload) {
@@ -510,6 +638,204 @@ router.get(
 
     const topics = await storage.getTopics(themeId);
     res.json({ theme, topics });
+  }),
+);
+
+router.get(
+  '/api/kb',
+  asyncHandler(async (req, res) => {
+    const themeId = String(req.query.theme_id || '').trim();
+    if (!themeId) {
+      res.status(400).json({ error: 'theme_id is required' });
+      return;
+    }
+
+    const theme = await storage.getTheme(themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    await adminKbStore.ensureMaterializedAssets();
+    const manifest = await adminKbStore.readManifest();
+    res.json({
+      theme,
+      kb: adminKbStore.buildOverview(themeId, manifest),
+    });
+  }),
+);
+
+router.post(
+  '/api/kb/faq',
+  asyncHandler(async (req, res) => {
+    const themeId = String(req.query.theme_id || '').trim();
+    if (!themeId) {
+      res.status(400).json({ error: 'theme_id is required' });
+      return;
+    }
+
+    const theme = await storage.getTheme(themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    const validation = validateFaqPublishPayload(req.body);
+    if (validation.error) {
+      res.status(400).json({ error: validation.error });
+      return;
+    }
+
+    const entry = await adminKbStore.upsertFaqEntry(themeId, validation.value);
+    refreshThemeKnowledgeCaches(themeId);
+    const manifest = await adminKbStore.readManifest();
+    res.status(201).json({
+      theme,
+      entry,
+      kb: adminKbStore.buildOverview(themeId, manifest),
+    });
+  }),
+);
+
+router.put(
+  '/api/kb/faq/:themeId/:entryId',
+  asyncHandler(async (req, res) => {
+    const theme = await storage.getTheme(req.params.themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    const validation = validateFaqPublishPayload(req.body);
+    if (validation.error) {
+      res.status(400).json({ error: validation.error });
+      return;
+    }
+
+    const entry = await adminKbStore.upsertFaqEntry(req.params.themeId, validation.value, req.params.entryId);
+    refreshThemeKnowledgeCaches(req.params.themeId);
+    const manifest = await adminKbStore.readManifest();
+    res.json({
+      theme,
+      entry,
+      kb: adminKbStore.buildOverview(req.params.themeId, manifest),
+    });
+  }),
+);
+
+router.delete(
+  '/api/kb/faq/:themeId/:entryId',
+  asyncHandler(async (req, res) => {
+    const theme = await storage.getTheme(req.params.themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    const deleted = await adminKbStore.deleteFaqEntry(req.params.themeId, req.params.entryId);
+    if (!deleted) {
+      res.status(404).json({ error: 'FAQ entry not found' });
+      return;
+    }
+
+    refreshThemeKnowledgeCaches(req.params.themeId);
+    const manifest = await adminKbStore.readManifest();
+    res.json({
+      ok: true,
+      kb: adminKbStore.buildOverview(req.params.themeId, manifest),
+    });
+  }),
+);
+
+router.post(
+  '/api/kb/upload',
+  asyncHandler(async (req, res) => {
+    const themeId = String(req.query.theme_id || '').trim();
+    if (!themeId) {
+      res.status(400).json({ error: 'theme_id is required' });
+      return;
+    }
+
+    const theme = await storage.getTheme(themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    let document;
+    try {
+      document = await adminKbStore.saveUploadedDocument(themeId, req.body);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+
+    let reindex = null;
+    if (themeId === 'conformites') {
+      try {
+        reindex = await runLegalReindex(themeId);
+      } catch (error) {
+        refreshThemeKnowledgeCaches(themeId);
+        const manifest = await adminKbStore.readManifest();
+        res.status(502).json({
+          error: 'Legal reindex failed',
+          details: error.message,
+          document,
+          kb: adminKbStore.buildOverview(themeId, manifest),
+        });
+        return;
+      }
+    }
+
+    refreshThemeKnowledgeCaches(themeId);
+    const manifest = await adminKbStore.readManifest();
+    res.status(201).json({
+      theme,
+      document,
+      reindex,
+      kb: adminKbStore.buildOverview(themeId, manifest),
+    });
+  }),
+);
+
+router.delete(
+  '/api/kb/documents/:themeId/:documentId',
+  asyncHandler(async (req, res) => {
+    const theme = await storage.getTheme(req.params.themeId);
+    if (!theme) {
+      res.status(404).json({ error: 'Theme not found' });
+      return;
+    }
+
+    const deleted = await adminKbStore.deleteDocument(req.params.themeId, req.params.documentId);
+    if (!deleted) {
+      res.status(404).json({ error: 'Document not found' });
+      return;
+    }
+
+    let reindex = null;
+    if (req.params.themeId === 'conformites') {
+      try {
+        reindex = await runLegalReindex(req.params.themeId);
+      } catch (error) {
+        refreshThemeKnowledgeCaches(req.params.themeId);
+        const manifest = await adminKbStore.readManifest();
+        res.status(502).json({
+          error: 'Legal reindex failed',
+          details: error.message,
+          kb: adminKbStore.buildOverview(req.params.themeId, manifest),
+        });
+        return;
+      }
+    }
+
+    refreshThemeKnowledgeCaches(req.params.themeId);
+    const manifest = await adminKbStore.readManifest();
+    res.json({
+      ok: true,
+      reindex,
+      kb: adminKbStore.buildOverview(req.params.themeId, manifest),
+    });
   }),
 );
 
