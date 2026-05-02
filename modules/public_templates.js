@@ -13,7 +13,7 @@ function isAutoProvisionEnabled() {
 async function ensureExplorerTemplates() {
   const results = [];
   for (const lang of ['fr', 'ar', 'es', 'ru']) {
-    const cacheKey = `explorer_v4_${lang}`;
+    const cacheKey = explorer.getExplorerTemplateCacheKey(lang);
     try {
       const sid = await interactive.resolveTemplate(cacheKey, () => explorer.buildExplorerV3Spec(lang));
       results.push({ kind: 'explorer', lang, sid });
