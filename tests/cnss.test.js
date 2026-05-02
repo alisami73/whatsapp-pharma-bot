@@ -132,6 +132,16 @@ test('fallbackKeywordSearch retrouve la bonne section FSE pour une question sur 
   assert.doesNotMatch(output, /qr code/i);
 });
 
+test('embedded FAQ fallback couvre les scopes FSE et CNDP quand la base runtime manque', () => {
+  const fseFallback = cnss._test.getEmbeddedFaqContext('fse');
+  const cndpFallback = cnss._test.getEmbeddedFaqContext('cndp');
+
+  assert.match(fseFallback, /C'est quoi la FSE/i);
+  assert.match(fseFallback, /phase pilote/i);
+  assert.match(cndpFallback, /formulaire CNDP comporte 8 pages|8 pages/i);
+  assert.match(cndpFallback, /conf-secteur-sante@cndp\.ma/i);
+});
+
 test('answerQuestion repond a une question CNDP du theme conformites avec la FAQ CNDP', async () => {
   const output = await cnss.answerQuestion('Combien de pages contient le formulaire CNDP ?', 'conformites', 'fr');
 

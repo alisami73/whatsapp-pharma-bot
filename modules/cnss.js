@@ -21,6 +21,7 @@ const path = require('path');
 const legalKb = require('./legal_kb');
 const supabaseKb = require('./supabase_kb');
 const qualityScorer = require('./quality_scorer');
+const embeddedFaqFallbacks = require('./embedded_faq_fallbacks');
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
@@ -197,6 +198,22 @@ function buildScopeLabel(scope) {
     }
 
     return 'documentation';
+}
+
+function getEmbeddedFaqContext(scope, reason = '') {
+    const embeddedContext = embeddedFaqFallbacks.getEmbeddedFaqFallback(scope);
+
+    if (!embeddedContext) {
+        return '';
+    }
+
+    const normalizedScope = normalizeScope(scope) || 'global';
+    const reasonSuffix = reason ? ` (${reason})` : '';
+    console.warn(
+        `[CNSS] Fallback FAQ embarqué utilisé pour le thème ${normalizedScope}${reasonSuffix}. ` +
+        'Vérifiez si un volume Railway masque /app/data ou si le déploiement ne pointe pas sur la dernière révision du repo.'
+    );
+    return embeddedContext;
 }
 
 function extractMarkdownSections(context) {
@@ -391,7 +408,7 @@ function loadFaqContext(scope) {
 
     if (!fs.existsSync(KNOWLEDGE_DIR)) {
         console.warn('[CNSS] Dossier data/knowledge/ introuvable. Module en mode dégradé.');
-        _faqContextCache[normalizedScope] = '';
+        _faqContextCache[normalizedScope] = getEmbeddedFaqContext(scope, 'knowledge dir missing');
         return _faqContextCache[normalizedScope];
     }
 
@@ -399,7 +416,7 @@ function loadFaqContext(scope) {
 
     if (files.length === 0) {
         console.warn('[CNSS] Aucun fichier .txt/.md dans data/knowledge/. Module en mode dégradé.');
-        _faqContextCache[normalizedScope] = '';
+        _faqContextCache[normalizedScope] = getEmbeddedFaqContext(scope, 'no matching knowledge files');
         return _faqContextCache[normalizedScope];
     }
 
@@ -1508,5 +1525,6 @@ module.exports = {
         replaceReferencePlaceholders,
         resolveFaqScopeOverride,
         extractAssistantText,
+        getEmbeddedFaqContext,
     },
 };

@@ -326,12 +326,24 @@ function loadChunkEntries() {
   }
 
   if (!fs.existsSync(LEGAL_CHUNKS_DIR)) {
+    console.warn(
+      '[legal-kb] data/legal_kb/chunks introuvable. ' +
+      'Vérifiez si un volume Railway masque /app/data ou si le déploiement ne contient pas les chunks légaux attendus.'
+    );
     return [];
   }
 
   const files = fs.readdirSync(LEGAL_CHUNKS_DIR)
     .filter((file) => file.endsWith('.json'))
     .sort();
+
+  if (!files.length) {
+    console.warn(
+      '[legal-kb] Aucun chunk légal local trouvé dans data/legal_kb/chunks. ' +
+      'Vérifiez le montage Railway et la présence des artefacts de KB dans l’image déployée.'
+    );
+    return [];
+  }
 
   const chunks = [];
 
