@@ -72,6 +72,30 @@ function getRequestHost(req) {
   return getRequestHosts(req)[0] || '';
 }
 
+function getRequestProto(req) {
+  const forwardedProto = String(req?.headers?.['x-forwarded-proto'] || '')
+    .split(',')
+    .map((value) => String(value || '').trim().toLowerCase())
+    .find(Boolean);
+
+  if (forwardedProto) {
+    return forwardedProto;
+  }
+
+  const cfVisitor = String(req?.headers?.['cf-visitor'] || '').trim();
+  const cfMatch = cfVisitor.match(/"scheme":"(https?|wss?)"/i);
+  if (cfMatch?.[1]) {
+    return cfMatch[1].toLowerCase();
+  }
+
+  return String(req?.protocol || '').trim().toLowerCase();
+}
+
+function isHttpsRequest(req) {
+  const proto = getRequestProto(req);
+  return proto === 'https' || proto === 'wss';
+}
+
 function isCloudflareProxiedRequest(req) {
   const cfRay = String(req?.headers?.['cf-ray'] || '').trim();
   const cfVisitor = String(req?.headers?.['cf-visitor'] || '').trim();
@@ -104,12 +128,23 @@ function buildPublicRequestRedirectUrl(req) {
     return null;
   }
 
-  if (isPublicSiteRequestHost(req) || isCloudflareProxiedRequest(req)) {
+  const path = normalizePublicPath(req.path || req.originalUrl || '/');
+  const search = req.url && req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+
+  if (isPublicSiteRequestHost(req)) {
+    if (!isHttpsRequest(req)) {
+      return buildPublicSiteUrl(path, search);
+    }
     return null;
   }
 
-  const path = normalizePublicPath(req.path || req.originalUrl || '/');
-  const search = req.url && req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  if (isCloudflareProxiedRequest(req)) {
+    if (!isHttpsRequest(req)) {
+      return buildPublicSiteUrl(path, search);
+    }
+    return null;
+  }
+
   return buildPublicSiteUrl(path, search);
 }
 
@@ -120,6 +155,8 @@ module.exports = {
   getPublicSiteHost,
   getRequestHosts,
   getRequestHost,
+  getRequestProto,
+  isHttpsRequest,
   isCloudflareProxiedRequest,
   isPublicSiteRequestHost,
   isPublicSitePath,

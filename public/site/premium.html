@@ -152,6 +152,7 @@
       tocHelperText: 'Le bouton de démo reste accessible dans le header, et vous pouvez aussi nous écrire sur WhatsApp.',
       drawerTitle: 'Navigation',
       whatsappLabel: 'WhatsApp',
+      backToTop: 'Retour en haut',
     },
     ar: {
       toolbarSections: 'أقسام الصفحة',
@@ -175,6 +176,7 @@
       tocHelperText: 'زر العرض يبقى متاحاً في الأعلى، ويمكنك أيضاً مراسلتنا عبر واتساب.',
       drawerTitle: 'التنقل',
       whatsappLabel: 'واتساب',
+      backToTop: 'العودة إلى الأعلى',
     },
     es: {
       toolbarSections: 'Secciones de la página',
@@ -198,6 +200,7 @@
       tocHelperText: 'El botón de demo permanece visible en el header y también puedes escribirnos por WhatsApp.',
       drawerTitle: 'Navegación',
       whatsappLabel: 'WhatsApp',
+      backToTop: 'Volver arriba',
     },
     ru: {
       toolbarSections: 'Разделы страницы',
@@ -221,6 +224,7 @@
       tocHelperText: 'Кнопка демо остаётся доступной в шапке, и вы также можете написать нам в WhatsApp.',
       drawerTitle: 'Навигация',
       whatsappLabel: 'WhatsApp',
+      backToTop: 'Наверх',
     },
   };
 
@@ -397,6 +401,28 @@
   }
   if (typeof initScrollAnimations === 'function') {
     initScrollAnimations();
+  }
+  </script>
+
+  <button type="button" class="docs-floating-top" id="docsBackTop" hidden>↑</button>
+
+  <script>
+  const docsBackTop = document.getElementById('docsBackTop');
+  const overviewSection = document.getElementById('overview');
+  if (docsBackTop && overviewSection) {
+    docsBackTop.innerHTML = `<span aria-hidden="true">↑</span><span>${copy.backToTop}</span>`;
+    docsBackTop.setAttribute('aria-label', copy.backToTop);
+    const toggleBackTop = () => {
+      docsBackTop.hidden = window.scrollY < 320;
+    };
+    docsBackTop.addEventListener('click', () => {
+      overviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (history.replaceState) {
+        history.replaceState(null, '', `${location.pathname}${location.search}#overview`);
+      }
+    });
+    window.addEventListener('scroll', toggleBackTop, { passive: true });
+    toggleBackTop();
   }
   </script>
 
