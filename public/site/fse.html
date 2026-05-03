@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="blink.css" />
   <style>
     body { background: #fff; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .chat-page {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #fff;
+    }
 
     /* ─── BACK BAR ─── */
     .back-bar {
@@ -105,6 +111,26 @@
       border-left: 3px solid #3F51B5;
       white-space: pre-wrap;
     }
+    .msg-row.bot .msg-bubble.bot-rich { white-space: normal; }
+    .msg-row.bot .msg-bubble h3 {
+      margin: 0 0 0.7rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      line-height: 1.3;
+      color: #1E2A3A;
+    }
+    .msg-row.bot .msg-bubble p {
+      margin: 0 0 0.75rem;
+    }
+    .msg-row.bot .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-row.bot .msg-bubble ul {
+      margin: 0 0 0.85rem;
+      padding-left: 1.1rem;
+    }
+    .msg-row.bot .msg-bubble li {
+      margin: 0 0 0.45rem;
+    }
+    .msg-row.bot .msg-bubble li:last-child { margin-bottom: 0; }
     .msg-time { font-size: 0.6875rem; color: #94A3B8; padding: 0 4px; }
 
     /* Typing indicator */
@@ -149,11 +175,59 @@
 
     /* Desktop */
     @media (min-width: 768px) {
-      body { max-width: 640px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
       .page-hero { padding: 2rem 2rem 2.25rem; }
       .page-hero h1 { font-size: 2rem; }
       .chat-area { padding: 1.25rem 1.5rem 0.75rem; }
       .ask-bar { padding: 1rem 1.25rem; }
+    }
+
+    @media (min-width: 900px) {
+      body {
+        display: block;
+        min-height: 100vh;
+        height: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background:
+          radial-gradient(circle at top right, rgba(38,198,218,0.10), transparent 28%),
+          linear-gradient(180deg, #F4F7FC 0%, #EEF3FB 100%);
+      }
+      .chat-page {
+        max-width: 960px;
+        min-height: calc(100vh - 12rem);
+        margin: 2rem auto 3rem;
+        border: 1px solid rgba(197, 206, 233, 0.8);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(26,35,126,0.10);
+      }
+      .back-bar {
+        padding: 1rem 1.75rem;
+      }
+      .page-hero {
+        padding: 2.4rem 2.4rem 2rem;
+      }
+      .page-hero p {
+        max-width: 46rem;
+        font-size: 1rem;
+      }
+      .example-chips {
+        gap: 0.75rem;
+      }
+      .example-chip {
+        font-size: 0.85rem;
+      }
+      .chat-area {
+        min-height: 340px;
+        padding: 1.5rem 1.75rem 1rem;
+      }
+      .msg-bubble {
+        max-width: 78%;
+        font-size: 0.98rem;
+      }
+      .ask-bar {
+        padding: 1.15rem 1.5rem 1.35rem;
+      }
     }
 
     /* RTL support */
@@ -215,41 +289,43 @@ const T = {
 document.title = `${T.hero_title} — Blink Premium`;
 </script>
 
-<!-- BACK BAR -->
-<div class="back-bar">
-  <button class="back-btn" onclick="history.length>1?history.back():location.href='/'">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
-    <span id="backLabel"></span>
-  </button>
-  <div class="back-bar-title" id="barTitle"></div>
-  <button class="share-btn" id="shareBtn" aria-label="Partager">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-  </button>
-</div>
-
-<!-- HERO -->
-<div class="page-hero">
-  <div class="hero-icon">📋</div>
-  <h1 id="heroTitle"></h1>
-  <p id="heroSub"></p>
-  <div class="example-chips" id="exampleChips"></div>
-</div>
-
-<!-- CHAT AREA -->
-<div class="chat-area" id="chatArea">
-  <div class="chat-empty" id="chatEmpty">
-    <div class="chat-empty-icon">💬</div>
-    <p id="emptyText"></p>
+<main class="chat-page">
+  <!-- BACK BAR -->
+  <div class="back-bar">
+    <button class="back-btn" onclick="history.length>1?history.back():location.href='/'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      <span id="backLabel"></span>
+    </button>
+    <div class="back-bar-title" id="barTitle"></div>
+    <button class="share-btn" id="shareBtn" aria-label="Partager">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
   </div>
-</div>
 
-<!-- INPUT BAR -->
-<div class="ask-bar">
-  <textarea class="ask-input" id="askInput" rows="1" id="askInput"></textarea>
-  <button class="send-btn" id="sendBtn" disabled>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9"/></svg>
-  </button>
-</div>
+  <!-- HERO -->
+  <div class="page-hero">
+    <div class="hero-icon">📋</div>
+    <h1 id="heroTitle"></h1>
+    <p id="heroSub"></p>
+    <div class="example-chips" id="exampleChips"></div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-empty" id="chatEmpty">
+      <div class="chat-empty-icon">💬</div>
+      <p id="emptyText"></p>
+    </div>
+  </div>
+
+  <!-- INPUT BAR -->
+  <div class="ask-bar">
+    <textarea class="ask-input" id="askInput" rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9"/></svg>
+    </button>
+  </div>
+</main>
 
 <script>
 // ─── Init UI text ─────────────────────────────────────────────────────────────
@@ -303,7 +379,19 @@ function appendMsg(text, side) {
   if (chatEmpty.style.display !== 'none') chatEmpty.style.display = 'none';
   const row = document.createElement('div');
   row.className = `msg-row ${side}`;
-  row.innerHTML = `<div class="msg-bubble">${side === 'bot' ? escapeHtml(text) : text}</div><span class="msg-time">${now()}</span>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  if (side === 'bot') {
+    bubble.classList.add('bot-rich');
+    bubble.innerHTML = renderBotMessage(text);
+  } else {
+    bubble.textContent = text;
+  }
+  const time = document.createElement('span');
+  time.className = 'msg-time';
+  time.textContent = now();
+  row.appendChild(bubble);
+  row.appendChild(time);
   chatArea.appendChild(row);
   chatArea.scrollTop = chatArea.scrollHeight;
   return row;
@@ -324,6 +412,49 @@ function appendTyping() {
 
 function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderInlineMarkdown(value) {
+  return escapeHtml(value)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function renderBotMessage(raw) {
+  const text = String(raw || '').replace(/\r\n?/g, '\n').trim();
+  if (!text) return '';
+
+  const lines = text.split('\n');
+  const html = [];
+  let listItems = [];
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    html.push(`<ul>${listItems.join('')}</ul>`);
+    listItems = [];
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushList();
+      return;
+    }
+    if (/^#{1,3}\s+/.test(trimmed)) {
+      flushList();
+      html.push(`<h3>${renderInlineMarkdown(trimmed.replace(/^#{1,3}\s+/, ''))}</h3>`);
+      return;
+    }
+    if (/^-\s+/.test(trimmed)) {
+      listItems.push(`<li>${renderInlineMarkdown(trimmed.replace(/^-\s+/, ''))}</li>`);
+      return;
+    }
+    flushList();
+    html.push(`<p>${renderInlineMarkdown(trimmed)}</p>`);
+  });
+
+  flushList();
+  return html.join('') || `<p>${renderInlineMarkdown(text)}</p>`;
 }
 
 async function sendQuestion() {

@@ -7,6 +7,7 @@ const twilio = require('twilio');
 const adminRoutes = require('./admin_routes');
 const storage = require('./storage');
 const twilioService = require('./twilio_service');
+const adminKbStore = require('./modules/admin_kb_store');
 const stockAlerts = require('./modules/stock_alerts');
 
 // Modules métier
@@ -24,7 +25,7 @@ const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
-const { buildPublicSiteUrl, appendLangQuery } = require('./modules/public_site');
+const { buildPublicSiteUrl, appendLangQuery, buildPublicRequestRedirectUrl } = require('./modules/public_site');
 const identityService = require('./modules/identity_service');
 const signedLinkService = require('./modules/signed_link_service');
 
@@ -67,8 +68,8 @@ const STATES = {
   AWAITING_CNSS_QUESTION: 'awaiting_cnss_question',
 };
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: false, limit: '5mb' }));
+app.use(express.json({ limit: '25mb' }));
 
 function isLocalHost(host = '') {
   return /^(localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?$/i.test(String(host || '').trim());
@@ -106,6 +107,19 @@ app.locals.httpsRedirect = {
 
 app.use(enforceHttps);
 
+app.use((req, res, next) => {
+  if (!['GET', 'HEAD'].includes(req.method)) {
+    return next();
+  }
+
+  const redirectUrl = buildPublicRequestRedirectUrl(req);
+  if (!redirectUrl) {
+    return next();
+  }
+
+  return res.redirect(302, redirectUrl);
+});
+
 app.use('/public', express.static(PUBLIC_DIR));
 app.get('/site/data&cndp.html', (req, res) => {
   const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
@@ -114,6 +128,14 @@ app.get('/site/data&cndp.html', (req, res) => {
 app.use('/site', express.static(PUBLIC_SITE_DIR));
 app.use(express.static(PUBLIC_SITE_DIR, { index: false }));
 app.use('/admin', adminRoutes);
+
+adminKbStore.ensureMaterializedAssets()
+  .then(() => {
+    console.info('[admin-kb] Assets runtime matérialisés.');
+  })
+  .catch((error) => {
+    console.warn('[admin-kb] Impossible de matérialiser les assets runtime:', error.message);
+  });
 
 // MedIndex relay — WhatsApp URL-button cards must link to our domain;
 // this redirects to the real site so both iOS and Android work.
@@ -896,6 +918,14 @@ async function setCnssQuestionState(user, themeId) {
   return storage.saveUser({ ...user, current_theme: themeId, current_state: STATES.AWAITING_CNSS_QUESTION });
 }
 
+function scheduleNonBlocking(label, task) {
+  Promise.resolve()
+    .then(task)
+    .catch((err) => {
+      console.error(`[async] ${label} failed:`, err && err.message ? err.message : err);
+    });
+}
+
 // Tente d'envoyer le menu principal en interactif (list-picker).
 // Retourne true si le message a été envoyé via l'API Twilio, false sinon.
 // Le caller doit retourner empty TwiML si true, ou continuer avec le texte si false.
@@ -918,16 +948,16 @@ async function tryRespondWithMainMenuInteractive(phone, res, user, prefix) {
     console.log(`[explorer] sendExplorerCarousel result: ${result ? result.sid : 'null'}`);
     if (result) {
       if (prefix) {
-        await twilioService.sendWhatsAppMessage({ to: phone, body: prefix });
+        scheduleNonBlocking('send explorer prefix', () => twilioService.sendWhatsAppMessage({ to: phone, body: prefix }));
       }
-      await storage.appendMessageLog({
+      scheduleNonBlocking('log explorer carousel', () => storage.appendMessageLog({
         direction: 'outbound',
         phone,
         body: '[interactive:explorer_carousel]',
         status: result.status || 'queued',
         provider_message_sid: result.sid,
         metadata: { source: 'explorer_carousel' },
-      });
+      }));
     } else {
       console.warn('[explorer] sendExplorerCarousel returned null — sending text fallback');
       const response = new MessagingResponse();
@@ -1506,7 +1536,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       _wClient.messages.create(_wPayload).catch(err => console.error('[welcome]', err.message));
     }
 
-    await storage.appendMessageLog({
+    scheduleNonBlocking('log inbound message', () => storage.appendMessageLog({
       direction: 'inbound',
       phone: context.phone,
       theme_id: user.current_theme || null,
@@ -1519,7 +1549,7 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         profile_name: req.body.ProfileName || null,
         current_state: user.current_state || null,
       },
-    });
+    }));
 
     const handledFlowSubmission = await handleOnboardingFlowSubmission(response, user, context);
     if (handledFlowSubmission) {
@@ -1646,13 +1676,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
         try {
           const consentResult = await interactive.sendConsentScreen(context.phone, chosenLang);
           if (consentResult) {
-            await storage.appendMessageLog({
+            scheduleNonBlocking('log consent interactive', () => storage.appendMessageLog({
               direction: 'outbound', phone: context.phone,
               body: `[interactive:consent_${chosenLang}]`,
               status: consentResult.status || 'queued',
               provider_message_sid: consentResult.sid,
               metadata: { source: 'interactive_consent', lang: chosenLang },
-            });
+            }));
             res.type('text/xml').send(buildEmptyTwiml());
             return;
           }
@@ -1670,13 +1700,13 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       try {
         const langResult = await interactive.sendLanguageScreen(context.phone);
         if (langResult) {
-          await storage.appendMessageLog({
+          scheduleNonBlocking('log language interactive', () => storage.appendMessageLog({
             direction: 'outbound', phone: context.phone,
             body: '[interactive:language_carousel]',
             status: langResult.status || 'queued',
             provider_message_sid: langResult.sid,
             metadata: { source: 'interactive_language' },
-          });
+          }));
           res.type('text/xml').send(buildEmptyTwiml());
           return;
         }

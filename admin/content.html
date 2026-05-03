@@ -3,64 +3,169 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Base de connaissances interne</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contenu & base documentaire</title>
     <link rel="stylesheet" href="/admin/styles.css" />
   </head>
   <body>
-  <script src="/admin/auth-guard.js"></script>
-  <script src="/admin/sidebar.js" data-page="content"></script>
+    <script src="/admin/auth-guard.js"></script>
+    <script src="/admin/sidebar.js" data-page="content"></script>
     <div class="shell">
       <header class="page-header">
         <div>
           <p class="eyebrow">Administration</p>
-          <h1 id="pageTitle">Base de connaissances interne</h1>
-          <p class="subtitle" id="themeSubtitle">Ces contenus sont utilises en interne pour faire correspondre les questions libres.</p>
+          <h1 id="pageTitle">Contenu du thème</h1>
+          <p class="subtitle" id="themeSubtitle">Chargement du thème…</p>
         </div>
-        <a class="button" href="/admin/themes">Retour themes</a>
+        <div class="actions">
+          <button class="button" id="refreshButton" type="button">Actualiser</button>
+          <a class="button" href="/admin/themes">Retour thèmes</a>
+        </div>
       </header>
 
       <nav class="tabs">
         <a class="tab" href="/admin">Accueil</a>
-        <a class="tab" href="/admin/themes">Themes</a>
-        <a class="tab active" href="#">Base interne</a>
+        <a class="tab" href="/admin/themes">Thèmes</a>
+        <a class="tab active" href="#">Contenu & KB</a>
       </nav>
 
-      <main class="layout-two-columns">
-        <section class="panel">
-          <div class="panel-header">
-            <h2 id="formTitle">Ajouter une entree interne</h2>
-            <button class="button" id="resetButton" type="button">Nouveau</button>
-          </div>
+      <div id="statusBanner" class="status-banner">Initialisation…</div>
 
-          <form id="topicForm" class="form-stack">
-            <label>
-              <span>Titre interne</span>
-              <input id="title" name="title" type="text" required />
-            </label>
-
-            <label>
-              <span>Reponse associee</span>
-              <textarea id="answer" name="answer" rows="8"></textarea>
-            </label>
-
-            <label>
-              <span>Mots-cles de rapprochement</span>
-              <input id="keywords" name="keywords" type="text" placeholder="mot 1, mot 2, mot 3" />
-            </label>
-
-            <div class="actions">
-              <button class="button button-primary" type="submit">Enregistrer</button>
+      <main class="layout-two-columns" style="margin-top: 20px;">
+        <section class="stack">
+          <section class="panel panel-emphasis" id="overviewPanel">
+            <div class="panel-header">
+              <div>
+                <h2>Vue d’ensemble</h2>
+                <p class="panel-description" id="modeHint">Le module détecte automatiquement le mode du thème.</p>
+              </div>
             </div>
-          </form>
+            <div class="stack" id="overviewContent"></div>
+          </section>
+
+          <section class="panel" id="legacyFormPanel" hidden>
+            <div class="panel-header">
+              <h2 id="legacyFormTitle">Ajouter une entrée interne</h2>
+              <button class="button" id="legacyResetButton" type="button">Nouveau</button>
+            </div>
+            <form id="legacyTopicForm" class="form-stack">
+              <label>
+                <span>Titre interne</span>
+                <input id="legacyTitle" name="title" type="text" required />
+              </label>
+
+              <label>
+                <span>Réponse associée</span>
+                <textarea id="legacyAnswer" name="answer" rows="8"></textarea>
+              </label>
+
+              <label>
+                <span>Mots-clés de rapprochement</span>
+                <input id="legacyKeywords" name="keywords" type="text" placeholder="mot 1, mot 2, mot 3" />
+              </label>
+
+              <div class="actions">
+                <button class="button button-primary" type="submit">Enregistrer</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel" id="kbFaqPanel" hidden>
+            <div class="panel-header">
+              <h2 id="faqFormTitle">Publier une Q/R</h2>
+              <button class="button" id="faqResetButton" type="button">Nouvelle Q/R</button>
+            </div>
+            <p class="panel-description">
+              Les Q/R publiées ici alimentent directement le thème web et restent persistées dans la KB admin.
+            </p>
+            <form id="faqForm" class="form-stack">
+              <label>
+                <span>Titre interne</span>
+                <input id="faqTitle" name="title" type="text" required />
+              </label>
+
+              <label>
+                <span>Question affichable</span>
+                <input id="faqQuestion" name="question" type="text" required />
+              </label>
+
+              <label>
+                <span>Réponse</span>
+                <textarea id="faqAnswer" name="answer" rows="9" required></textarea>
+              </label>
+
+              <label>
+                <span>Mots-clés</span>
+                <input id="faqKeywords" name="keywords" type="text" placeholder="mot 1, mot 2, mot 3" />
+              </label>
+
+              <div class="actions">
+                <button class="button button-primary" type="submit">Publier</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel" id="kbUploadPanel" hidden>
+            <div class="panel-header">
+              <h2>Uploader un document</h2>
+            </div>
+            <p class="panel-description" id="uploadHint">
+              Pour `fse`, le document enrichit la FAQ documentaire. Pour `conformites`, il est découpé puis réindexé pour la recherche.
+            </p>
+            <form id="uploadForm" class="form-stack">
+              <label>
+                <span>Titre du document</span>
+                <input id="uploadTitle" name="title" type="text" placeholder="Ex: Guide FSE mai 2026" />
+              </label>
+
+              <label>
+                <span>Note interne</span>
+                <textarea id="uploadDescription" name="description" rows="4" placeholder="Optionnel"></textarea>
+              </label>
+
+              <label>
+                <span>Fichier</span>
+                <input id="uploadFile" name="file" type="file" accept=".txt,.md,.pdf" required />
+              </label>
+              <p class="field-note">
+                Formats acceptés : `.txt`, `.md`, `.pdf`. Les PDF nécessitent Azure Document Intelligence pour l’extraction.
+              </p>
+
+              <div class="actions">
+                <button class="button button-primary" id="uploadSubmitButton" type="submit">Ingerer le document</button>
+              </div>
+            </form>
+          </section>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Base de connaissances interne</h2>
-            <button class="button" id="refreshButton" type="button">Actualiser</button>
-          </div>
-          <div id="topicList" class="stack"></div>
+        <section class="stack">
+          <section class="panel" id="legacyListPanel" hidden>
+            <div class="panel-header">
+              <h2>Base interne</h2>
+            </div>
+            <div id="legacyTopicList" class="stack"></div>
+          </section>
+
+          <section class="panel" id="kbFaqListPanel" hidden>
+            <div class="panel-header">
+              <h2>Q/R publiées</h2>
+            </div>
+            <div id="faqList" class="stack"></div>
+          </section>
+
+          <section class="panel" id="kbDocumentListPanel" hidden>
+            <div class="panel-header">
+              <h2>Documents ingérés</h2>
+            </div>
+            <div id="documentList" class="stack"></div>
+          </section>
+
+          <section class="panel" id="kbJobListPanel" hidden>
+            <div class="panel-header">
+              <h2>Jobs récents</h2>
+            </div>
+            <div id="jobList" class="stack"></div>
+          </section>
         </section>
       </main>
     </div>
@@ -68,17 +173,40 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const themeId = params.get('theme_id');
-      const topicForm = document.getElementById('topicForm');
-      const topicList = document.getElementById('topicList');
       const pageTitle = document.getElementById('pageTitle');
       const themeSubtitle = document.getElementById('themeSubtitle');
-      const formTitle = document.getElementById('formTitle');
-      const resetButton = document.getElementById('resetButton');
+      const statusBanner = document.getElementById('statusBanner');
       const refreshButton = document.getElementById('refreshButton');
+      const modeHint = document.getElementById('modeHint');
+      const overviewContent = document.getElementById('overviewContent');
+      const uploadHint = document.getElementById('uploadHint');
+
+      const legacyFormPanel = document.getElementById('legacyFormPanel');
+      const legacyListPanel = document.getElementById('legacyListPanel');
+      const legacyTopicForm = document.getElementById('legacyTopicForm');
+      const legacyFormTitle = document.getElementById('legacyFormTitle');
+      const legacyTopicList = document.getElementById('legacyTopicList');
+      const legacyResetButton = document.getElementById('legacyResetButton');
+
+      const kbFaqPanel = document.getElementById('kbFaqPanel');
+      const kbUploadPanel = document.getElementById('kbUploadPanel');
+      const kbFaqListPanel = document.getElementById('kbFaqListPanel');
+      const kbDocumentListPanel = document.getElementById('kbDocumentListPanel');
+      const kbJobListPanel = document.getElementById('kbJobListPanel');
+      const faqForm = document.getElementById('faqForm');
+      const faqFormTitle = document.getElementById('faqFormTitle');
+      const faqResetButton = document.getElementById('faqResetButton');
+      const faqList = document.getElementById('faqList');
+      const documentList = document.getElementById('documentList');
+      const jobList = document.getElementById('jobList');
+      const uploadForm = document.getElementById('uploadForm');
+      const uploadSubmitButton = document.getElementById('uploadSubmitButton');
 
       let theme = null;
-      let topicsCache = [];
-      let editingId = null;
+      let legacyTopicsCache = [];
+      let kbState = null;
+      let editingLegacyId = null;
+      let editingFaqId = null;
 
       function escapeHtml(value) {
         return String(value || '')
@@ -89,45 +217,183 @@
           .replace(/'/g, '&#39;');
       }
 
-      function resetForm() {
-        editingId = null;
-        formTitle.textContent = 'Ajouter une entree interne';
-        topicForm.reset();
+      function setBanner(message, tone = 'neutral') {
+        statusBanner.textContent = message;
+        statusBanner.className = 'status-banner';
+        if (tone === 'ready') {
+          statusBanner.classList.add('status-banner-ready');
+        }
+        if (tone === 'alert') {
+          statusBanner.classList.add('status-banner-alert');
+        }
       }
 
-      function fillForm(topic) {
-        editingId = topic.id;
-        formTitle.textContent = `Modifier: ${topic.title}`;
-        document.getElementById('title').value = topic.title || '';
-        document.getElementById('answer').value = topic.answer || '';
-        document.getElementById('keywords').value = Array.isArray(topic.keywords) ? topic.keywords.join(', ') : '';
+      function keywordsToText(keywords) {
+        return Array.isArray(keywords) ? keywords.join(', ') : '';
+      }
+
+      function parseKeywordInput(value) {
+        return String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function isDocumentTheme() {
+        return theme && theme.module_type === 'cnss';
+      }
+
+      function showLegacyMode() {
+        legacyFormPanel.hidden = false;
+        legacyListPanel.hidden = false;
+        kbFaqPanel.hidden = true;
+        kbUploadPanel.hidden = true;
+        kbFaqListPanel.hidden = true;
+        kbDocumentListPanel.hidden = true;
+        kbJobListPanel.hidden = true;
+      }
+
+      function showKbMode() {
+        legacyFormPanel.hidden = true;
+        legacyListPanel.hidden = true;
+        kbFaqPanel.hidden = false;
+        kbUploadPanel.hidden = false;
+        kbFaqListPanel.hidden = false;
+        kbDocumentListPanel.hidden = false;
+        kbJobListPanel.hidden = false;
+      }
+
+      function resetLegacyForm() {
+        editingLegacyId = null;
+        legacyFormTitle.textContent = 'Ajouter une entrée interne';
+        legacyTopicForm.reset();
+      }
+
+      function resetFaqForm() {
+        editingFaqId = null;
+        faqFormTitle.textContent = 'Publier une Q/R';
+        faqForm.reset();
+      }
+
+      function fillLegacyForm(topic) {
+        editingLegacyId = topic.id;
+        legacyFormTitle.textContent = `Modifier : ${topic.title}`;
+        document.getElementById('legacyTitle').value = topic.title || '';
+        document.getElementById('legacyAnswer').value = topic.answer || '';
+        document.getElementById('legacyKeywords').value = keywordsToText(topic.keywords);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      function renderTopics() {
-        if (!topicsCache.length) {
-          topicList.innerHTML = '<div class="empty-state">Aucune entree de connaissance pour ce theme.</div>';
+      function fillFaqForm(entry) {
+        editingFaqId = entry.id;
+        faqFormTitle.textContent = `Modifier : ${entry.question || entry.title}`;
+        document.getElementById('faqTitle').value = entry.title || '';
+        document.getElementById('faqQuestion').value = entry.question || '';
+        document.getElementById('faqAnswer').value = entry.answer || '';
+        document.getElementById('faqKeywords').value = keywordsToText(entry.keywords);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function renderOverview() {
+        if (!theme) {
+          overviewContent.innerHTML = '<div class="empty-state">Thème introuvable.</div>';
           return;
         }
 
-        topicList.innerHTML = topicsCache
+        if (!isDocumentTheme()) {
+          overviewContent.innerHTML = `
+            <div class="card">
+              <h3>Mode classique</h3>
+              <p class="muted">Ce thème utilise la base interne historique (`content.json`) et non une ingestion documentaire.</p>
+              <div class="meta-row">
+                <span>ID : ${escapeHtml(theme.id)}</span>
+                <span>Question libre : ${theme.allow_free_question ? 'Oui' : 'Non'}</span>
+                <span>Module : ${escapeHtml(theme.module_type || 'knowledge_base')}</span>
+              </div>
+            </div>
+          `;
+          modeHint.textContent = 'Mode classique : réponses internes simples.';
+          return;
+        }
+
+        const runtime = kbState && kbState.runtime ? kbState.runtime : {};
+        const embedding = runtime.embedding || {};
+        const lowOcr = runtime.low_ocr || {};
+        const counts = {
+          faq: Array.isArray(kbState?.faq_entries) ? kbState.faq_entries.length : 0,
+          docs: Array.isArray(kbState?.documents) ? kbState.documents.length : 0,
+          jobs: Array.isArray(kbState?.jobs) ? kbState.jobs.length : 0,
+        };
+
+        const runtimeDetails = [
+          `<span>Data root : ${escapeHtml(runtime.preferred_data_dir || '-')}</span>`,
+          `<span>Embedding : ${escapeHtml(embedding.deployment || 'non configuré')}</span>`,
+          `<span>Low OCR : ${lowOcr.active ? 'actif' : 'inactif'}</span>`,
+        ].join('');
+
+        overviewContent.innerHTML = `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <h3>${escapeHtml(theme.title)}</h3>
+                <p class="muted">${theme.id === 'fse'
+                  ? 'Les Q/R et documents enrichissent la FAQ documentaire utilisée par le module FSE.'
+                  : 'Les Q/R enrichissent la FAQ, et les documents conformité déclenchent chunking + embeddings + réindexation.'}</p>
+              </div>
+              <span class="status ${embedding.is_small_embedding ? 'status-active' : 'status-inactive'}">
+                ${embedding.is_small_embedding ? 'small embedding' : 'embedding à vérifier'}
+              </span>
+            </div>
+            <div class="meta-row">${runtimeDetails}</div>
+          </div>
+          <div class="card-grid">
+            <article class="metric-card">
+              <span class="metric-label">Q/R publiées</span>
+              <strong class="metric-value">${counts.faq}</strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Documents ingérés</span>
+              <strong class="metric-value">${counts.docs}</strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Jobs récents</span>
+              <strong class="metric-value">${counts.jobs}</strong>
+            </article>
+          </div>
+        `;
+
+        modeHint.textContent = theme.id === 'fse'
+          ? 'Mode documentaire FSE : FAQ runtime + fallback embarqué.'
+          : 'Mode conformité : FAQ runtime + base légale réindexée.';
+        uploadHint.textContent = theme.id === 'fse'
+          ? 'Pour FSE, le document enrichit directement la FAQ du thème. Les PDF passent par Azure OCR si configuré.'
+          : 'Pour Conformités, chaque document est transformé en chunks, vectorisé puis réindexé après l’upload.';
+      }
+
+      function renderLegacyTopics() {
+        if (!legacyTopicsCache.length) {
+          legacyTopicList.innerHTML = '<div class="empty-state">Aucune entrée de connaissance pour ce thème.</div>';
+          return;
+        }
+
+        legacyTopicList.innerHTML = legacyTopicsCache
           .map((topic) => {
             const keywords = Array.isArray(topic.keywords) && topic.keywords.length
               ? topic.keywords.map((keyword) => `<span class="chip">${escapeHtml(keyword)}</span>`).join('')
-              : '<span class="muted">Aucun mot-cle</span>';
+              : '<span class="muted">Aucun mot-clé</span>';
 
             return `
               <article class="card">
                 <div class="card-row">
                   <div>
                     <h3>${escapeHtml(topic.title)}</h3>
-                    <p class="muted">${escapeHtml(topic.answer || 'Aucune reponse')}</p>
+                    <p class="muted">${escapeHtml(topic.answer || 'Aucune réponse')}</p>
                   </div>
                 </div>
                 <div class="chips">${keywords}</div>
                 <div class="actions">
-                  <button class="button" type="button" onclick="editTopic('${topic.id}')">Modifier</button>
-                  <button class="button button-danger" type="button" onclick="deleteTopic('${topic.id}')">Supprimer</button>
+                  <button class="button" type="button" onclick="editLegacyTopic('${topic.id}')">Modifier</button>
+                  <button class="button button-danger" type="button" onclick="deleteLegacyTopic('${topic.id}')">Supprimer</button>
                 </div>
               </article>
             `;
@@ -135,39 +401,171 @@
           .join('');
       }
 
-      async function loadContent() {
-        if (!themeId) {
-          topicList.innerHTML = '<div class="empty-state">theme_id manquant.</div>';
-          topicForm.querySelector('button[type="submit"]').disabled = true;
+      function renderFaqEntries() {
+        const entries = kbState?.faq_entries || [];
+        if (!entries.length) {
+          faqList.innerHTML = '<div class="empty-state">Aucune Q/R publiée pour ce thème.</div>';
           return;
         }
 
-        topicList.innerHTML = '<div class="empty-state">Chargement...</div>';
+        faqList.innerHTML = entries
+          .map((entry) => {
+            const keywords = Array.isArray(entry.keywords) && entry.keywords.length
+              ? entry.keywords.map((keyword) => `<span class="chip">${escapeHtml(keyword)}</span>`).join('')
+              : '<span class="muted">Aucun mot-clé</span>';
 
-        const response = await fetch(`/admin/api/content?theme_id=${encodeURIComponent(themeId)}`);
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({ error: 'Theme not found' }));
-          topicList.innerHTML = `<div class="empty-state">${escapeHtml(data.error || 'Theme not found')}</div>`;
-          topicForm.querySelector('button[type="submit"]').disabled = true;
-          return;
-        }
-
-        const data = await response.json();
-        theme = data.theme;
-        topicsCache = data.topics || [];
-
-        pageTitle.textContent = `Base interne: ${theme.title}`;
-        themeSubtitle.textContent = 'Ces contenus restent internes et servent a repondre aux questions libres dans WhatsApp.';
-
-        renderTopics();
+            return `
+              <article class="card">
+                <div class="card-row">
+                  <div>
+                    <h3>${escapeHtml(entry.question || entry.title)}</h3>
+                    <p class="muted">${escapeHtml(entry.answer || '').slice(0, 280)}${String(entry.answer || '').length > 280 ? '…' : ''}</p>
+                  </div>
+                  <span class="status status-active">publiée</span>
+                </div>
+                <div class="chips">${keywords}</div>
+                <div class="meta-row">
+                  <span>Maj : ${escapeHtml(entry.updated_at || '-')}</span>
+                </div>
+                <div class="actions">
+                  <button class="button" type="button" onclick="editFaqEntry('${entry.id}')">Modifier</button>
+                  <button class="button button-danger" type="button" onclick="deleteFaqEntry('${entry.id}')">Supprimer</button>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
       }
 
-      async function saveTopic(payload) {
-        const url = editingId
-          ? `/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(editingId)}`
+      function renderDocuments() {
+        const documents = kbState?.documents || [];
+        if (!documents.length) {
+          documentList.innerHTML = '<div class="empty-state">Aucun document ingéré pour ce thème.</div>';
+          return;
+        }
+
+        documentList.innerHTML = documents
+          .map((document) => `
+            <article class="card">
+              <div class="card-row">
+                <div>
+                  <h3>${escapeHtml(document.title || document.file_name)}</h3>
+                  <p class="muted">${escapeHtml(document.description || document.file_name || '')}</p>
+                </div>
+                <span class="status ${document.target === 'legal_kb' ? 'status-active' : 'status-inactive'}">
+                  ${document.target === 'legal_kb' ? 'legal KB' : 'faq'}
+                </span>
+              </div>
+              <div class="meta-row">
+                <span>Fichier : ${escapeHtml(document.file_name || '-')}</span>
+                <span>Extraction : ${escapeHtml(document.extraction_method || '-')}</span>
+                <span>Maj : ${escapeHtml(document.updated_at || '-')}</span>
+              </div>
+              <div class="actions">
+                <button class="button button-danger" type="button" onclick="deleteKbDocument('${document.id}')">Supprimer</button>
+              </div>
+            </article>
+          `)
+          .join('');
+      }
+
+      function renderJobs() {
+        const jobs = kbState?.jobs || [];
+        if (!jobs.length) {
+          jobList.innerHTML = '<div class="empty-state">Aucun job récent pour ce thème.</div>';
+          return;
+        }
+
+        jobList.innerHTML = jobs
+          .map((job) => `
+            <article class="card">
+              <div class="card-row">
+                <div>
+                  <h3>${escapeHtml(job.summary || job.type)}</h3>
+                  <p class="muted">${escapeHtml(job.created_at || '-')}</p>
+                </div>
+                <span class="status ${job.status === 'success' ? 'status-active' : job.status === 'failed' ? 'status-inactive' : 'chip'}">
+                  ${escapeHtml(job.status)}
+                </span>
+              </div>
+              <div class="meta-row">
+                <span>Type : ${escapeHtml(job.type || '-')}</span>
+                <span>${escapeHtml(job.details?.error || job.details?.report?.embedding_model || '')}</span>
+              </div>
+            </article>
+          `)
+          .join('');
+      }
+
+      async function fetchTheme() {
+        const response = await fetch(`/admin/api/themes/${encodeURIComponent(themeId)}`);
+        if (!response.ok) {
+          throw new Error('Theme not found');
+        }
+        theme = await response.json();
+      }
+
+      async function loadLegacyContent() {
+        const response = await fetch(`/admin/api/content?theme_id=${encodeURIComponent(themeId)}`);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'Theme not found' }));
+          throw new Error(data.error || 'Theme not found');
+        }
+        const data = await response.json();
+        legacyTopicsCache = data.topics || [];
+        renderLegacyTopics();
+      }
+
+      async function loadKbContent() {
+        const response = await fetch(`/admin/api/kb?theme_id=${encodeURIComponent(themeId)}`);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: 'KB load failed' }));
+          throw new Error(data.error || 'KB load failed');
+        }
+        const data = await response.json();
+        kbState = data.kb;
+        renderFaqEntries();
+        renderDocuments();
+        renderJobs();
+      }
+
+      async function refreshPage() {
+        if (!themeId) {
+          setBanner('theme_id manquant.', 'alert');
+          return;
+        }
+
+        setBanner('Chargement du thème…');
+
+        try {
+          await fetchTheme();
+          pageTitle.textContent = `Contenu : ${theme.title}`;
+          themeSubtitle.textContent = theme.current_focus || theme.intro_message || 'Gestion du contenu du thème';
+
+          if (isDocumentTheme()) {
+            showKbMode();
+            await loadKbContent();
+            setBanner(theme.id === 'fse'
+              ? 'Module FSE prêt. Les publications sont poussées vers la FAQ runtime.'
+              : 'Module conformité prêt. Upload documentaire avec réindexation activée.', 'ready');
+          } else {
+            showLegacyMode();
+            await loadLegacyContent();
+            setBanner('Mode classique chargé.', 'ready');
+          }
+
+          renderOverview();
+        } catch (error) {
+          overviewContent.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+          setBanner(error.message, 'alert');
+        }
+      }
+
+      async function saveLegacyTopic(payload) {
+        const url = editingLegacyId
+          ? `/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(editingLegacyId)}`
           : `/admin/api/content?theme_id=${encodeURIComponent(themeId)}`;
-        const method = editingId ? 'PUT' : 'POST';
+        const method = editingLegacyId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
           method,
@@ -181,11 +579,10 @@
         }
       }
 
-      async function removeTopic(id) {
-        const response = await fetch(
-          `/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(id)}`,
-          { method: 'DELETE' },
-        );
+      async function deleteLegacyTopicRequest(id) {
+        const response = await fetch(`/admin/api/content/${encodeURIComponent(themeId)}/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({ error: 'Request failed' }));
@@ -193,59 +590,233 @@
         }
       }
 
-      topicForm.addEventListener('submit', async (event) => {
+      async function saveFaqEntry(payload) {
+        const url = editingFaqId
+          ? `/admin/api/kb/faq/${encodeURIComponent(themeId)}/${encodeURIComponent(editingFaqId)}`
+          : `/admin/api/kb/faq?theme_id=${encodeURIComponent(themeId)}`;
+        const method = editingFaqId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || data.details || 'KB save failed');
+        }
+        kbState = data.kb;
+        renderOverview();
+        renderFaqEntries();
+        renderDocuments();
+        renderJobs();
+        return data;
+      }
+
+      async function removeFaqEntry(id) {
+        const response = await fetch(`/admin/api/kb/faq/${encodeURIComponent(themeId)}/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || 'KB delete failed');
+        }
+        kbState = data.kb;
+        renderOverview();
+        renderFaqEntries();
+        renderDocuments();
+        renderJobs();
+      }
+
+      async function removeDocument(id) {
+        const response = await fetch(`/admin/api/kb/documents/${encodeURIComponent(themeId)}/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || data.details || 'Document delete failed');
+        }
+        kbState = data.kb;
+        renderOverview();
+        renderFaqEntries();
+        renderDocuments();
+        renderJobs();
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = String(reader.result || '');
+            const parts = result.split(',');
+            resolve(parts.length > 1 ? parts[1] : result);
+          };
+          reader.onerror = () => reject(new Error('Impossible de lire le fichier'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function uploadDocument(payload) {
+        const response = await fetch(`/admin/api/kb/upload?theme_id=${encodeURIComponent(themeId)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || data.details || 'Upload failed');
+        }
+        kbState = data.kb;
+        renderOverview();
+        renderFaqEntries();
+        renderDocuments();
+        renderJobs();
+        return data;
+      }
+
+      legacyTopicForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        const payload = {
-          title: document.getElementById('title').value.trim(),
-          answer: document.getElementById('answer').value.trim(),
-          keywords: document.getElementById('keywords').value
-            .split(',')
-            .map((item) => item.trim())
-            .filter(Boolean),
-        };
-
         try {
-          await saveTopic(payload);
-          resetForm();
-          await loadContent();
+          await saveLegacyTopic({
+            title: document.getElementById('legacyTitle').value.trim(),
+            answer: document.getElementById('legacyAnswer').value.trim(),
+            keywords: parseKeywordInput(document.getElementById('legacyKeywords').value),
+          });
+          resetLegacyForm();
+          await loadLegacyContent();
+          setBanner('Entrée interne enregistrée.', 'ready');
         } catch (error) {
-          alert(error.message);
+          setBanner(error.message, 'alert');
         }
       });
 
-      resetButton.addEventListener('click', resetForm);
-      refreshButton.addEventListener('click', loadContent);
-
-      window.editTopic = (id) => {
-        const topic = topicsCache.find((entry) => entry.id === id);
-
-        if (topic) {
-          fillForm(topic);
+      faqForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        try {
+          await saveFaqEntry({
+            title: document.getElementById('faqTitle').value.trim(),
+            question: document.getElementById('faqQuestion').value.trim(),
+            answer: document.getElementById('faqAnswer').value.trim(),
+            keywords: parseKeywordInput(document.getElementById('faqKeywords').value),
+          });
+          resetFaqForm();
+          setBanner(themeId === 'conformites'
+            ? 'Q/R publiée. La FAQ conformité est disponible immédiatement.'
+            : 'Q/R publiée. La FAQ FSE est disponible immédiatement.', 'ready');
+        } catch (error) {
+          setBanner(error.message, 'alert');
         }
-      };
+      });
 
-      window.deleteTopic = async (id) => {
-        const topic = topicsCache.find((entry) => entry.id === id);
-        const label = topic ? topic.title : id;
+      uploadForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const fileInput = document.getElementById('uploadFile');
+        const file = fileInput.files && fileInput.files[0];
 
-        if (!window.confirm(`Supprimer l'entree "${label}" ?`)) {
+        if (!file) {
+          setBanner('Sélectionnez un fichier à ingérer.', 'alert');
           return;
         }
 
+        uploadSubmitButton.disabled = true;
+        setBanner(themeId === 'conformites'
+          ? 'Upload en cours… extraction, chunking et réindexation.'
+          : 'Upload en cours… publication dans la FAQ.');
+
         try {
-          await removeTopic(id);
-          if (editingId === id) {
-            resetForm();
-          }
-          await loadContent();
+          const contentBase64 = await fileToBase64(file);
+          const data = await uploadDocument({
+            title: document.getElementById('uploadTitle').value.trim(),
+            description: document.getElementById('uploadDescription').value.trim(),
+            file_name: file.name,
+            mime_type: file.type,
+            content_base64: contentBase64,
+          });
+          uploadForm.reset();
+          setBanner(themeId === 'conformites'
+            ? `Document ingéré. Réindexation ${data.reindex ? 'terminée' : 'non déclenchée'}.`
+            : 'Document ajouté à la FAQ FSE.', 'ready');
         } catch (error) {
-          alert(error.message);
+          setBanner(error.message, 'alert');
+        } finally {
+          uploadSubmitButton.disabled = false;
+        }
+      });
+
+      refreshButton.addEventListener('click', refreshPage);
+      legacyResetButton.addEventListener('click', resetLegacyForm);
+      faqResetButton.addEventListener('click', resetFaqForm);
+
+      window.editLegacyTopic = (id) => {
+        const topic = legacyTopicsCache.find((entry) => entry.id === id);
+        if (topic) {
+          fillLegacyForm(topic);
         }
       };
 
-      resetForm();
-      loadContent();
+      window.deleteLegacyTopic = async (id) => {
+        const topic = legacyTopicsCache.find((entry) => entry.id === id);
+        const label = topic ? topic.title : id;
+        if (!window.confirm(`Supprimer l'entrée "${label}" ?`)) {
+          return;
+        }
+        try {
+          await deleteLegacyTopicRequest(id);
+          if (editingLegacyId === id) {
+            resetLegacyForm();
+          }
+          await loadLegacyContent();
+          setBanner('Entrée interne supprimée.', 'ready');
+        } catch (error) {
+          setBanner(error.message, 'alert');
+        }
+      };
+
+      window.editFaqEntry = (id) => {
+        const entry = (kbState?.faq_entries || []).find((item) => item.id === id);
+        if (entry) {
+          fillFaqForm(entry);
+        }
+      };
+
+      window.deleteFaqEntry = async (id) => {
+        const entry = (kbState?.faq_entries || []).find((item) => item.id === id);
+        const label = entry ? entry.question || entry.title : id;
+        if (!window.confirm(`Supprimer la Q/R "${label}" ?`)) {
+          return;
+        }
+        try {
+          await removeFaqEntry(id);
+          if (editingFaqId === id) {
+            resetFaqForm();
+          }
+          setBanner('Q/R supprimée.', 'ready');
+        } catch (error) {
+          setBanner(error.message, 'alert');
+        }
+      };
+
+      window.deleteKbDocument = async (id) => {
+        const document = (kbState?.documents || []).find((item) => item.id === id);
+        const label = document ? document.title || document.file_name : id;
+        if (!window.confirm(`Supprimer le document "${label}" ?`)) {
+          return;
+        }
+        try {
+          await removeDocument(id);
+          setBanner('Document supprimé.', 'ready');
+        } catch (error) {
+          setBanner(error.message, 'alert');
+        }
+      };
+
+      resetLegacyForm();
+      resetFaqForm();
+      refreshPage();
     </script>
   </body>
 </html>

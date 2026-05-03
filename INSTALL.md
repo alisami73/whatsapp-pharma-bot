@@ -155,7 +155,10 @@ Notes importantes :
 
 ### Option A — Railway / Render (recommandé pour la production)
 
-Ces plateformes offrent un **filesystem persistant**, requis pour le stockage JSON.
+Ces plateformes conviennent bien a la production, mais le bot s'appuie
+desormais sur **Supabase** pour la persistance applicative. Ne montez pas un
+volume Railway sur `/app/data`, sinon vous risquez de masquer la base
+documentaire embarquee (`data/knowledge`, `data/legal_kb`, etc.).
 
 **Railway :**
 ```bash
@@ -166,6 +169,11 @@ railway init
 railway up
 ```
 Configurer les variables d'environnement dans le dashboard Railway.
+
+Variables recommandees sur Railway :
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- laisser `DATA_DIR` vide en production, sauf besoin local tres specifique
 
 **Render :**
 - Créer un nouveau **Web Service** sur render.com

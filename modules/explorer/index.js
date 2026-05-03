@@ -25,6 +25,35 @@
 const twilioService = require('../../twilio_service');
 const { buildPublicSiteUrl, buildPublicAssetUrl, appendLangQuery } = require('../public_site');
 
+const DEFAULT_EXPLORER_TEMPLATE_VERSION_BY_LANG = Object.freeze({
+  fr: '4',
+  ar: '5',
+  es: '5',
+  ru: '4',
+});
+
+function normalizeExplorerLang(lang = 'fr') {
+  return ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+}
+
+function getExplorerTemplateVersion(lang = 'fr') {
+  const lcode = normalizeExplorerLang(lang);
+  const specific = String(process.env[`TWILIO_EXPLORER_TEMPLATE_VERSION_${lcode.toUpperCase()}`] || '').trim();
+  const global = String(process.env.TWILIO_EXPLORER_TEMPLATE_VERSION || '').trim();
+  const raw = (specific || global || DEFAULT_EXPLORER_TEMPLATE_VERSION_BY_LANG[lcode] || '4').replace(/^v/i, '');
+  return /^[0-9]+$/.test(raw) ? raw : (DEFAULT_EXPLORER_TEMPLATE_VERSION_BY_LANG[lcode] || '4');
+}
+
+function getExplorerTemplateCacheKey(lang = 'fr') {
+  const lcode = normalizeExplorerLang(lang);
+  return `explorer_v${getExplorerTemplateVersion(lcode)}_${lcode}`;
+}
+
+function getExplorerTemplateFriendlyName(lang = 'fr') {
+  const lcode = normalizeExplorerLang(lang);
+  return `blink_explorer_v${getExplorerTemplateVersion(lcode)}_${lcode}`;
+}
+
 // ── URL builder ───────────────────────────────────────────────────────────────
 function pageUrl(pathname, lang = 'fr') {
   return buildPublicSiteUrl(pathname, appendLangQuery(lang));
@@ -77,14 +106,14 @@ const CAROUSEL_IMAGES = [
   'medindex.jpg',
 ];
 
-// ── Template spec builder (v4 — URL buttons via relay URLs) ──────────────────
+// ── Template spec builder (versioned — URL buttons via relay URLs) ───────────
 // v2 SIDs are retired: they contained "medindex://" which Android cannot open.
-// v4 uses /go/medindex (HTTPS relay on our domain) for the MedIndex card.
+// Current templates use /go/medindex (HTTPS relay on our domain) for the MedIndex card.
 function buildExplorerV3Spec(lang) {
-  const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
+  const lcode = normalizeExplorerLang(lang);
   const cards  = CARD_CONTENT[lcode];
   return {
-    friendlyName: `blink_explorer_v4_${lcode}`,
+    friendlyName: getExplorerTemplateFriendlyName(lcode),
     language: lcode,
     types: {
       'twilio/carousel': {
@@ -109,8 +138,9 @@ async function sendExplorerCarousel(to, lang = 'fr') {
   const interactive = require('../interactive');
   if (!interactive.isInteractiveEnabled()) return null;
 
-  const lcode = ['ar', 'es', 'ru'].includes(lang) ? lang : 'fr';
-  const cacheKey = `explorer_v4_${lcode}`;
+  const lcode = normalizeExplorerLang(lang);
+  const cacheKey = getExplorerTemplateCacheKey(lcode);
+  const friendlyName = getExplorerTemplateFriendlyName(lcode);
 
   // Resolve SID via shared resolveTemplate (creates + caches; needs Meta approval before live use)
   let sid;
@@ -126,7 +156,7 @@ async function sendExplorerCarousel(to, lang = 'fr') {
     return null;
   }
 
-  console.log(`[explorer] Envoi carousel v4 sid=${sid} to=${to}`);
+  console.log(`[explorer] Envoi carousel ${friendlyName} sid=${sid} to=${to}`);
 
   const config  = twilioService.getTwilioConfig();
   const client  = twilioService.getTwilioClient();
@@ -213,6 +243,10 @@ function isExplorerPayload(action) {
 
 module.exports = {
   CARD_CONTENT,
+  normalizeExplorerLang,
+  getExplorerTemplateVersion,
+  getExplorerTemplateCacheKey,
+  getExplorerTemplateFriendlyName,
   buildExplorerV3Spec,
   sendExplorerCarousel,
   buildExplorerFallbackText,

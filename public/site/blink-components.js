@@ -23,8 +23,7 @@ function langPath(pathname, lang) {
 function langUrl(targetLang) {
   const u = new URL(window.location.href);
   u.pathname = sitePath(u.pathname);
-  if (targetLang === 'fr') u.searchParams.delete('lang');
-  else u.searchParams.set('lang', targetLang);
+  u.searchParams.set('lang', targetLang || 'fr');
   return `${u.pathname}${u.search}${u.hash}`;
 }
 
@@ -182,7 +181,7 @@ function injectFooter() {
       <div class="footer-col">
         <h4>${ft.contact}</h4>
         <ul>
-          <li><a href="mailto:contact@blinkpharmacie.ma">contact@blinkpharmacie.ma</a></li>
+          <li><a href="mailto:contact@blinkpharma.ma">contact@blinkpharma.ma</a></li>
           <li><a href="https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium" target="_blank">WhatsApp</a></li>
           <li><a href="#">Casablanca, Maroc</a></li>
         </ul>
@@ -214,6 +213,97 @@ function initScrollAnimations() {
   document.querySelectorAll('.fade-up').forEach((el, i) => {
     if (!el.dataset.delay) el.dataset.delay = (i % 4) * 80;
     observer.observe(el);
+  });
+}
+
+function initDocsLayout(options = {}) {
+  const root = document.querySelector(options.rootSelector || '.docs-page');
+  if (!root) return;
+
+  const sectionSelector = options.sectionSelector || '[data-docs-section]';
+  const sections = Array.from(root.querySelectorAll(sectionSelector))
+    .filter((section) => section.id)
+    .map((section, index) => ({
+      id: section.id,
+      element: section,
+      title:
+        section.dataset.docsTitle ||
+        section.querySelector('h1, h2, h3')?.textContent?.trim() ||
+        `Section ${index + 1}`,
+    }));
+
+  if (!sections.length) return;
+
+  const buildNavMarkup = (kind = 'sidebar') => sections.map((section, index) => `
+    <a href="#${section.id}" class="docs-nav-link docs-nav-link-${kind}" data-docs-link="${section.id}">
+      <span class="docs-nav-link-index">${String(index + 1).padStart(2, '0')}</span>
+      <span class="docs-nav-link-label">${section.title}</span>
+    </a>
+  `).join('');
+
+  const sidebarNav = root.querySelector('[data-docs-sidebar-nav]');
+  const drawerNav = root.querySelector('[data-docs-drawer-nav]');
+  const tocNav = root.querySelector('[data-docs-toc-nav]');
+
+  if (sidebarNav) sidebarNav.innerHTML = buildNavMarkup('sidebar');
+  if (drawerNav) drawerNav.innerHTML = buildNavMarkup('drawer');
+  if (tocNav) tocNav.innerHTML = buildNavMarkup('toc');
+
+  const drawer = root.querySelector('[data-docs-drawer]');
+  const drawerToggle = root.querySelector('[data-docs-drawer-toggle]');
+  const drawerClose = root.querySelector('[data-docs-drawer-close]');
+
+  const closeDrawer = () => {
+    if (!drawer) return;
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('has-open-overlay');
+  };
+
+  if (drawer && drawerToggle) {
+    drawerToggle.addEventListener('click', () => {
+      drawer.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('has-open-overlay');
+    });
+    drawer.addEventListener('click', (event) => {
+      if (event.target === drawer) closeDrawer();
+    });
+  }
+
+  if (drawerClose) {
+    drawerClose.addEventListener('click', closeDrawer);
+  }
+
+  root.querySelectorAll('[data-docs-link]').forEach((link) => {
+    link.addEventListener('click', closeDrawer);
+  });
+
+  const allLinks = Array.from(root.querySelectorAll('[data-docs-link]'));
+  const setActiveSection = (sectionId) => {
+    allLinks.forEach((link) => {
+      link.classList.toggle('is-active', link.dataset.docsLink === sectionId);
+    });
+  };
+
+  const updateActiveSectionFromScroll = () => {
+    const navHeight =
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 76;
+    const marker = window.scrollY + navHeight + 120;
+    let currentId = sections[0].id;
+
+    sections.forEach((section) => {
+      if (section.element.offsetTop <= marker) currentId = section.id;
+    });
+
+    setActiveSection(currentId);
+  };
+
+  updateActiveSectionFromScroll();
+  window.addEventListener('scroll', updateActiveSectionFromScroll, { passive: true });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 980) closeDrawer();
+    updateActiveSectionFromScroll();
   });
 }
 

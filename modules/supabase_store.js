@@ -15,6 +15,22 @@ const { createClient } = require('@supabase/supabase-js');
 const TABLE = 'bot_kv_store';
 let _client = null;
 let _availablePromise = null; // settled once, reused for all callers
+const CHECK_TIMEOUT_MS = Number(process.env.SUPABASE_STORE_CHECK_TIMEOUT_MS) || 1200;
+const READ_TIMEOUT_MS = Number(process.env.SUPABASE_STORE_READ_TIMEOUT_MS) || 1200;
+const WRITE_TIMEOUT_MS = Number(process.env.SUPABASE_STORE_WRITE_TIMEOUT_MS) || 1200;
+
+function withTimeout(promise, timeoutMs, label) {
+  let timer = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
 
 function getClient() {
   if (_client) return _client;
@@ -45,7 +61,11 @@ function checkAvailable() {
     const client = getClient();
     if (!client) return false;
     try {
-      const { error } = await client.from(TABLE).select('key').limit(1);
+      const { error } = await withTimeout(
+        client.from(TABLE).select('key').limit(1),
+        CHECK_TIMEOUT_MS,
+        'supabase store check',
+      );
       if (error) {
         const msg = String(error.message || '');
         if (error.code === '42P01' || msg.includes('does not exist')) {
@@ -72,11 +92,15 @@ async function read(key) {
   if (!(await checkAvailable())) return null;
   const client = getClient();
   try {
-    const { data, error } = await client
-      .from(TABLE)
-      .select('value')
-      .eq('key', key)
-      .maybeSingle();
+    const { data, error } = await withTimeout(
+      client
+        .from(TABLE)
+        .select('value')
+        .eq('key', key)
+        .maybeSingle(),
+      READ_TIMEOUT_MS,
+      `supabase store read(${key})`,
+    );
     if (error) throw new Error(error.message);
     return data ? data.value : null;
   } catch (err) {
@@ -89,9 +113,13 @@ async function write(key, value) {
   if (!(await checkAvailable())) return false;
   const client = getClient();
   try {
-    const { error } = await client
-      .from(TABLE)
-      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    const { error } = await withTimeout(
+      client
+        .from(TABLE)
+        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' }),
+      WRITE_TIMEOUT_MS,
+      `supabase store write(${key})`,
+    );
     if (error) throw new Error(error.message);
     return true;
   } catch (err) {

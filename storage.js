@@ -5,12 +5,19 @@ const twilioService = require('./twilio_service');
 const supabaseStore = require('./modules/supabase_store');
 
 const fsp = fs.promises;
-// Allow overriding via env var so a Railway persistent volume can be mounted at a custom path.
-// Set DATA_DIR=/mnt/data in Railway environment variables, then add a volume at /mnt/data.
+// DATA_DIR reste surchargeable pour le dev/local fallback, mais Railway doit
+// désormais s'appuyer sur Supabase comme stockage primaire.
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   console.info('[storage] DATA_DIR créé:', DATA_DIR);
+}
+if (process.env.DATA_DIR) {
+  console.warn(
+    `[storage] DATA_DIR forcé vers "${DATA_DIR}". ` +
+    'En production Railway, laissez cette variable vide sauf besoin explicite, ' +
+    'car Supabase est le stockage primaire.'
+  );
 }
 
 const DATA_FILES = {
