@@ -50,6 +50,39 @@ test('production requests on HTTP are redirected to HTTPS for public hosts', asy
   }
 });
 
+test('production requests honor Cloudflare visitor scheme over forwarded HTTPS', async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+
+  try {
+    const req = {
+      secure: true,
+      protocol: 'https',
+      headers: {
+        host: 'blinkpremium.blinkpharmacie.ma',
+        'x-forwarded-proto': 'https',
+        'cf-visitor': '{"scheme":"http"}',
+      },
+      path: '/actu.html',
+      originalUrl: '/actu.html',
+    };
+    const res = createResponseDouble();
+    let nextCalled = false;
+
+    enforceHttps(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, false);
+    assert.deepEqual(res.redirected, {
+      status: 301,
+      location: 'https://blinkpremium.blinkpharmacie.ma/actu.html',
+    });
+  } finally {
+    process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
 test('production requests on localhost are not redirected', async () => {
   const previousNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = 'production';
@@ -82,6 +115,7 @@ test('production requests already on HTTPS keep serving content and emit HSTS', 
   try {
     const req = {
       secure: true,
+      protocol: 'https',
       headers: { host: 'blinkpremium.blinkpharmacie.ma' },
       path: '/health',
       originalUrl: '/health',

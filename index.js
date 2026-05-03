@@ -25,7 +25,12 @@ const { t, parseLang } = require('./modules/i18n');
 const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared/footer');
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
-const { buildPublicSiteUrl, appendLangQuery, buildPublicRequestRedirectUrl } = require('./modules/public_site');
+const {
+  buildPublicSiteUrl,
+  appendLangQuery,
+  buildPublicRequestRedirectUrl,
+  isHttpsRequest,
+} = require('./modules/public_site');
 const identityService = require('./modules/identity_service');
 const signedLinkService = require('./modules/signed_link_service');
 
@@ -77,7 +82,7 @@ function isLocalHost(host = '') {
 
 function shouldRedirectToHttps(req) {
   if (process.env.NODE_ENV !== 'production') return false;
-  if (req.secure) return false;
+  if (isHttpsRequest(req)) return false;
 
   const host = String(req.headers.host || '').trim().toLowerCase();
   if (!host || isLocalHost(host) || host.endsWith('.railway.internal')) return false;
@@ -92,7 +97,7 @@ function enforceHttps(req, res, next) {
     return res.redirect(301, `https://${host}${req.originalUrl}`);
   }
 
-  if (req.secure) {
+  if (isHttpsRequest(req)) {
     res.set('Strict-Transport-Security', 'max-age=31536000');
   }
 
