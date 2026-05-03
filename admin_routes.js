@@ -9,6 +9,7 @@ const monitoring = require('./modules/monitoring');
 const consent = require('./modules/consent');
 const onboardingFlow = require('./modules/onboarding_flow');
 const adminAuth = require('./modules/admin_auth');
+const stockAlerts = require('./modules/stock_alerts');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
@@ -411,6 +412,84 @@ router.get('/monitoring', (req, res) => {
 router.get('/refopposables', (req, res) => {
   res.sendFile(path.join(adminDir, 'refopposables.html'));
 });
+
+router.get('/identity', (req, res) => {
+  res.sendFile(path.join(adminDir, 'identity.html'));
+});
+
+// ── Identity API ──────────────────────────────────────────────────────────────
+function _identityDb() {
+  const { createClient } = require('@supabase/supabase-js');
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+router.get('/api/identity/stats', asyncHandler(async (req, res) => {
+  const db = _identityDb();
+  if (!db) return res.json({ error: 'Supabase non configuré' });
+
+  const [usersRes, visitsRes] = await Promise.all([
+    db.from('user_identities').select('consent_status, last_seen_at'),
+    db.from('user_visits').select('id', { count: 'exact', head: true }),
+  ]);
+
+  const users = usersRes.data || [];
+  const today = new Date().toISOString().slice(0, 10);
+  res.json({
+    total_users: users.length,
+    accepted_consent: users.filter(u => u.consent_status === 'accepted').length,
+    seen_today: users.filter(u => u.last_seen_at && u.last_seen_at.startsWith(today)).length,
+    total_visits: visitsRes.count || 0,
+  });
+}));
+
+router.get('/api/identity/users', asyncHandler(async (req, res) => {
+  const db = _identityDb();
+  if (!db) return res.json({ users: [] });
+  const limit = Math.min(parseInt(req.query.limit || '200', 10), 1000);
+  const { data, error } = await db.from('user_identities')
+    .select('id, phone_hash, profile_name, consent_status, first_seen_at, last_seen_at')
+    .order('last_seen_at', { ascending: false })
+    .limit(limit);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ users: data || [] });
+}));
+
+router.get('/api/identity/users/:userId', asyncHandler(async (req, res) => {
+  const db = _identityDb();
+  if (!db) return res.status(503).json({ error: 'Supabase non configuré' });
+  const { data, error } = await db.from('user_identities')
+    .select('id, phone_hash, profile_name, consent_status, consent_version, consent_channel, first_seen_at, last_seen_at, metadata')
+    .eq('id', req.params.userId)
+    .maybeSingle();
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: 'Not found' });
+  res.json(data);
+}));
+
+router.get('/api/identity/users/:userId/visits', asyncHandler(async (req, res) => {
+  const db = _identityDb();
+  if (!db) return res.json({ visits: [] });
+  const { data } = await db.from('user_visits')
+    .select('id, page_url, referrer, source, campaign, visited_at')
+    .eq('user_id', req.params.userId)
+    .order('visited_at', { ascending: false })
+    .limit(50);
+  res.json({ visits: data || [] });
+}));
+
+router.get('/api/identity/users/:userId/events', asyncHandler(async (req, res) => {
+  const db = _identityDb();
+  if (!db) return res.json({ events: [] });
+  const { data } = await db.from('user_events')
+    .select('id, event_name, event_data, page_url, created_at')
+    .eq('user_id', req.params.userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  res.json({ events: data || [] });
+}));
 
 router.get(
   '/api/twilio/status',
@@ -1105,6 +1184,103 @@ router.get(
     res.json({ records, total: records.length });
   }),
 );
+
+// ---------------------------------------------------------------------------
+// Stock Alerts — Admin UI + API
+// ---------------------------------------------------------------------------
+
+router.get('/stock-alerts', (req, res) => {
+  res.sendFile(path.join(adminDir, 'stock-alerts.html'));
+});
+
+router.get('/api/stock-alerts/summary', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.getDashboardSummary());
+}));
+
+router.get('/api/stock-alerts/templates', asyncHandler(async (req, res) => {
+  res.json({
+    categories: stockAlerts.ALERT_CATEGORIES,
+    templates: stockAlerts.getTemplateRegistry(),
+  });
+}));
+
+router.post('/api/stock-alerts/pharmacist-link', asyncHandler(async (req, res) => {
+  const phone = twilioService.normalizeWhatsAppAddress(req.body.phone || '');
+  const name = String(req.body.name || '').trim() || null;
+  if (!phone) {
+    return res.status(400).json({ error: 'Numero WhatsApp requis' });
+  }
+
+  const link = stockAlerts.buildPharmacistPortalUrl(phone, { name });
+  res.status(201).json({
+    phone,
+    ...link,
+  });
+}));
+
+router.get('/api/stock-alerts/organizations', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.listOrganizations({
+    status: req.query.status ? String(req.query.status).trim() : undefined,
+    organization_type: req.query.source_type ? String(req.query.source_type).trim() : undefined,
+  }));
+}));
+
+router.post('/api/stock-alerts/organizations/:id/status', asyncHandler(async (req, res) => {
+  const status = String(req.body.status || '').trim();
+  if (!status) {
+    return res.status(400).json({ error: 'status is required' });
+  }
+  res.json(await stockAlerts.updateOrganizationStatus(req.params.id, status, req.adminUser));
+}));
+
+router.get('/api/stock-alerts/products', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.listSupplierProducts({
+    organization_id: req.query.organization_id ? String(req.query.organization_id).trim() : undefined,
+    match_status: req.query.match_status ? String(req.query.match_status).trim() : undefined,
+  }));
+}));
+
+router.post('/api/stock-alerts/products/:id/status', asyncHandler(async (req, res) => {
+  const status = String(req.body.status || '').trim();
+  if (!status) {
+    return res.status(400).json({ error: 'status is required' });
+  }
+  res.json(await stockAlerts.updateSupplierProductStatus(
+    req.params.id,
+    status,
+    req.adminUser,
+    req.body.rejection_reason,
+  ));
+}));
+
+router.get('/api/stock-alerts/uploads', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.listUploadedFiles({
+    organization_id: req.query.organization_id ? String(req.query.organization_id).trim() : undefined,
+  }));
+}));
+
+router.get('/api/stock-alerts/alerts', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.listStockAlerts({
+    status: req.query.status ? String(req.query.status).trim() : undefined,
+    source_type: req.query.source_type ? String(req.query.source_type).trim() : undefined,
+    source_id: req.query.source_id ? String(req.query.source_id).trim() : undefined,
+  }));
+}));
+
+router.post('/api/stock-alerts/alerts/:id/approve', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.approveStockAlert(req.params.id, req.adminUser));
+}));
+
+router.post('/api/stock-alerts/alerts/:id/send', asyncHandler(async (req, res) => {
+  res.json(await stockAlerts.sendStockAlert(req.params.id, req.adminUser, {
+    batch_size: req.body.batch_size,
+  }));
+}));
+
+router.get('/api/stock-alerts/audit', asyncHandler(async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 80, 250);
+  res.json(await stockAlerts.listAuditLogs(limit));
+}));
 
 // ---------------------------------------------------------------------------
 // Actu Médicaments — CRUD

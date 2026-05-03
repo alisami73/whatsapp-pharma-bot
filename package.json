@@ -21,11 +21,13 @@
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "nodemailer": "^8.0.6",
     "openai": "^6.34.0",
-    "twilio": "^5.13.1"
+    "twilio": "^5.13.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "pg": "^8.20.0",

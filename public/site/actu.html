@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Actu Médicaments — Blink Premium</title>
-  <meta name="description" content="Nouveautés, rappels de lots, ruptures, changements de prix — l'actualité du marché pharmaceutique marocain." />
+  <title>Actu & Alertes Pharma — Blink Premium</title>
+  <meta name="description" content="Actualités médicaments, alertes de reprise stock, rappels produits et informations réglementaires pour le marché pharmaceutique marocain." />
   <meta name="theme-color" content="#1B5E20" />
   <link rel="stylesheet" href="blink.css" />
   <style>
@@ -393,7 +393,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
         Retour
       </button>
-      <div class="back-bar-title">Actu Médicaments</div>
+      <div class="back-bar-title">Actu & Alertes</div>
       <button class="share-btn" id="shareBtn" aria-label="Partager">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </button>
@@ -405,35 +405,35 @@
         🔔
         <span class="hero-bell-badge">0</span>
       </div>
-      <h1>Actu<span class="accent">Médicaments</span></h1>
+      <h1>Actu<span class="accent">& Alertes Pharma</span></h1>
       <div class="hero-divider"></div>
-      <p>Nouveautés, rappels de lots & mises à jour du <span class="green">marché pharma</span></p>
+      <p>Veille marché, reprises de stock partenaires & mises à jour <span class="green">à diffusion consentie</span></p>
 
       <div class="hero-chips">
         <div class="hero-chip">
           <div class="hero-chip-icon">📣</div>
-          <strong>Nouveautés</strong>
-          <span>Dernières actualités</span>
+          <strong>Campagnes</strong>
+          <span>Sources validées</span>
         </div>
         <div class="hero-chip">
           <div class="hero-chip-icon">🔄</div>
           <strong>Rappels</strong>
-          <span>Lots concernés</span>
+          <span>Lots & retraits</span>
         </div>
         <div class="hero-chip">
           <div class="hero-chip-icon">📈</div>
-          <strong>Marché</strong>
-          <span>Évolution prix</span>
+          <strong>Consentement</strong>
+          <span>Diffusion contrôlée</span>
         </div>
       </div>
     </header>
 
-    <!-- COMING SOON DISCLAIMER -->
+    <!-- CONSENT DISCLAIMER -->
     <div class="coming-soon-banner">
-      <div class="coming-soon-icon">🚧</div>
+      <div class="coming-soon-icon">🛡️</div>
       <div class="coming-soon-text">
-        <strong>Arrive bientôt</strong>
-        <p>Cette section n'est pas encore fonctionnelle. Les données affichées sont des exemples fictifs et ne reflètent pas la réalité du marché.</p>
+        <strong>Diffusion professionnelle contrôlée</strong>
+        <p>Les alertes fournisseurs WhatsApp ne sont adressées qu’aux pharmaciens ayant activé un consentement explicite par source et par catégorie.</p>
       </div>
     </div>
 
@@ -451,12 +451,12 @@
 
     <!-- CTA -->
     <div class="bottom-banner">
-      <div class="icon">🔔</div>
-      <h4>Recevoir les alertes en priorité</h4>
-      <p>Activez les notifications WhatsApp pour ne rien manquer.</p>
-      <button onclick="window.location.href='https://wa.me/212768782598?text=Bonjour%2C+j%27ai+une+question+sur+Blink+Premium'">
+      <div class="icon">📲</div>
+      <h4>Gérer mes alertes fournisseurs</h4>
+      <p>Ouvrez votre lien sécurisé Blink pour choisir les laboratoires, grossistes et catégories autorisés.</p>
+      <button onclick="window.location.href='/preferences/stock-alerts'">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg>
-        Activer sur WhatsApp
+        Ouvrir mes préférences
       </button>
     </div>
   </div>
@@ -464,15 +464,31 @@
   <script>
   // Type → display cat mapping (admin uses 'rappels', public CSS uses 'rappel' etc.)
   const CAT_META = {
-    all:       { label: "Tout",       color: "#2E7D32" },
-    nouveautes:{ label: "Nouveautés", color: "#2E7D32" },
-    rappels:   { label: "Rappels",    color: "#E53935" },
-    ruptures:  { label: "Ruptures",   color: "#FF7043" },
-    prix:      { label: "Prix",       color: "#3F51B5" },
-    reprises:  { label: "Reprises",   color: "#26C6DA" },
+    all:             { label: "Tout",               color: "#2E7D32" },
+    nouveautes:      { label: "Nouveautés",         color: "#2E7D32" },
+    rappels:         { label: "Rappels",            color: "#E53935" },
+    ruptures:        { label: "Ruptures",           color: "#FF7043" },
+    prix:            { label: "Prix",               color: "#3F51B5" },
+    reprises:        { label: "Reprises",           color: "#26C6DA" },
+    stock_recovery:  { label: "Reprise stock",      color: "#2E7D32" },
+    out_of_stock:    { label: "Rupture stock",      color: "#FF7043" },
+    product_recall:  { label: "Rappel produit",     color: "#E53935" },
+    new_product:     { label: "Nouveau produit",    color: "#3F51B5" },
+    regulatory_info: { label: "Réglementaire",      color: "#8E24AA" },
   };
 
-  const TYPE_ICONS = { rappels:'⚠️', nouveautes:'💊', ruptures:'📉', prix:'📊', reprises:'✅' };
+  const TYPE_ICONS = {
+    rappels:'⚠️',
+    nouveautes:'💊',
+    ruptures:'📉',
+    prix:'📊',
+    reprises:'✅',
+    stock_recovery:'✅',
+    out_of_stock:'📦',
+    product_recall:'🚨',
+    new_product:'🧪',
+    regulatory_info:'📘'
+  };
 
   let NEWS = [];
   let activeFilter = 'all';
@@ -489,10 +505,26 @@
     return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
   }
 
+  function normalizeEntry(raw) {
+    const type = raw.type || raw.alert_type || 'nouveautes';
+    return {
+      id: raw.id,
+      type,
+      titre: raw.titre || raw.title || raw.product_name || 'Alerte pharma',
+      desc: raw.desc || raw.comment || raw.body || '',
+      labo: raw.labo || raw.source_name || raw.organization_name || 'Blink Pharma',
+      date: raw.date || raw.sent_at || raw.scheduled_at || raw.created_at || '',
+      urgent: Boolean(raw.urgent || type === 'product_recall'),
+      priceDir: raw.priceDir || raw.price_direction || '',
+      priceVal: raw.priceVal || raw.price_value || '',
+    };
+  }
+
   function buildFilters() {
     filterTrack.innerHTML = '';
     Object.entries(CAT_META).forEach(([key, meta]) => {
       const count = key === 'all' ? NEWS.length : NEWS.filter(n => n.type === key).length;
+      if (key !== 'all' && count === 0) return;
       const pill = document.createElement('button');
       pill.className = 'filter-pill' + (key === activeFilter ? ' active' : '');
       pill.style.setProperty('--pcolor', meta.color);
@@ -512,7 +544,7 @@
     filtered.forEach((n, idx) => {
       const meta = CAT_META[n.type] || CAT_META.all;
       const card = document.createElement('article');
-      const isFeatured = idx === 1 && n.type === 'nouveautes';
+      const isFeatured = idx === 0 && ['new_product', 'nouveautes'].includes(n.type);
       card.className = 'news-card' + (n.urgent ? ' urgent' : '') + (isFeatured ? ' featured' : '');
       card.style.setProperty('--cat-color', meta.color);
       const priceHTML = n.priceVal ? `
@@ -542,7 +574,12 @@
   // Load from API
   fetch('/api/actus')
     .then(r => r.json())
-    .then(data => { NEWS = data; buildFilters(); renderNews(); })
+    .then(data => {
+      NEWS = Array.isArray(data) ? data.map(normalizeEntry) : [];
+      document.querySelector('.hero-bell-badge').textContent = String(NEWS.length);
+      buildFilters();
+      renderNews();
+    })
     .catch(() => { newsList.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94A3B8;">Données temporairement indisponibles</div>'; });
 
   // Share

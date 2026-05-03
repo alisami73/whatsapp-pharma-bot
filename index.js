@@ -7,6 +7,7 @@ const twilio = require('twilio');
 const adminRoutes = require('./admin_routes');
 const storage = require('./storage');
 const twilioService = require('./twilio_service');
+const stockAlerts = require('./modules/stock_alerts');
 
 // Modules métier
 const medindex = require('./modules/medindex');
@@ -24,13 +25,23 @@ const { appendTextFooter, sendAIResponseWithFooter } = require('./modules/shared
 const explorer     = require('./modules/explorer');
 const answerPages  = require('./modules/answer_pages');
 const { buildPublicSiteUrl, appendLangQuery } = require('./modules/public_site');
+const identityService = require('./modules/identity_service');
+const signedLinkService = require('./modules/signed_link_service');
 
 const app = express();
+app.set('trust proxy', true);
+
 const PORT = Number(process.env.PORT) || 3000;
 const { MessagingResponse } = twilio.twiml;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PUBLIC_SITE_DIR = path.join(PUBLIC_DIR, 'site');
 const ANSWERS_DIR = path.join(PUBLIC_DIR, 'answers');
+const STOCK_ALERT_PAGES = {
+  preferences: path.join(PUBLIC_SITE_DIR, 'preferences', 'stock-alerts.html'),
+  laboratoryRegister: path.join(PUBLIC_SITE_DIR, 'laboratory', 'register.html'),
+  wholesalerRegister: path.join(PUBLIC_SITE_DIR, 'wholesaler', 'register.html'),
+  supplierAlertsNew: path.join(PUBLIC_SITE_DIR, 'supplier', 'alerts-new.html'),
+};
 
 const STATES = {
   AWAITING_LANGUAGE: 'awaiting_language',              // Écran 1 — sélection langue
@@ -58,6 +69,43 @@ const STATES = {
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+function isLocalHost(host = '') {
+  return /^(localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?$/i.test(String(host || '').trim());
+}
+
+function shouldRedirectToHttps(req) {
+  if (process.env.NODE_ENV !== 'production') return false;
+  if (req.secure) return false;
+
+  const host = String(req.headers.host || '').trim().toLowerCase();
+  if (!host || isLocalHost(host) || host.endsWith('.railway.internal')) return false;
+  if (req.path === '/health' || req.path === '/api/health') return false;
+
+  return true;
+}
+
+function enforceHttps(req, res, next) {
+  if (shouldRedirectToHttps(req)) {
+    const host = String(req.headers.host || '').trim().replace(/:80$/, '');
+    return res.redirect(301, `https://${host}${req.originalUrl}`);
+  }
+
+  if (req.secure) {
+    res.set('Strict-Transport-Security', 'max-age=31536000');
+  }
+
+  next();
+}
+
+app.locals.httpsRedirect = {
+  isLocalHost,
+  shouldRedirectToHttps,
+  enforceHttps,
+};
+
+app.use(enforceHttps);
+
 app.use('/public', express.static(PUBLIC_DIR));
 app.get('/site/data&cndp.html', (req, res) => {
   const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
@@ -71,14 +119,244 @@ app.use('/admin', adminRoutes);
 // this redirects to the real site so both iOS and Android work.
 app.get('/go/medindex', (_req, res) => res.redirect(302, 'https://medindex.ma'));
 
-// Public actus endpoint — no auth, only published items
-app.get('/api/actus', async (req, res) => {
+function readJsonBody(req) {
+  return req && req.body && typeof req.body === 'object' ? req.body : {};
+}
+
+function getRequestMetadata(req) {
+  return {
+    ip_address: req.ip || req.headers['x-forwarded-for'] || null,
+    user_agent: req.get('user-agent') || null,
+  };
+}
+
+async function readManualActus() {
   const fs = require('fs').promises;
-  const path = require('path');
   try {
     const raw = await fs.readFile(path.join(__dirname, 'data', 'actus.json'), 'utf8');
-    const all = JSON.parse(raw);
-    res.json(all.filter(a => a.published !== false));
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function sendPublicPage(filePath) {
+  return (_req, res) => {
+    res.sendFile(filePath);
+  };
+}
+
+function sendPortalPageShell(filePath, kind, cookieName) {
+  return async (req, res, next) => {
+    try {
+      const tokenState = stockAlerts.redirectIfPortalTokenConsumed(req, res, kind, cookieName);
+      if (tokenState && tokenState.redirect) {
+        return res.redirect(302, tokenState.redirect);
+      }
+      return res.sendFile(filePath);
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+app.get('/preferences/stock-alerts', sendPortalPageShell(
+  STOCK_ALERT_PAGES.preferences,
+  'pharmacist',
+  stockAlerts.PHARMACIST_COOKIE,
+));
+app.get('/laboratory/register', sendPortalPageShell(
+  STOCK_ALERT_PAGES.laboratoryRegister,
+  'supplier',
+  stockAlerts.SUPPLIER_COOKIE,
+));
+app.get('/wholesaler/register', sendPortalPageShell(
+  STOCK_ALERT_PAGES.wholesalerRegister,
+  'supplier',
+  stockAlerts.SUPPLIER_COOKIE,
+));
+app.get('/supplier/alerts/new', sendPortalPageShell(
+  STOCK_ALERT_PAGES.supplierAlertsNew,
+  'supplier',
+  stockAlerts.SUPPLIER_COOKIE,
+));
+
+app.get('/preferences/stock-alerts.html', sendPublicPage(STOCK_ALERT_PAGES.preferences));
+app.get('/laboratory/register.html', sendPublicPage(STOCK_ALERT_PAGES.laboratoryRegister));
+app.get('/wholesaler/register.html', sendPublicPage(STOCK_ALERT_PAGES.wholesalerRegister));
+app.get('/supplier/alerts/new.html', sendPublicPage(STOCK_ALERT_PAGES.supplierAlertsNew));
+
+app.get('/api/stock-alerts/templates', async (req, res, next) => {
+  try {
+    res.json({
+      categories: stockAlerts.ALERT_CATEGORIES,
+      templates: stockAlerts.getTemplateRegistry(),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get(
+  '/api/stock-alerts/preferences',
+  stockAlerts.requirePortalAuth('pharmacist', stockAlerts.PHARMACIST_COOKIE),
+  async (req, res, next) => {
+    try {
+      res.json(await stockAlerts.buildPharmacistPreferencesPayload(req.stockAlertsAuth));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post(
+  '/api/stock-alerts/preferences',
+  stockAlerts.requirePortalAuth('pharmacist', stockAlerts.PHARMACIST_COOKIE),
+  async (req, res, next) => {
+    try {
+      const body = readJsonBody(req);
+      const preferences = await stockAlerts.upsertPharmacistPreferences(
+        req.stockAlertsAuth,
+        body.preferences || body.selections || [],
+        {
+          consent_text_version: body.consent_text_version || undefined,
+          ...getRequestMetadata(req),
+        },
+      );
+      res.json({
+        ok: true,
+        preferences,
+        consent_text_version: body.consent_text_version || null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post('/api/stock-alerts/laboratories/register', async (req, res, next) => {
+  try {
+    const body = readJsonBody(req);
+    const result = await stockAlerts.registerOrganization({
+      ...body,
+      organization_type: 'laboratory',
+      source_type: 'laboratory',
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/stock-alerts/wholesalers/register', async (req, res, next) => {
+  try {
+    const body = readJsonBody(req);
+    const result = await stockAlerts.registerOrganization({
+      ...body,
+      organization_type: 'wholesaler',
+      source_type: 'wholesaler',
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get(
+  '/api/stock-alerts/supplier/context',
+  stockAlerts.requirePortalAuth('supplier', stockAlerts.SUPPLIER_COOKIE),
+  async (req, res, next) => {
+    try {
+      const auth = req.stockAlertsAuth;
+      const [products, uploads, alerts] = await Promise.all([
+        stockAlerts.listSupplierProducts({ organization_id: auth.organization.id }),
+        stockAlerts.listUploadedFiles({ organization_id: auth.organization.id }),
+        stockAlerts.listStockAlerts({ source_id: auth.organization.id }),
+      ]);
+      res.json({
+        organization: auth.organization,
+        user: auth.user,
+        templates: stockAlerts.getTemplateRegistry(),
+        categories: stockAlerts.ALERT_CATEGORIES,
+        products,
+        uploads,
+        alerts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.get(
+  '/api/stock-alerts/supplier/medindex/search',
+  stockAlerts.requirePortalAuth('supplier', stockAlerts.SUPPLIER_COOKIE),
+  async (req, res, next) => {
+    try {
+      const query = String(req.query.q || '').trim();
+      if (!query) {
+        return res.status(400).json({ error: 'q is required' });
+      }
+      res.json({
+        query,
+        results: await medindex.searchMedication(query),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post(
+  '/api/stock-alerts/supplier/products/manual',
+  stockAlerts.requirePortalAuth('supplier', stockAlerts.SUPPLIER_COOKIE),
+  async (req, res, next) => {
+    try {
+      const body = readJsonBody(req);
+      const created = await stockAlerts.addManualSupplierProducts(
+        req.stockAlertsAuth,
+        body.products || [],
+      );
+      res.status(201).json({ ok: true, products: created });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post(
+  '/api/stock-alerts/supplier/products/upload',
+  stockAlerts.requirePortalAuth('supplier', stockAlerts.SUPPLIER_COOKIE),
+  async (req, res, next) => {
+    try {
+      const body = readJsonBody(req);
+      const result = await stockAlerts.uploadSupplierProductText(req.stockAlertsAuth, body);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post(
+  '/api/stock-alerts/supplier/alerts',
+  stockAlerts.requirePortalAuth('supplier', stockAlerts.SUPPLIER_COOKIE),
+  async (req, res, next) => {
+    try {
+      const result = await stockAlerts.createStockAlert(req.stockAlertsAuth, readJsonBody(req));
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Public actus endpoint — no auth, only published items
+app.get('/api/actus', async (req, res) => {
+  try {
+    const manualActus = await readManualActus();
+    const mergedActus = await stockAlerts.buildPublicActuEntries(manualActus);
+    res.json(mergedActus.filter((entry) => entry.published !== false));
   } catch {
     res.json([]);
   }
@@ -763,14 +1041,14 @@ async function respondWithThemeMenu(response, user, theme, prefix = '') {
   response.message(prefix ? `${prefix}\n\n${menu}` : menu);
 }
 
-async function handleThemeSelection(response, user, theme) {
+async function handleThemeSelection(response, user, theme, identity = null) {
   if (!theme) {
     await respondWithMainMenu(response, user, 'Selection invalide.');
     return;
   }
 
   if (theme.module_type !== 'knowledge_base') {
-    await startThemePrimaryAction(response, user, theme);
+    await startThemePrimaryAction(response, user, theme, identity);
     return;
   }
 
@@ -791,7 +1069,7 @@ async function handleAuthSelection(response, user, theme, selectedIndex) {
   await respondWithThemeMenu(response, user, theme, 'Choix invalide.');
 }
 
-async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
+async function handleThemeMenuSelection(response, user, theme, selectedIndex, identity = null) {
   if (theme.requires_auth && !user.authenticated) {
     await handleAuthSelection(response, user, theme, selectedIndex);
     return;
@@ -813,7 +1091,7 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
   }
 
   if (action === 'ask_question') {
-    await startThemePrimaryAction(response, user, theme);
+    await startThemePrimaryAction(response, user, theme, identity);
     return;
   }
 
@@ -843,7 +1121,7 @@ async function handleThemeMenuSelection(response, user, theme, selectedIndex) {
   await respondWithMainMenu(response, user);
 }
 
-async function startThemePrimaryAction(response, user, theme) {
+async function startThemePrimaryAction(response, user, theme, identity = null) {
   console.log('[startThemePrimaryAction]', theme ? theme.id : 'null', 'module_type:', theme && theme.module_type, 'requires_auth:', theme && theme.requires_auth, 'authenticated:', user.authenticated);
   if (!theme) {
     await respondWithMainMenu(response, user, 'Theme introuvable.');
@@ -865,7 +1143,10 @@ async function startThemePrimaryAction(response, user, theme) {
   if (theme.id === 'software') {
     const lang = getUserLang(user);
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-    response.message(`💎 Blink Premium\n\n${buildPublicPageUrl('/', lang)}`);
+    const premiumUrl = identity
+      ? signedLinkService.createSignedUserLink(identity, { source: 'whatsapp', campaign: 'software', redirect: buildPublicPageUrl('/', lang) })
+      : buildPublicPageUrl('/', lang);
+    response.message(`💎 Blink Premium\n\n${premiumUrl}`);
     return;
   }
 
@@ -894,14 +1175,17 @@ async function startThemePrimaryAction(response, user, theme) {
 
   // FSE, Conformité, Actualités → open web page (in-app browser)
   const lang = getUserLang(user);
-  const WEB_THEME_URLS = {
+  const WEB_THEME_PATHS = {
     fse:                      buildPublicPageUrl('/fse.html', lang),
     conformites:              buildPublicPageUrl('/conformite.html', lang),
     'nouveautes-medicaments': buildPublicPageUrl('/actu.html', lang),
   };
-  if (WEB_THEME_URLS[theme.id]) {
+  if (WEB_THEME_PATHS[theme.id]) {
     await storage.saveUser({ ...user, current_state: STATES.BROWSING_EXPLORER_CAROUSEL, current_theme: null });
-    response.message(`${theme.title || theme.id}\n\n${WEB_THEME_URLS[theme.id]}`);
+    const themeUrl = identity
+      ? signedLinkService.createSignedUserLink(identity, { source: 'whatsapp', campaign: theme.id, redirect: WEB_THEME_PATHS[theme.id] })
+      : WEB_THEME_PATHS[theme.id];
+    response.message(`${theme.title || theme.id}\n\n${themeUrl}`);
     return;
   }
 
@@ -1148,6 +1432,20 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       response.message("Requete invalide. Numero d'utilisateur introuvable.");
       res.type('text/xml').status(400).send(response.toString());
       return;
+    }
+
+    // Identification consentie — résolu une fois, partagé dans tout le flux
+    let _identity = null;
+    if (identityService.isEnabled()) {
+      try {
+        _identity = await identityService.findOrCreateUserFromWhatsApp({
+          From: req.body.From,
+          WaId: req.body.WaId,
+          ProfileName: req.body.ProfileName,
+        });
+      } catch (err) {
+        console.error('[identity] webhook error:', err.message);
+      }
     }
 
     // ── Flux SAV / Contact web — email + accusé, puis comportement selon l'origine ─
@@ -1608,14 +1906,14 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
     console.log('[flow] payloadTheme:', payloadTheme ? payloadTheme.id : null, '| textTheme:', textTheme ? textTheme.id : null, '| state:', user.current_state, '| currentTheme:', user.current_theme);
     if (payloadTheme) {
       console.log('[flow] → startThemePrimaryAction via payload:', payloadTheme.id);
-      await startThemePrimaryAction(response, user, payloadTheme);
+      await startThemePrimaryAction(response, user, payloadTheme, _identity);
       res.type('text/xml').send(response.toString());
       return;
     }
 
     // Text-based theme match → only when not already in a theme
     if (textTheme && !currentTheme) {
-      await startThemePrimaryAction(response, user, textTheme);
+      await startThemePrimaryAction(response, user, textTheme, _identity);
       res.type('text/xml').send(response.toString());
       return;
     }
@@ -1634,9 +1932,9 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
       const selectedIndex = Number(context.normalizedMessage) - 1;
 
       if (user.current_theme && currentTheme) {
-        await handleThemeMenuSelection(response, user, currentTheme, selectedIndex);
+        await handleThemeMenuSelection(response, user, currentTheme, selectedIndex, _identity);
       } else {
-        await handleThemeSelection(response, user, activeThemes[selectedIndex]);
+        await handleThemeSelection(response, user, activeThemes[selectedIndex], _identity);
       }
 
       res.type('text/xml').send(response.toString());
@@ -1761,9 +2059,187 @@ async function handleIncomingWhatsappWebhook(req, res, next) {
   }
 }
 
-app.post('/webhook/whatsapp', handleIncomingWhatsappWebhook);
-app.post('/webhooks/twilio/whatsapp', handleIncomingWhatsappWebhook);
-app.post('/webhooks/twilio/whatsapp/fallback', handleIncomingWhatsappWebhook);
+async function syncProfessionalStopOptOut(req) {
+  const bodyText = String(req.body && req.body.Body ? req.body.Body : '').trim().toLowerCase();
+  if (bodyText !== 'stop') {
+    return null;
+  }
+
+  const phone = twilioService.normalizeWhatsAppAddress(
+    (req.body && (req.body.From || req.body.WaId)) || '',
+  );
+
+  try {
+    return await stockAlerts.handleStopOptOut(phone, getRequestMetadata(req));
+  } catch (error) {
+    if (error && error.code !== 'SUPABASE_NOT_CONFIGURED' && error.code !== 'MISSING_STOCK_ALERT_TABLES') {
+      console.warn('[stock-alerts:stop-sync]', error.message);
+    }
+    return null;
+  }
+}
+
+async function handleIncomingWhatsappWebhookWithProfessionalSync(req, res, next) {
+  try {
+    await syncProfessionalStopOptOut(req);
+  } catch {}
+  return handleIncomingWhatsappWebhook(req, res, next);
+}
+
+app.post('/webhook/whatsapp', handleIncomingWhatsappWebhookWithProfessionalSync);
+app.post('/webhooks/twilio/whatsapp', handleIncomingWhatsappWebhookWithProfessionalSync);
+app.post('/webhooks/twilio/whatsapp/fallback', handleIncomingWhatsappWebhookWithProfessionalSync);
+
+// ── Identification consentie : entrée web depuis WhatsApp ─────────────────────
+app.get('/w/entry', async (req, res) => {
+  const { createClient } = require('@supabase/supabase-js');
+  const COOKIE_SID  = process.env.TRACKING_SESSION_COOKIE_NAME || 'blink_sid';
+  const COOKIE_UID  = process.env.TRACKING_COOKIE_NAME || 'blink_uid';
+  const TTL_MS      = parseInt(process.env.TRACKING_TOKEN_TTL_MINUTES || '10080', 10) * 60 * 1000;
+
+  const token = String(req.query.token || '').trim();
+  if (!token) return res.redirect('/');
+
+  const payload = signedLinkService.verifySignedUserToken(token);
+  if (!payload) {
+    return res.status(400).send('<p>Lien expiré ou invalide. Veuillez relancer le bot WhatsApp.</p>');
+  }
+
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supaUrl || !supaKey) return res.redirect(payload.redirect || '/');
+
+  const db = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
+  const identityService = require('./modules/identity_service');
+
+  // Créer la session
+  const sessionTokenRaw = require('crypto').randomBytes(32).toString('hex');
+  const sessionTokenHash = require('crypto').createHmac('sha256', process.env.USER_LINK_SIGNING_SECRET || 'fallback')
+    .update(sessionTokenRaw).digest('hex');
+  const expiresAt = new Date(Date.now() + TTL_MS).toISOString();
+  const ipHash = identityService.hashIp(req.ip);
+
+  const { data: session } = await db.from('user_sessions').insert({
+    user_id: payload.user_id,
+    session_token_hash: sessionTokenHash,
+    source: payload.source || 'whatsapp',
+    campaign: payload.campaign || null,
+    landing_url: payload.redirect || null,
+    user_agent: req.get('user-agent') || null,
+    ip_hash: ipHash,
+    expires_at: expiresAt,
+  }).select().single();
+
+  if (session) {
+    // Enregistrer la visite initiale
+    const redirectUrl = payload.redirect || '/';
+    await db.from('user_visits').insert({
+      user_id: payload.user_id,
+      session_id: session.id,
+      page_url: redirectUrl,
+      referrer: req.get('referer') || null,
+      source: payload.source || 'whatsapp',
+      campaign: payload.campaign || null,
+      user_agent: req.get('user-agent') || null,
+      ip_hash: ipHash,
+    }).catch(() => {});
+
+    const cookieOpts = { httpOnly: true, secure: true, sameSite: 'lax', maxAge: TTL_MS };
+    res.cookie(COOKIE_SID, sessionTokenRaw, cookieOpts);
+    res.cookie(COOKIE_UID, payload.user_id, { ...cookieOpts, httpOnly: false });
+  }
+
+  res.redirect(payload.redirect || '/');
+});
+
+// ── Tracking API ───────────────────────────────────────────────────────────────
+async function _resolveTrackingSession(req) {
+  const { createClient } = require('@supabase/supabase-js');
+  const COOKIE_SID = process.env.TRACKING_SESSION_COOKIE_NAME || 'blink_sid';
+  const sessionToken = req.cookies && req.cookies[COOKIE_SID];
+  if (!sessionToken) return null;
+
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supaUrl || !supaKey) return null;
+
+  const db = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
+  const tokenHash = require('crypto').createHmac('sha256', process.env.USER_LINK_SIGNING_SECRET || 'fallback')
+    .update(sessionToken).digest('hex');
+
+  const { data: session } = await db.from('user_sessions')
+    .select('id, user_id, source, campaign')
+    .eq('session_token_hash', tokenHash)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  return session || null;
+}
+
+app.use(require('cookie-parser')());
+
+app.post('/api/track/page-view', async (req, res) => {
+  try {
+    const session = await _resolveTrackingSession(req);
+    if (!session) return res.status(401).json({ ok: false, error: 'no_session' });
+
+    // Vérifier consentement
+    const user = await identityService.getUserById(session.user_id);
+    if (!user || user.consent_status === 'refused' || user.consent_status === 'revoked') {
+      return res.json({ ok: false, skipped: 'no_consent' });
+    }
+
+    const { createClient } = require('@supabase/supabase-js');
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+    const ipHash = identityService.hashIp(req.ip);
+
+    await db.from('user_visits').insert({
+      user_id: session.user_id,
+      session_id: session.id,
+      page_url: String(req.body.page_url || req.body.url || '').slice(0, 2048),
+      referrer: String(req.body.referrer || '').slice(0, 2048) || null,
+      source: session.source || 'whatsapp',
+      campaign: session.campaign || null,
+      user_agent: req.get('user-agent') || null,
+      ip_hash: ipHash,
+      metadata: req.body.metadata || {},
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[track/page-view]', err.message);
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/track/event', async (req, res) => {
+  try {
+    const session = await _resolveTrackingSession(req);
+    if (!session) return res.status(401).json({ ok: false, error: 'no_session' });
+
+    const user = await identityService.getUserById(session.user_id);
+    if (!user || user.consent_status === 'refused' || user.consent_status === 'revoked') {
+      return res.json({ ok: false, skipped: 'no_consent' });
+    }
+
+    const eventName = String(req.body.event_name || req.body.event || '').trim();
+    if (!eventName) return res.status(400).json({ ok: false, error: 'event_name required' });
+
+    const { createClient } = require('@supabase/supabase-js');
+    const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+
+    await db.from('user_events').insert({
+      user_id: session.user_id,
+      session_id: session.id,
+      event_name: eventName,
+      event_data: req.body.event_data || req.body.data || {},
+      page_url: String(req.body.page_url || '').slice(0, 2048) || null,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[track/event]', err.message);
+    res.status(500).json({ ok: false });
+  }
+});
 
 app.post('/webhook/twilio/status', async (req, res, next) => {
   try {
@@ -1780,6 +2256,19 @@ app.post('/webhook/twilio/status', async (req, res, next) => {
     };
 
     if (messageSid) {
+      try {
+        await stockAlerts.handleStatusCallback(messageSid, messageStatus, {
+          callback_to: req.body.To || null,
+          callback_from: req.body.From || null,
+          error_code: req.body.ErrorCode || null,
+          error_message: req.body.ErrorMessage || null,
+        });
+      } catch (error) {
+        if (error && error.code !== 'SUPABASE_NOT_CONFIGURED' && error.code !== 'MISSING_STOCK_ALERT_TABLES') {
+          console.warn('[stock-alerts:status-callback]', error.message);
+        }
+      }
+
       const updatedLog = await storage.updateMessageLogByProviderSid(
         messageSid,
         updatePayload,

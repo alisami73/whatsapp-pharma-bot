@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identités — Admin</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+    <style>
+      .filter-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px; }
+      .filter-bar label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+      .filter-bar .input { padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--surface); color:var(--text); }
+      .id-table { width:100%; border-collapse:collapse; font-size:13px; }
+      .id-table th { text-align:left; padding:10px 12px; border-bottom:2px solid var(--border); color:var(--muted); font-weight:600; white-space:nowrap; }
+      .id-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+      .id-table tr:hover td { background:var(--info-soft); }
+      .badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+      .badge-accepted { background:#d1fae5; color:#065f46; }
+      .badge-refused, .badge-revoked { background:#fee2e2; color:#991b1b; }
+      .badge-unknown { background:#f3f4f6; color:#6b7280; }
+      .hash-cell { font-family:monospace; font-size:11px; color:var(--muted); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .date-cell { white-space:nowrap; font-size:12px; color:var(--muted); }
+      .stat-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+      .stat-card { flex:1; min-width:120px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; }
+      .stat-card .stat-val { font-size:28px; font-weight:700; color:var(--accent); }
+      .stat-card .stat-lbl { font-size:12px; color:var(--muted); margin-top:2px; }
+      .detail-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; margin-top:20px; }
+      .timeline-item { padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+      .timeline-item:last-child { border-bottom:none; }
+      .tl-date { font-size:11px; color:var(--muted); }
+      .tl-label { font-weight:600; margin-bottom:2px; }
+      .tl-meta { font-size:12px; color:var(--muted); font-family:monospace; word-break:break-all; }
+      .empty-state { text-align:center; padding:48px; color:var(--muted); }
+    </style>
+  </head>
+  <body>
+  <script src="/admin/auth-guard.js"></script>
+  <script src="/admin/sidebar.js" data-page="identity"></script>
+  <div class="shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Administration</p>
+        <h1>Identités Utilisateurs</h1>
+        <p class="subtitle">Utilisateurs identifiés via WhatsApp — visites et événements traçables. Le numéro n'est jamais affiché.</p>
+      </div>
+      <div class="header-actions">
+        <a class="button button-primary" href="/admin">Accueil</a>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stat-row" id="statRow">
+      <div class="stat-card"><div class="stat-val" id="statTotal">–</div><div class="stat-lbl">Utilisateurs identifiés</div></div>
+      <div class="stat-card"><div class="stat-val" id="statAccepted">–</div><div class="stat-lbl">Consentement accepté</div></div>
+      <div class="stat-card"><div class="stat-val" id="statToday">–</div><div class="stat-lbl">Vus aujourd'hui</div></div>
+      <div class="stat-card"><div class="stat-val" id="statVisits">–</div><div class="stat-lbl">Visites totales</div></div>
+    </div>
+
+    <!-- Filtres -->
+    <section class="panel" style="margin-bottom:20px;">
+      <div class="filter-bar">
+        <label>Recherche (phone_hash ou UUID)
+          <input class="input" id="filterSearch" type="text" placeholder="hash ou uuid…" style="width:280px;" />
+        </label>
+        <label>Consentement
+          <select class="input" id="filterConsent" style="width:160px;">
+            <option value="">Tous</option>
+            <option value="accepted">Accepté</option>
+            <option value="refused">Refusé</option>
+            <option value="revoked">Révoqué</option>
+            <option value="unknown">Inconnu</option>
+          </select>
+        </label>
+        <label>&nbsp;
+          <button class="button button-primary" id="searchBtn" type="button">Rechercher</button>
+        </label>
+        <label>&nbsp;
+          <button class="button" id="resetBtn" type="button">Réinitialiser</button>
+        </label>
+      </div>
+    </section>
+
+    <!-- Table utilisateurs -->
+    <section class="panel" style="margin-bottom:20px;">
+      <div id="tableWrap" style="overflow-x:auto;">
+        <p style="color:var(--muted);">Chargement...</p>
+      </div>
+    </section>
+
+    <!-- Fiche utilisateur -->
+    <div id="detailWrap" style="display:none;">
+      <div class="detail-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="margin:0;" id="detailTitle">Fiche utilisateur</h2>
+          <button class="button" id="closeDetail" type="button">Fermer</button>
+        </div>
+        <div id="detailContent"></div>
+        <h3 style="margin:20px 0 10px;">Visites</h3>
+        <div id="detailVisits"></div>
+        <h3 style="margin:20px 0 10px;">Événements</h3>
+        <div id="detailEvents"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allUsers = [];
+    let filtered = [];
+
+    async function load() {
+      try {
+        const [usersRes, statsRes] = await Promise.all([
+          fetch('/admin/api/identity/users?limit=500'),
+          fetch('/admin/api/identity/stats'),
+        ]);
+        const usersData = await usersRes.json();
+        const statsData = await statsRes.json();
+
+        allUsers = usersData.users || [];
+        document.getElementById('statTotal').textContent = statsData.total_users || allUsers.length;
+        document.getElementById('statAccepted').textContent = statsData.accepted_consent || 0;
+        document.getElementById('statToday').textContent = statsData.seen_today || 0;
+        document.getElementById('statVisits').textContent = statsData.total_visits || '–';
+
+        filtered = allUsers;
+        renderTable();
+      } catch (e) {
+        document.getElementById('tableWrap').innerHTML = '<p style="color:var(--danger);">Erreur de chargement. Tables Supabase créées ?</p>';
+      }
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('filterSearch').value.trim().toLowerCase();
+      const consent = document.getElementById('filterConsent').value;
+      filtered = allUsers.filter(u => {
+        if (consent && u.consent_status !== consent) return false;
+        if (search && !u.id.toLowerCase().includes(search) && !u.phone_hash.toLowerCase().includes(search)) return false;
+        return true;
+      });
+      renderTable();
+    }
+
+    function renderTable() {
+      if (!filtered.length) {
+        document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Aucun utilisateur trouvé.</div>';
+        return;
+      }
+      const rows = filtered.map(u => {
+        const date = u.last_seen_at ? new Date(u.last_seen_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '–';
+        const badge = `<span class="badge badge-${u.consent_status}">${u.consent_status}</span>`;
+        const name = u.profile_name ? esc(u.profile_name) : '<span style="color:var(--muted)">—</span>';
+        return `<tr>
+          <td class="hash-cell" title="${esc(u.id)}">${esc(u.id.slice(0,8))}…</td>
+          <td class="hash-cell" title="${esc(u.phone_hash)}">${esc(u.phone_hash.slice(0,12))}…</td>
+          <td>${name}</td>
+          <td>${badge}</td>
+          <td class="date-cell">${date}</td>
+          <td><button class="button" style="padding:4px 10px;font-size:12px;" onclick="openDetail('${esc(u.id)}')">Voir</button></td>
+        </tr>`;
+      }).join('');
+      document.getElementById('tableWrap').innerHTML = `
+        <table class="id-table">
+          <thead><tr><th>UUID</th><th>Phone hash</th><th>Nom</th><th>Consentement</th><th>Dernière vue</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    async function openDetail(userId) {
+      document.getElementById('detailWrap').style.display = 'block';
+      document.getElementById('detailTitle').textContent = 'Fiche — ' + userId.slice(0, 8) + '…';
+      document.getElementById('detailContent').innerHTML = '<p>Chargement…</p>';
+      document.getElementById('detailVisits').innerHTML = '<p>Chargement…</p>';
+      document.getElementById('detailEvents').innerHTML = '<p>Chargement…</p>';
+
+      const [userRes, visitsRes, eventsRes] = await Promise.all([
+        fetch('/admin/api/identity/users/' + encodeURIComponent(userId)),
+        fetch('/admin/api/identity/users/' + encodeURIComponent(userId) + '/visits'),
+        fetch('/admin/api/identity/users/' + encodeURIComponent(userId) + '/events'),
+      ]);
+      const u = await userRes.json();
+      const visits = await visitsRes.json();
+      const events = await eventsRes.json();
+
+      document.getElementById('detailContent').innerHTML = `
+        <table style="font-size:13px;border-collapse:collapse;width:100%;">
+          <tr><td style="padding:4px 8px;color:var(--muted);width:160px;">UUID</td><td style="font-family:monospace;">${esc(u.id||'')}</td></tr>
+          <tr><td style="padding:4px 8px;color:var(--muted);">Phone hash</td><td style="font-family:monospace;">${esc(u.phone_hash||'')}</td></tr>
+          <tr><td style="padding:4px 8px;color:var(--muted);">Nom WhatsApp</td><td>${esc(u.profile_name||'—')}</td></tr>
+          <tr><td style="padding:4px 8px;color:var(--muted);">Consentement</td><td><span class="badge badge-${u.consent_status}">${esc(u.consent_status||'')}</span></td></tr>
+          <tr><td style="padding:4px 8px;color:var(--muted);">Première vue</td><td>${u.first_seen_at ? new Date(u.first_seen_at).toLocaleString('fr-FR') : '—'}</td></tr>
+          <tr><td style="padding:4px 8px;color:var(--muted);">Dernière vue</td><td>${u.last_seen_at ? new Date(u.last_seen_at).toLocaleString('fr-FR') : '—'}</td></tr>
+        </table>`;
+
+      const visitItems = (visits.visits || []).map(v => `
+        <div class="timeline-item">
+          <div class="tl-date">${v.visited_at ? new Date(v.visited_at).toLocaleString('fr-FR') : '—'}</div>
+          <div class="tl-label">${esc(v.page_url||'')}</div>
+          <div class="tl-meta">source: ${esc(v.source||'—')} | campaign: ${esc(v.campaign||'—')}</div>
+        </div>`).join('');
+      document.getElementById('detailVisits').innerHTML = visitItems || '<p style="color:var(--muted);">Aucune visite.</p>';
+
+      const eventItems = (events.events || []).map(e => `
+        <div class="timeline-item">
+          <div class="tl-date">${e.created_at ? new Date(e.created_at).toLocaleString('fr-FR') : '—'}</div>
+          <div class="tl-label">${esc(e.event_name||'')}</div>
+          <div class="tl-meta">${esc(JSON.stringify(e.event_data||{}))}</div>
+        </div>`).join('');
+      document.getElementById('detailEvents').innerHTML = eventItems || '<p style="color:var(--muted);">Aucun événement.</p>';
+
+      document.getElementById('detailWrap').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function esc(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', applyFilters);
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('filterSearch').value = '';
+      document.getElementById('filterConsent').value = '';
+      filtered = allUsers; renderTable();
+    });
+    document.getElementById('closeDetail').addEventListener('click', () => {
+      document.getElementById('detailWrap').style.display = 'none';
+    });
+
+    load();
+  </script>
+  </body>
+</html>
