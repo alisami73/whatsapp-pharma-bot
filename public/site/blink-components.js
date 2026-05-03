@@ -70,10 +70,12 @@ function injectNavbar(activePage) {
   const homeHref = lq('/');
 
   const links = [
-    { label: t ? t.nav_home     : 'Accueil',          href: homeHref,           id: 'home' },
-    { label: t ? t.nav_features : 'Fonctionnalités',  href: lq('premium.html'), id: 'premium' },
-    { label: (t && t.nav_actu) ? t.nav_actu : 'Actu', href: lq('actu.html'),    id: 'actu' },
-    { label: t ? t.nav_contact  : 'Contact',          href: lq('contact.html'), id: 'contact' },
+    { label: t ? t.nav_home        : 'Accueil',          href: homeHref,              id: 'home' },
+    { label: t ? t.nav_features    : 'Fonctionnalités',  href: lq('premium.html'),    id: 'premium' },
+    { label: (t && t.nav_fse)      ? t.nav_fse      : 'FSE CNSS',   href: lq('fse.html'),        id: 'fse' },
+    { label: (t && t.nav_conformite) ? t.nav_conformite : 'Conformité', href: lq('conformite.html'), id: 'conformite' },
+    { label: (t && t.nav_actu)     ? t.nav_actu     : 'Actu',       href: lq('actu.html'),       id: 'actu' },
+    { label: t ? t.nav_contact     : 'Contact',          href: lq('contact.html'),    id: 'contact' },
   ];
   const ctaLabel = t ? t.nav_cta : 'Demander une démo';
 
@@ -165,6 +167,8 @@ function injectFooter() {
         <ul>
           <li><a href="${homeHref}">${t ? t.nav_home : 'Accueil'}</a></li>
           <li><a href="${lq('premium.html')}">${t ? t.nav_features : 'Fonctionnalités'}</a></li>
+          <li><a href="${lq('fse.html')}">${(t && t.nav_fse) ? t.nav_fse : 'FSE CNSS'}</a></li>
+          <li><a href="${lq('conformite.html')}">${(t && t.nav_conformite) ? t.nav_conformite : 'Conformité'}</a></li>
           <li><a href="${lq('contact.html')}">${t ? t.nav_contact : 'Contact'}</a></li>
           <li><a href="${lq('contact.html')}">${ft.navCta}</a></li>
         </ul>

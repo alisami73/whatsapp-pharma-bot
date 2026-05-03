@@ -67,7 +67,7 @@
   // ─── UI STRINGS ──────────────────────────────────────────────────────────
   const UI = {
     fr: {
-      nav_home:"Accueil", nav_features:"Fonctionnalités", nav_contact:"Contact", nav_cta:"Demander une démo",
+      nav_home:"Accueil", nav_features:"Fonctionnalités", nav_fse:"FSE CNSS", nav_conformite:"Conformité", nav_contact:"Contact", nav_cta:"Demander une démo",
       hero_badge:"Nouveau · Blink Premium 2025",
       hero_h1a:"La gestion de votre pharmacie,", hero_h1b:"réinventée.",
       hero_sub:"Blink Premium modernise chaque aspect de votre quotidien, de la vente au stock, en passant par vos fournisseurs.",
@@ -117,7 +117,7 @@
       dir:"ltr",
     },
     ar: {
-      nav_home:"الرئيسية", nav_features:"الميزات", nav_contact:"اتصل بنا", nav_cta:"طلب عرض توضيحي",
+      nav_home:"الرئيسية", nav_features:"الميزات", nav_fse:"FSE CNSS", nav_conformite:"الامتثال", nav_contact:"اتصل بنا", nav_cta:"طلب عرض توضيحي",
       hero_badge:"جديد · بلينك بريميوم 2025",
       hero_h1a:"إدارة صيدليتك،", hero_h1b:"بشكل مُعاد ابتكاره.",
       hero_sub:"بلينك بريميوم يُحدّث كل جانب من جوانب يومك، من المبيعات إلى المخزون ومورديك.",
@@ -164,7 +164,7 @@
       dir:"rtl",
     },
     es: {
-      nav_home:"Inicio", nav_features:"Funcionalidades", nav_contact:"Contacto", nav_cta:"Solicitar una demo",
+      nav_home:"Inicio", nav_features:"Funcionalidades", nav_fse:"FSE CNSS", nav_conformite:"Conformidad", nav_contact:"Contacto", nav_cta:"Solicitar una demo",
       hero_badge:"Nuevo · Blink Premium 2025",
       hero_h1a:"La gestión de tu farmacia,", hero_h1b:"reinventada.",
       hero_sub:"Blink Premium moderniza cada aspecto de tu día a día, desde las ventas hasta el stock y tus proveedores.",
@@ -211,7 +211,7 @@
       dir:"ltr",
     },
     ru: {
-      nav_home:"Главная", nav_features:"Функции", nav_contact:"Контакты", nav_cta:"Запросить демо",
+      nav_home:"Главная", nav_features:"Функции", nav_fse:"FSE CNSS", nav_conformite:"Соответствие", nav_contact:"Контакты", nav_cta:"Запросить демо",
       hero_badge:"Новинка · Blink Premium 2025",
       hero_h1a:"Управление вашей аптекой,", hero_h1b:"переосмысленное.",
       hero_sub:"Blink Premium модернизирует каждый аспект вашего рабочего дня: от продаж до склада и поставщиков.",
