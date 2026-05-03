@@ -258,7 +258,11 @@ function derivePharmacistId(phoneE164) {
 }
 
 function getPublicBaseUrl() {
-  return String(process.env.PUBLIC_BASE_URL || 'http://localhost:3000').trim().replace(/\/+$/, '');
+  return String(
+    process.env.PUBLIC_SITE_ORIGIN ||
+    process.env.PUBLIC_BASE_URL ||
+    'http://localhost:3000'
+  ).trim().replace(/\/+$/, '');
 }
 
 function buildPortalUrl(pathname, token) {
