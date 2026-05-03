@@ -34,5 +34,37 @@
   "explorer_carousel_v1_ru": {
     "sid": "HX80bc43cb8ec1cae4da7da24f0157fac2",
     "created_at": "2026-04-25T23:30:00.000Z"
+  },
+  "answer_card_v2_fse_fr": {
+    "sid": "HX68f355be3019cb49eed930d21d2f7dcd",
+    "created_at": "2026-05-03T06:49:11.359Z"
+  },
+  "answer_card_v2_fse_ar": {
+    "sid": "HXceed9f12cf46ed904cc3afdc0910598f",
+    "created_at": "2026-05-03T06:49:12.637Z"
+  },
+  "answer_card_v2_fse_es": {
+    "sid": "HX4187008a556cf3eb1aab9b08765de860",
+    "created_at": "2026-05-03T06:49:13.904Z"
+  },
+  "answer_card_v2_fse_ru": {
+    "sid": "HXba447aa3229f782e5a31c60cddb62874",
+    "created_at": "2026-05-03T06:49:14.791Z"
+  },
+  "answer_card_v2_conformites_fr": {
+    "sid": "HXd2ae7faadabaab3d818198d831e3a656",
+    "created_at": "2026-05-03T06:49:16.084Z"
+  },
+  "answer_card_v2_conformites_ar": {
+    "sid": "HX299b1431c69db662d1d4b64e59173dfa",
+    "created_at": "2026-05-03T06:49:16.740Z"
+  },
+  "answer_card_v2_conformites_es": {
+    "sid": "HX46714b00129713f1df4689e2b5719e24",
+    "created_at": "2026-05-03T06:49:17.858Z"
+  },
+  "answer_card_v2_conformites_ru": {
+    "sid": "HX8a20c150f383768357a43d40b9a09d9f",
+    "created_at": "2026-05-03T06:49:18.972Z"
   }
 }
