@@ -11,6 +11,14 @@ const PUBLIC_SITE_PAGE_PATHS = new Set([
   '/conformite.html',
   '/data-cndp.html',
   '/cgu.html',
+  '/preferences/stock-alerts',
+  '/preferences/stock-alerts.html',
+  '/laboratory/register',
+  '/laboratory/register.html',
+  '/wholesaler/register',
+  '/wholesaler/register.html',
+  '/supplier/alerts/new',
+  '/supplier/alerts/new.html',
 ]);
 
 function trimOrigin(value = '') {
@@ -73,6 +81,12 @@ function getRequestHost(req) {
 }
 
 function getRequestProto(req) {
+  const cfVisitor = String(req?.headers?.['cf-visitor'] || '').trim();
+  const cfMatch = cfVisitor.match(/"scheme":"(https?|wss?)"/i);
+  if (cfMatch?.[1]) {
+    return cfMatch[1].toLowerCase();
+  }
+
   const forwardedProto = String(req?.headers?.['x-forwarded-proto'] || '')
     .split(',')
     .map((value) => String(value || '').trim().toLowerCase())
@@ -80,12 +94,6 @@ function getRequestProto(req) {
 
   if (forwardedProto) {
     return forwardedProto;
-  }
-
-  const cfVisitor = String(req?.headers?.['cf-visitor'] || '').trim();
-  const cfMatch = cfVisitor.match(/"scheme":"(https?|wss?)"/i);
-  if (cfMatch?.[1]) {
-    return cfMatch[1].toLowerCase();
   }
 
   return String(req?.protocol || '').trim().toLowerCase();

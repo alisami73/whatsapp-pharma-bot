@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grossiste — Onboarding Alertes Blink</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #fff;
+      --surface: #f8fafc;
+      --green: #4caf50;
+      --teal: #26c6da;
+      --blue: #3f51b5;
+      --orange: #ff7043;
+      --amber: #ffc107;
+      --text: #213547;
+      --muted: #64748b;
+      --soft: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 20px 50px rgba(15,23,42,0.08);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,112,67,0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(38,198,218,0.14), transparent 34%),
+        var(--bg);
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 32px 20px 96px;
+    }
+
+    .hero,
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .grid { margin-top: 22px; }
+
+    .panel {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(226,232,240,0.92);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-main,
+    .hero-side,
+    .card {
+      padding: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--soft);
+      margin-bottom: 10px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--orange), var(--teal));
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: "Nunito", sans-serif;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      margin-bottom: 12px;
+    }
+
+    .copy {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 15px;
+      margin: 0 0 18px;
+    }
+
+    .stack { display: grid; gap: 10px; }
+
+    .point,
+    .metric,
+    .row {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .point {
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .metric {
+      padding: 14px 16px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      font-family: "Nunito", sans-serif;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255,193,7,0.14);
+      border: 1px solid rgba(255,193,7,0.28);
+      color: #8a5b00;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .section-copy {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .fields { display: grid; gap: 12px; }
+    .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      padding: 12px 14px;
+      font: inherit;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--orange);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(255,112,67,0.12);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--orange), #f48d44);
+      box-shadow: 0 14px 28px rgba(255,112,67,0.24);
+    }
+
+    .btn-secondary {
+      color: var(--blue);
+      background: rgba(63,81,181,0.08);
+      border: 1px solid rgba(63,81,181,0.18);
+    }
+
+    .btn-outline {
+      color: var(--orange);
+      background: rgba(255,112,67,0.1);
+      border: 1px solid rgba(255,112,67,0.2);
+    }
+
+    .status-pill,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 7px 12px;
+    }
+
+    .status-pill,
+    .tag.orange { background: rgba(255,193,7,0.16); color: #8a5b00; }
+    .tag.green { background: rgba(76,175,80,0.12); color: #2e7d32; }
+    .tag.blue { background: rgba(63,81,181,0.12); color: #1a237e; }
+
+    .list { display: grid; gap: 10px; margin-top: 14px; }
+
+    .row { padding: 14px; }
+
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .row-top strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .row-top span,
+    .row-bottom {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: #122033;
+      color: #fff;
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #8c2333; }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid,
+      .fields.two {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <article class="panel hero-main">
+        <div class="eyebrow">Grossiste</div>
+        <h1>Diffusez vos reprises stock vers les bonnes officines, avec consentement actif.</h1>
+        <p class="copy">Le canal grossiste Blink permet de préparer des alertes WhatsApp ciblées sans jamais mélanger le chatbot entrant et les campagnes sortantes. Chaque message reste borné à un template approuvé et à une base consentie.</p>
+        <div class="stack">
+          <div class="point">Créez votre compte grossiste et faites valider votre organisation côté Blink Admin.</div>
+          <div class="point">Chargez en option un fichier de disponibilité pour accélérer la préparation des campagnes.</div>
+          <div class="point">Une fois approuvé, composez vos alertes produit par produit avec batch sending contrôlé.</div>
+        </div>
+      </article>
+      <aside class="panel hero-side">
+        <div class="metric">
+          <strong id="metricAlerts">—</strong>
+          <span>alertes créées</span>
+        </div>
+        <div class="metric">
+          <strong id="metricUploads">—</strong>
+          <span>imports disponibilité</span>
+        </div>
+        <div class="notice">
+          Les grossistes peuvent créer des alertes stock immédiatement après onboarding, mais la première campagne reste soumise à validation Blink avant envoi.
+        </div>
+      </aside>
+    </section>
+
+    <div class="grid">
+      <section class="panel card" id="registerPanel">
+        <div class="eyebrow">Étape 1</div>
+        <h2 class="section-title">Créer votre accès grossiste</h2>
+        <p class="section-copy">Déclarez votre société, votre contact principal et votre zone de couverture. Blink vous renvoie ensuite un cockpit sécurisé pour préparer vos campagnes de disponibilité.</p>
+        <form id="registerForm" class="fields">
+          <div class="fields two">
+            <label>Nom de l’enseigne
+              <input name="name" placeholder="Ex: Atlas Distribution Pharma" required />
+            </label>
+            <label>Raison sociale
+              <input name="legal_name" placeholder="Ex: Atlas Distribution SARL" />
+            </label>
+          </div>
+          <div class="fields two">
+            <label>Nom du contact
+              <input name="contact_name" placeholder="Ex: Youssef Alaoui" required />
+            </label>
+            <label>Fonction
+              <input name="contact_role" placeholder="Ex: Responsable réseau officines" />
+            </label>
+          </div>
+          <div class="fields two">
+            <label>Email professionnel
+              <input name="contact_email" type="email" placeholder="prenom@grossiste.ma" required />
+            </label>
+            <label>Téléphone WhatsApp
+              <input name="contact_phone" placeholder="+2126..." required />
+            </label>
+          </div>
+          <div class="fields two">
+            <label>Ville
+              <input name="city" placeholder="Casablanca" />
+            </label>
+            <label>Identifiant légal
+              <input name="registration_number" placeholder="RC / IF / ICE" />
+            </label>
+          </div>
+          <label>Site web
+            <input name="website" placeholder="https://..." />
+          </label>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Créer mon cockpit sécurisé</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel card hidden" id="consolePanel">
+        <div class="eyebrow">Étape 2</div>
+        <h2 class="section-title">Pilotage grossiste</h2>
+        <p class="section-copy">Suivez votre statut, importez des disponibilités si besoin et ouvrez le composeur d’alertes dès que votre premier envoi est prêt.</p>
+        <div class="status-pill" id="orgStatus">Statut —</div>
+
+        <div class="fields" style="margin-top: 16px;">
+          <label>Recherche MedIndex
+            <input id="searchInput" placeholder="Nom produit ou DCI" />
+          </label>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="searchBtn" type="button">Rechercher</button>
+            <a class="btn btn-secondary" href="/supplier/alerts/new">Ouvrir le composeur d’alertes</a>
+          </div>
+        </div>
+
+        <div class="list" id="searchResults"></div>
+
+        <div class="fields" style="margin-top: 18px;">
+          <label>Importer un export disponibilité (optionnel)
+            <input id="fileInput" type="file" accept=".csv,.txt,.tsv,.xlsx,.xls" />
+          </label>
+          <label>Ou coller un tableau disponibilité
+            <textarea id="fileText" placeholder="Une ligne par produit ou tableau CSV/TSV."></textarea>
+          </label>
+          <div class="btn-row">
+            <button class="btn btn-outline" id="uploadBtn" type="button">Traiter l’import</button>
+          </div>
+        </div>
+
+        <div class="list" id="uploadList"></div>
+        <div class="list" id="productList"></div>
+        <div class="list" id="alertList"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const state = { context: null };
+
+    function toast(message, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = message;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      window.clearTimeout(el._timer);
+      el._timer = window.setTimeout(() => {
+        el.className = 'toast' + (isError ? ' error' : '');
+      }, 2600);
+    }
+
+    function statusTag(status) {
+      if (status === 'validated' || status === 'active' || status === 'sent' || status === 'parsed') return 'green';
+      if (status === 'pending' || status === 'pending_approval' || status === 'sending' || status === 'pending_manual_review') return 'orange';
+      if (status === 'rejected' || status === 'failed') return 'red';
+      return 'blue';
+    }
+
+    function setAuthenticatedView(enabled) {
+      document.getElementById('registerPanel').classList.toggle('hidden', enabled);
+      document.getElementById('consolePanel').classList.toggle('hidden', !enabled);
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      const chunkSize = 0x8000;
+      let binary = '';
+      for (let index = 0; index < bytes.length; index += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    function renderConsole() {
+      const context = state.context;
+      if (!context) return;
+
+      document.getElementById('orgStatus').textContent =
+        `${context.organization.name} • ${context.organization.status}`;
+      document.getElementById('metricAlerts').textContent = String((context.alerts || []).length);
+      document.getElementById('metricUploads').textContent = String((context.uploads || []).length);
+
+      document.getElementById('uploadList').innerHTML = (context.uploads || []).length
+        ? context.uploads.slice(0, 6).map((upload) => `
+            <div class="row">
+              <div class="row-top">
+                <div>
+                  <strong>${upload.filename}</strong>
+                  <span>${upload.matched_count || 0} validés • ${upload.pending_count || 0} à revoir</span>
+                </div>
+                <span class="tag ${statusTag(upload.parse_status)}">${upload.parse_status}</span>
+              </div>
+            </div>
+          `).join('')
+        : '';
+
+      document.getElementById('productList').innerHTML = (context.products || []).length
+        ? context.products.slice(0, 8).map((product) => `
+            <div class="row">
+              <div class="row-top">
+                <div>
+                  <strong>${product.product_name}</strong>
+                  <span>${product.product_id_medindex || 'Sans identifiant MedIndex'} • ${product.source}</span>
+                </div>
+                <span class="tag ${statusTag(product.match_status)}">${product.match_status}</span>
+              </div>
+              ${product.rejection_reason ? `<div class="row-bottom">${product.rejection_reason}</div>` : ''}
+            </div>
+          `).join('')
+        : '';
+
+      document.getElementById('alertList').innerHTML = (context.alerts || []).length
+        ? context.alerts.slice(0, 8).map((alert) => `
+            <div class="row">
+              <div class="row-top">
+                <div>
+                  <strong>${alert.product_name}</strong>
+                  <span>${alert.alert_type} • ${alert.availability_status}</span>
+                </div>
+                <span class="tag ${statusTag(alert.status)}">${alert.status}</span>
+              </div>
+              <div class="row-bottom">${alert.comment || 'Aucun commentaire'}</div>
+            </div>
+          `).join('')
+        : '<div class="row"><div class="row-bottom">Aucune alerte grossiste créée pour le moment.</div></div>';
+    }
+
+    async function loadContext() {
+      const response = await fetch('/api/stock-alerts/supplier/context');
+      if (response.status === 401) {
+        setAuthenticatedView(false);
+        return;
+      }
+      if (!response.ok) {
+        toast('Impossible de charger le cockpit grossiste', true);
+        return;
+      }
+      state.context = await response.json();
+      setAuthenticatedView(true);
+      renderConsole();
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', async () => {
+      const query = document.getElementById('searchInput').value.trim();
+      const host = document.getElementById('searchResults');
+      if (!query) {
+        toast('Saisissez un nom produit ou une DCI', true);
+        return;
+      }
+
+      const response = await fetch('/api/stock-alerts/supplier/medindex/search?q=' + encodeURIComponent(query));
+      if (!response.ok) {
+        host.innerHTML = '<div class="row"><div class="row-bottom">Recherche indisponible.</div></div>';
+        return;
+      }
+
+      const payload = await response.json();
+      const results = payload.results || [];
+      if (!results.length) {
+        host.innerHTML = '<div class="row"><div class="row-bottom">Aucun résultat MedIndex.</div></div>';
+        return;
+      }
+
+      host.innerHTML = results.map((item) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <strong>${item.name}</strong>
+              <span>${item.dci || 'DCI non renseignée'} • ${item.laboratory || 'Laboratoire non renseigné'}</span>
+            </div>
+            <button class="btn btn-secondary" type="button" data-add-product="${encodeURIComponent(JSON.stringify({
+              product_id_medindex: item.id,
+              product_name: item.name,
+              dci: item.dci,
+              laboratory: item.laboratory,
+              dosage: item.dosage,
+            }))}">Ajouter</button>
+          </div>
+        </div>
+      `).join('');
+
+      host.querySelectorAll('[data-add-product]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const product = JSON.parse(decodeURIComponent(button.dataset.addProduct));
+          button.disabled = true;
+          const res = await fetch('/api/stock-alerts/supplier/products/manual', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ products: [product] }),
+          });
+          const addPayload = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            toast(addPayload.error || 'Ajout impossible', true);
+            button.disabled = false;
+            return;
+          }
+          toast('Produit MedIndex ajouté au cockpit grossiste');
+          await loadContext();
+        });
+      });
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      const payload = Object.fromEntries(formData.entries());
+      const button = event.currentTarget.querySelector('button[type="submit"]');
+      button.disabled = true;
+      try {
+        const response = await fetch('/api/stock-alerts/wholesalers/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Inscription impossible');
+        }
+        toast('Cockpit grossiste créé');
+        window.location.href = result.products_url || result.portal_url || '/supplier/alerts/new';
+      } catch (error) {
+        toast(error.message || 'Inscription impossible', true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('fileInput');
+      const textarea = document.getElementById('fileText');
+      let text = textarea.value.trim();
+      let filename = 'disponibilite.csv';
+      let fileBase64 = null;
+      let mimeType = 'text/csv';
+      let fileSizeBytes = text.length;
+
+      if (!text && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        filename = file.name;
+        mimeType = file.type || 'application/octet-stream';
+        fileSizeBytes = file.size || 0;
+        if (/\.(xlsx|xls)$/i.test(filename)) {
+          fileBase64 = arrayBufferToBase64(await file.arrayBuffer());
+        } else {
+          text = await file.text();
+          fileSizeBytes = text.length;
+        }
+      }
+
+      if (!text && !fileBase64) {
+        toast('Ajoutez un fichier ou collez un tableau avant traitement', true);
+        return;
+      }
+
+      const response = await fetch('/api/stock-alerts/supplier/products/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename,
+          file_text: text,
+          file_base64: fileBase64,
+          mime_type: mimeType,
+          file_size_bytes: fileSizeBytes,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast(payload.error || 'Import impossible', true);
+        return;
+      }
+      toast('Import disponibilité traité');
+      textarea.value = '';
+      fileInput.value = '';
+      await loadContext();
+    });
+
+    loadContext();
+  </script>
+</body>
+</html>

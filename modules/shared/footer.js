@@ -18,6 +18,7 @@
  */
 
 const twilioService = require('../../twilio_service');
+const twilioContentTemplates = require('../twilio_content_templates');
 const { t } = require('../i18n');
 
 // Importé en mode lazy pour éviter la dépendance circulaire
@@ -163,22 +164,23 @@ async function sendAIResponseWithFooter(to, lang, bodyText) {
       sid = entry.sid;
     } else {
       const spec = buildFooterSpec(lang);
+      twilioContentTemplates.assertFriendlyName(spec);
       try {
-        const created = await client.content.v1.contents.create(spec);
-        sid = created.sid;
-        cache[cacheKey] = { sid, created_at: new Date().toISOString() };
-        fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
-        console.log(`[footer] Template créé : ${cacheKey} → ${sid}`);
-      } catch (createErr) {
-        console.warn(`[footer] Création échouée "${cacheKey}": ${createErr.message} — recherche existant...`);
-        const all = await client.content.v1.contents.list({ limit: 100 });
-        const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
+        const match = await twilioContentTemplates.findTemplateByFriendlyName(spec.friendlyName);
         if (match) {
           sid = match.sid;
           cache[cacheKey] = { sid, created_at: new Date().toISOString() };
           fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
           console.log(`[footer] Template existant réutilisé : ${cacheKey} → ${sid}`);
+        } else {
+          const created = await twilioContentTemplates.createTemplate(spec);
+          sid = created.sid;
+          cache[cacheKey] = { sid, created_at: new Date().toISOString() };
+          fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+          console.log(`[footer] Template créé : ${cacheKey} → ${sid}`);
         }
+      } catch (createErr) {
+        console.warn(`[footer] Création échouée "${cacheKey}": ${createErr.message}`);
       }
     }
 

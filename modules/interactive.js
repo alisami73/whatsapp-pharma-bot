@@ -21,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const twilioService = require('../twilio_service');
 const supabaseStore = require('./supabase_store');
+const twilioContentTemplates = require('./twilio_content_templates');
 const { t } = require('./i18n');
 const { buildPublicAssetUrl, buildPublicSiteUrl } = require('./public_site');
 
@@ -232,51 +233,12 @@ async function resolveTemplate(cacheKey, buildSpec) {
   }
   console.log(`[interactive] Cache miss for "${cacheKey}" — will call Twilio API`);
 
-  const client = twilioService.getTwilioClient();
   const spec = buildSpec();
+  twilioContentTemplates.assertFriendlyName(spec);
 
-  // Tentative 1 : créer via REST direct (le SDK Node ne transmet pas friendly_name correctement)
+  // Tentative 1 : réutiliser un template déjà présent
   try {
-    const https = require('https');
-    const body = JSON.stringify({
-      friendly_name: spec.friendlyName,
-      language: spec.language,
-      types: spec.types,
-    });
-    const created = await new Promise((resolve, reject) => {
-      const req = https.request({
-        hostname: 'content.twilio.com',
-        path: '/v1/Content',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(body),
-          'Authorization': 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64'),
-        },
-      }, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          const parsed = JSON.parse(data);
-          if (parsed.sid) resolve(parsed); else reject(new Error(parsed.message || JSON.stringify(parsed)));
-        });
-      });
-      req.on('error', reject);
-      req.write(body);
-      req.end();
-    });
-    cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
-    await writeCache(cache);
-    console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
-    return created.sid;
-  } catch (createErr) {
-    console.warn(`[interactive] Création échouée "${cacheKey}": ${createErr.message} — recherche existant...`);
-  }
-
-  // Tentative 2 : retrouver par friendlyName
-  try {
-    const all = await client.content.v1.contents.list({ limit: 100 });
-    const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
+    const match = await twilioContentTemplates.findTemplateByFriendlyName(spec.friendlyName);
     if (match) {
       cache[cacheKey] = { sid: match.sid, created_at: new Date().toISOString() };
       await writeCache(cache);
@@ -285,6 +247,17 @@ async function resolveTemplate(cacheKey, buildSpec) {
     }
   } catch (listErr) {
     console.error(`[interactive] Impossible de lister les templates: ${listErr.message}`);
+  }
+
+  // Tentative 2 : créer explicitement avec friendly_name
+  try {
+    const created = await twilioContentTemplates.createTemplate(spec);
+    cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
+    await writeCache(cache);
+    console.log(`[interactive] Template créé : ${cacheKey} → ${created.sid}`);
+    return created.sid;
+  } catch (createErr) {
+    console.warn(`[interactive] Création échouée "${cacheKey}": ${createErr.message}`);
   }
 
   console.error(`[interactive] Template introuvable pour "${cacheKey}" — fallback texte.`);

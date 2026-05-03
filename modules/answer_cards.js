@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const twilioService = require('../twilio_service');
+const twilioContentTemplates = require('./twilio_content_templates');
 const answerPages = require('./answer_pages');
 const { buildPublicAssetUrl } = require('./public_site');
 
@@ -200,21 +201,10 @@ async function createOrFetchTemplate(cacheKey, spec) {
 
   const cache = readCache();
   if (isFresh(cache[cacheKey])) return cache[cacheKey].sid;
-
-  const client = twilioService.getTwilioClient();
-
-  try {
-    const created = await client.content.v1.contents.create(spec);
-    cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
-    writeCache(cache);
-    return created.sid;
-  } catch (createErr) {
-    console.warn(`[answer_cards] Création échouée "${cacheKey}": ${createErr.message} — recherche existant...`);
-  }
+  twilioContentTemplates.assertFriendlyName(spec);
 
   try {
-    const all = await twilioService.getTwilioClient().content.v1.contents.list({ limit: 100 });
-    const match = all.find((tmpl) => tmpl.friendlyName === spec.friendlyName);
+    const match = await twilioContentTemplates.findTemplateByFriendlyName(spec.friendlyName);
     if (match) {
       cache[cacheKey] = { sid: match.sid, created_at: new Date().toISOString() };
       writeCache(cache);
@@ -222,6 +212,15 @@ async function createOrFetchTemplate(cacheKey, spec) {
     }
   } catch (listErr) {
     console.error(`[answer_cards] Impossible de lister les templates: ${listErr.message}`);
+  }
+
+  try {
+    const created = await twilioContentTemplates.createTemplate(spec);
+    cache[cacheKey] = { sid: created.sid, created_at: new Date().toISOString() };
+    writeCache(cache);
+    return created.sid;
+  } catch (createErr) {
+    console.warn(`[answer_cards] Création échouée "${cacheKey}": ${createErr.message}`);
   }
 
   return null;

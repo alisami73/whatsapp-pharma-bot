@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Alerts — Admin Blink Premium</title>
+  <script src="/admin/auth-guard.js"></script>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --surface: #f8fafb;
+      --green: #1a6640;
+      --teal: #26c6da;
+      --blue: #3f51b5;
+      --amber: #ffc107;
+      --orange: #ff7043;
+      --red: #e24b4a;
+      --text: #1a2332;
+      --muted: #6b7a89;
+      --soft: #8a96a3;
+      --border: #e6ebf0;
+      --shadow: 0 18px 42px rgba(15,23,42,0.08);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #173528 0%, #10271d 100%);
+      color: rgba(255,255,255,0.72);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sidebar-head {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #57d38c, #26c6da);
+    }
+
+    .brand-sub {
+      margin-top: 5px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.42);
+    }
+
+    .nav {
+      padding: 10px 10px 16px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .nav-title {
+      padding: 10px 8px 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.28);
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.7);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav a:hover {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+
+    .nav a.active {
+      background: rgba(76,175,80,0.18);
+      color: #7dd4a8;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-footer a {
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .topbar {
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 22px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .topbar h1 {
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .content {
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card,
+    .stat,
+    .toolbar {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(230,235,240,0.94);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .stat {
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-copy {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+    }
+
+    .toolbar h2,
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--green);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(26,102,64,0.12);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      padding: 12px 16px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), #237a4f);
+    }
+
+    .btn-secondary {
+      color: var(--green);
+      background: rgba(26,102,64,0.08);
+      border: 1px solid rgba(26,102,64,0.18);
+    }
+
+    .btn-danger {
+      color: #b91c1c;
+      background: rgba(226,75,74,0.1);
+      border: 1px solid rgba(226,75,74,0.2);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      padding: 18px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      max-height: 460px;
+      overflow: auto;
+    }
+
+    .row {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      padding: 14px;
+    }
+
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .row-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .row-meta,
+    .row-copy {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .tag.green { background: rgba(76,175,80,0.12); color: #2e7d32; }
+    .tag.orange { background: rgba(255,193,7,0.16); color: #8a5b00; }
+    .tag.red { background: rgba(226,75,74,0.12); color: #b91c1c; }
+    .tag.blue { background: rgba(63,81,181,0.12); color: #1a237e; }
+    .tag.gray { background: rgba(148,163,184,0.18); color: var(--muted); }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .empty {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      color: var(--soft);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .toolbar-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--blue);
+      word-break: break-all;
+      margin-top: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: #122033;
+      color: #fff;
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #8c2333; }
+
+    @media (max-width: 1120px) {
+      .stats,
+      .toolbar,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wrap {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="brand"><span class="brand-dot"></span>blink premium</div>
+        <div class="brand-sub">Administration</div>
+      </div>
+      <nav class="nav">
+        <div class="nav-title">Contenu</div>
+        <a href="/admin/actu">Actu Médicaments</a>
+        <a class="active" href="/admin/stock-alerts">Stock Alerts</a>
+        <div class="nav-title">Administration</div>
+        <a href="/admin">Tableau de bord</a>
+        <a href="/admin/crm">CRM</a>
+        <a href="/admin/users">Accès</a>
+        <a href="/admin/monitoring">Monitoring</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" id="logoutLink">Déconnexion</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h1>Stock Alerts & campagnes WhatsApp</h1>
+        <a class="btn btn-secondary" href="/site/actu.html" target="_blank">Voir la page actu</a>
+      </div>
+
+      <div class="content">
+        <section class="stats">
+          <article class="stat">
+            <div class="stat-label">Organisations</div>
+            <div class="stat-value" id="statOrganizations">—</div>
+            <div class="stat-copy">sociétés enregistrées</div>
+          </article>
+          <article class="stat">
+            <div class="stat-label">En attente</div>
+            <div class="stat-value" id="statPendingOrgs">—</div>
+            <div class="stat-copy">organisations à valider</div>
+          </article>
+          <article class="stat">
+            <div class="stat-label">Produits à revoir</div>
+            <div class="stat-value" id="statProductsPending">—</div>
+            <div class="stat-copy">matches ambigus</div>
+          </article>
+          <article class="stat">
+            <div class="stat-label">Alertes à approuver</div>
+            <div class="stat-value" id="statAlertsPending">—</div>
+            <div class="stat-copy">campagnes non validées</div>
+          </article>
+          <article class="stat">
+            <div class="stat-label">Envoyées</div>
+            <div class="stat-value" id="statAlertsSent">—</div>
+            <div class="stat-copy">campagnes diffusées</div>
+          </article>
+        </section>
+
+        <section class="toolbar">
+          <div>
+            <h2>Lien sécurisé pharmacien</h2>
+            <p class="copy">Générez un accès direct vers la page de préférences alertes. Le lien reste signé et réutilisable via cookie sécurisé.</p>
+            <div class="field-row">
+              <div class="field">
+                <label>Numéro WhatsApp</label>
+                <input id="pharmacistPhone" placeholder="+2126..." />
+              </div>
+              <div class="field">
+                <label>Nom visible</label>
+                <input id="pharmacistName" placeholder="Optionnel" />
+              </div>
+              <button class="btn btn-primary" id="generateLinkBtn">Générer</button>
+            </div>
+            <div id="portalLinkHost"></div>
+          </div>
+          <div>
+            <h2>Templates configurés</h2>
+            <p class="copy">Chaque campagne sortante doit pointer sur un template WhatsApp approuvé. Vérifiez ici l’état des clés attendues côté environnement.</p>
+            <div class="list" id="templateList"></div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <article class="card">
+            <h2>Organisations à valider</h2>
+            <p class="copy">Validez laboratoires et grossistes avant ouverture des campagnes.</p>
+            <div class="list" id="organizationsList"></div>
+          </article>
+
+          <article class="card">
+            <h2>Produits en revue manuelle</h2>
+            <p class="copy">Les lignes ambigües importées par les fournisseurs doivent être validées ou rejetées avant usage côté laboratoire.</p>
+            <div class="list" id="productsList"></div>
+          </article>
+
+          <article class="card">
+            <h2>Alertes fournisseurs</h2>
+            <p class="copy">Approuvez et lancez les campagnes depuis la file d’attente fournisseur.</p>
+            <div class="list" id="alertsList"></div>
+          </article>
+
+          <article class="card">
+            <h2>Audit récent</h2>
+            <p class="copy">Historique des validations produits, changements de consentement et événements STOP.</p>
+            <div class="list" id="auditList"></div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const state = {
+      summary: null,
+      organizations: [],
+      products: [],
+      alerts: [],
+      audits: [],
+      templates: [],
+    };
+
+    function toast(message, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = message;
+      el.className = 'toast show' + (isError ? ' error' : '');
+      window.clearTimeout(el._timer);
+      el._timer = window.setTimeout(() => {
+        el.className = 'toast' + (isError ? ' error' : '');
+      }, 2600);
+    }
+
+    function statusTag(status) {
+      if (['validated', 'approved', 'sent', 'active', 'parsed'].includes(status)) return 'green';
+      if (['pending', 'pending_manual_review', 'pending_approval', 'sending'].includes(status)) return 'orange';
+      if (['rejected', 'failed', 'cancelled', 'disabled'].includes(status)) return 'red';
+      return 'blue';
+    }
+
+    async function api(path, options) {
+      const response = await fetch(path, options);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || payload.message || 'Erreur API');
+      }
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    function renderSummary() {
+      const summary = state.summary || {};
+      document.getElementById('statOrganizations').textContent = String(summary.organizations_total || 0);
+      document.getElementById('statPendingOrgs').textContent = String(summary.organizations_pending || 0);
+      document.getElementById('statProductsPending').textContent = String(summary.products_pending_review || 0);
+      document.getElementById('statAlertsPending').textContent = String(summary.alerts_pending_approval || 0);
+      document.getElementById('statAlertsSent').textContent = String(summary.alerts_sent || 0);
+    }
+
+    function renderTemplates() {
+      const host = document.getElementById('templateList');
+      host.innerHTML = state.templates.length ? state.templates.map((template) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <div class="row-title">${template.key}</div>
+              <div class="row-meta">${template.label}</div>
+            </div>
+            <span class="tag ${template.contentSid ? 'green' : 'red'}">${template.contentSid ? 'configured' : 'missing'}</span>
+          </div>
+          <div class="row-copy">${template.env}</div>
+        </div>
+      `).join('') : '<div class="empty">Aucun template détecté.</div>';
+    }
+
+    function renderOrganizations() {
+      const host = document.getElementById('organizationsList');
+      const rows = state.organizations.filter((item) => ['pending', 'rejected'].includes(item.status));
+      host.innerHTML = rows.length ? rows.map((item) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <div class="row-title">${item.name}</div>
+              <div class="row-meta">${item.organization_type} • ${item.contact_email || 'sans email'} • ${item.city || 'Maroc'}</div>
+            </div>
+            <span class="tag ${statusTag(item.status)}">${item.status}</span>
+          </div>
+          <div class="row-actions">
+            <button class="btn btn-primary" data-org-status="${item.id}:validated">Valider</button>
+            <button class="btn btn-danger" data-org-status="${item.id}:rejected">Rejeter</button>
+          </div>
+        </div>
+      `).join('') : '<div class="empty">Aucune organisation en attente.</div>';
+
+      host.querySelectorAll('[data-org-status]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const [id, status] = button.dataset.orgStatus.split(':');
+          button.disabled = true;
+          try {
+            await api('/admin/api/stock-alerts/organizations/' + id + '/status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status }),
+            });
+            toast('Organisation mise à jour');
+            await loadDashboard();
+          } catch (error) {
+            toast(error.message, true);
+            button.disabled = false;
+          }
+        });
+      });
+    }
+
+    function renderProducts() {
+      const host = document.getElementById('productsList');
+      host.innerHTML = state.products.length ? state.products.map((item) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <div class="row-title">${item.product_name}</div>
+              <div class="row-meta">${item.raw_product_name || item.product_name} • ${item.source}</div>
+            </div>
+            <span class="tag ${statusTag(item.match_status)}">${item.match_status}</span>
+          </div>
+          <div class="row-actions">
+            <button class="btn btn-primary" data-product-status="${item.id}:validated">Valider</button>
+            <button class="btn btn-danger" data-product-status="${item.id}:rejected">Rejeter</button>
+          </div>
+        </div>
+      `).join('') : '<div class="empty">Aucun produit en revue manuelle.</div>';
+
+      host.querySelectorAll('[data-product-status]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const [id, status] = button.dataset.productStatus.split(':');
+          button.disabled = true;
+          try {
+            await api('/admin/api/stock-alerts/products/' + id + '/status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status }),
+            });
+            toast('Produit mis à jour');
+            await loadDashboard();
+          } catch (error) {
+            toast(error.message, true);
+            button.disabled = false;
+          }
+        });
+      });
+    }
+
+    function renderAlerts() {
+      const host = document.getElementById('alertsList');
+      host.innerHTML = state.alerts.length ? state.alerts.map((item) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <div class="row-title">${item.product_name}</div>
+              <div class="row-meta">${item.source_type} • ${item.alert_type} • ${item.availability_status}</div>
+            </div>
+            <span class="tag ${statusTag(item.status)}">${item.status}</span>
+          </div>
+          <div class="row-copy">${item.comment || 'Sans commentaire'}</div>
+          <div class="row-actions">
+            ${item.status === 'pending_approval' ? `<button class="btn btn-primary" data-alert-approve="${item.id}">Approuver</button>` : ''}
+            ${item.status === 'approved' ? `<button class="btn btn-secondary" data-alert-send="${item.id}">Envoyer</button>` : ''}
+          </div>
+        </div>
+      `).join('') : '<div class="empty">Aucune alerte fournisseur à traiter.</div>';
+
+      host.querySelectorAll('[data-alert-approve]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          try {
+            await api('/admin/api/stock-alerts/alerts/' + button.dataset.alertApprove + '/approve', {
+              method: 'POST',
+            });
+            toast('Alerte approuvée');
+            await loadDashboard();
+          } catch (error) {
+            toast(error.message, true);
+            button.disabled = false;
+          }
+        });
+      });
+
+      host.querySelectorAll('[data-alert-send]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          try {
+            await api('/admin/api/stock-alerts/alerts/' + button.dataset.alertSend + '/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ batch_size: 50 }),
+            });
+            toast('Campagne envoyée');
+            await loadDashboard();
+          } catch (error) {
+            toast(error.message, true);
+            button.disabled = false;
+          }
+        });
+      });
+    }
+
+    function renderAudits() {
+      const host = document.getElementById('auditList');
+      host.innerHTML = state.audits.length ? state.audits.map((item) => `
+        <div class="row">
+          <div class="row-top">
+            <div>
+              <div class="row-title">${item.action}</div>
+              <div class="row-meta">${item.actor_type} • ${item.entity_type}</div>
+            </div>
+            <span class="tag gray">${new Date(item.created_at).toLocaleString('fr-FR')}</span>
+          </div>
+          <div class="row-copy">${item.entity_id || '—'}</div>
+        </div>
+      `).join('') : '<div class="empty">Aucun log récent.</div>';
+    }
+
+    async function loadDashboard() {
+      const [summary, templatesPayload, organizations, products, alerts, audits] = await Promise.all([
+        api('/admin/api/stock-alerts/summary'),
+        api('/admin/api/stock-alerts/templates'),
+        api('/admin/api/stock-alerts/organizations'),
+        api('/admin/api/stock-alerts/products?match_status=pending_manual_review'),
+        api('/admin/api/stock-alerts/alerts'),
+        api('/admin/api/stock-alerts/audit?limit=20'),
+      ]);
+
+      state.summary = summary;
+      state.templates = templatesPayload.templates || [];
+      state.organizations = organizations || [];
+      state.products = products || [];
+      state.alerts = alerts || [];
+      state.audits = audits || [];
+
+      renderSummary();
+      renderTemplates();
+      renderOrganizations();
+      renderProducts();
+      renderAlerts();
+      renderAudits();
+    }
+
+    document.getElementById('generateLinkBtn').addEventListener('click', async () => {
+      const phone = document.getElementById('pharmacistPhone').value.trim();
+      const name = document.getElementById('pharmacistName').value.trim();
+      if (!phone) {
+        toast('Numéro WhatsApp requis', true);
+        return;
+      }
+      try {
+        const result = await api('/admin/api/stock-alerts/pharmacist-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, name }),
+        });
+        const host = document.getElementById('portalLinkHost');
+        host.innerHTML = `<a class="toolbar-link" href="${result.url}" target="_blank">${result.url}</a>`;
+        await navigator.clipboard.writeText(result.url).catch(() => {});
+        toast('Lien sécurisé généré');
+      } catch (error) {
+        toast(error.message, true);
+      }
+    });
+
+    document.getElementById('logoutLink').addEventListener('click', async (event) => {
+      event.preventDefault();
+      await fetch('/admin/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/admin/login';
+    });
+
+    loadDashboard().catch((error) => {
+      toast(error.message || 'Chargement impossible', true);
+    });
+  </script>
+</body>
+</html>

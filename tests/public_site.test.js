@@ -30,6 +30,7 @@ test('buildPublicRequestRedirectUrl does not redirect when already on the custom
     path: '/contact.html',
     originalUrl: '/contact.html',
     url: '/contact.html',
+    protocol: 'https',
     headers: {
       host: 'blinkpremium.blinkpharmacie.ma',
     },
@@ -45,6 +46,7 @@ test('buildPublicRequestRedirectUrl does not loop when host is custom but x-forw
     path: '/contact.html',
     originalUrl: '/contact.html?lang=fr',
     url: '/contact.html?lang=fr',
+    protocol: 'https',
     headers: {
       host: 'blinkpremium.blinkpharmacie.ma',
       'x-forwarded-host': 'whatsapp-pharma-bot-production.up.railway.app',
@@ -64,10 +66,50 @@ test('buildPublicRequestRedirectUrl does not redirect Cloudflare-proxied public 
     headers: {
       host: 'whatsapp-pharma-bot-production.up.railway.app',
       'cf-ray': 'abc123-MAD',
+      'cf-visitor': '{"scheme":"https"}',
     },
   };
 
   assert.equal(publicSite.buildPublicRequestRedirectUrl(req), null);
+});
+
+test('buildPublicRequestRedirectUrl redirects HTTP requests on the custom domain when Cloudflare reports http', () => {
+  process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+
+  const req = {
+    path: '/actu.html',
+    originalUrl: '/actu.html?lang=fr',
+    url: '/actu.html?lang=fr',
+    headers: {
+      host: 'blinkpremium.blinkpharmacie.ma',
+      'x-forwarded-proto': 'https',
+      'cf-visitor': '{"scheme":"http"}',
+      'cf-ray': 'abc123-MAD',
+    },
+  };
+
+  assert.equal(
+    publicSite.buildPublicRequestRedirectUrl(req),
+    'https://blinkpremium.blinkpharmacie.ma/actu.html?lang=fr',
+  );
+});
+
+test('buildPublicRequestRedirectUrl recognizes stock-alerts pages as public pages', () => {
+  process.env.PUBLIC_SITE_ORIGIN = 'https://blinkpremium.blinkpharmacie.ma';
+
+  const req = {
+    path: '/preferences/stock-alerts',
+    originalUrl: '/preferences/stock-alerts',
+    url: '/preferences/stock-alerts',
+    headers: {
+      host: 'whatsapp-pharma-bot-production.up.railway.app',
+    },
+  };
+
+  assert.equal(
+    publicSite.buildPublicRequestRedirectUrl(req),
+    'https://blinkpremium.blinkpharmacie.ma/preferences/stock-alerts',
+  );
 });
 
 test('buildPublicRequestRedirectUrl ignores webhook and API routes', () => {
