@@ -473,7 +473,11 @@ async function getOrganizationUser(userId) {
 }
 
 async function updateOrganizationStatus(organizationId, status, actor) {
-  const nextStatus = ensureValueInList(status, ORG_STATUSES, 'pending');
+  const normalized = String(status || '').trim().toLowerCase();
+  if (!ORG_STATUSES.includes(normalized)) {
+    throw Object.assign(new Error(`Statut invalide : "${status}". Valeurs acceptées : ${ORG_STATUSES.join(', ')}`), { status: 400 });
+  }
+  const nextStatus = normalized;
   const db = getDb();
   const organization = await mutateSingle(
     db
@@ -500,7 +504,15 @@ async function updateOrganizationStatus(organizationId, status, actor) {
 }
 
 async function registerOrganization(payload) {
-  const organizationType = normalizeOrgType(payload.organization_type || payload.source_type);
+  const rawType = String(payload.organization_type || payload.source_type || '').trim().toLowerCase();
+  if (!ORG_TYPES.includes(rawType)) {
+    throw Object.assign(new Error(`Type d'organisation invalide : "${rawType}". Valeurs acceptées : ${ORG_TYPES.join(', ')}`), { status: 400 });
+  }
+  const rawName = normalizeFreeText(payload.name, 160);
+  if (!rawName) {
+    throw Object.assign(new Error('Le nom de l\'organisation est requis'), { status: 400 });
+  }
+  const organizationType = rawType;
   const db = getDb();
   const organization = await mutateSingle(
     db
@@ -864,22 +876,40 @@ async function addManualSupplierProducts(auth, products) {
       updated_at: nowIso(),
     };
 
-    const row = await mutateSingle(
-      db
+    // PostgREST ne peut pas résoudre ON CONFLICT sur un index partiel.
+    // On tente d'abord de récupérer l'existant, sinon on insère.
+    let row;
+    if (productIdMedindex) {
+      const { data: existing } = await db
         .from(TABLES.supplierProducts)
-        .upsert(
-          {
-            ...payload,
-            created_at: nowIso(),
-          },
-          {
-            onConflict: 'organization_id,product_id_medindex',
-            ignoreDuplicates: false,
-          },
-        )
         .select('*')
-        .single(),
-    );
+        .eq('organization_id', organizationId)
+        .eq('product_id_medindex', productIdMedindex)
+        .maybeSingle();
+      if (existing) {
+        row = await mutateSingle(
+          db.from(TABLES.supplierProducts)
+            .update({ ...payload, updated_at: nowIso() })
+            .eq('id', existing.id)
+            .select('*')
+            .single(),
+        );
+      } else {
+        row = await mutateSingle(
+          db.from(TABLES.supplierProducts)
+            .insert({ ...payload, created_at: nowIso() })
+            .select('*')
+            .single(),
+        );
+      }
+    } else {
+      row = await mutateSingle(
+        db.from(TABLES.supplierProducts)
+          .insert({ ...payload, created_at: nowIso() })
+          .select('*')
+          .single(),
+      );
+    }
     created.push(row);
   }
 
