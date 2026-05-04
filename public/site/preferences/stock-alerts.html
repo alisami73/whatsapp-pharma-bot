@@ -1,687 +1,400 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Préférences Alertes Stock — Blink Premium</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f4f7fb;
-      --card: #ffffff;
-      --surface: #f8fafc;
-      --green: #4caf50;
-      --teal: #26c6da;
-      --blue: #3f51b5;
-      --orange: #ff7043;
-      --amber: #ffc107;
-      --red: #ef5350;
-      --text: #213547;
-      --muted: #64748b;
-      --soft: #94a3b8;
-      --border: #e2e8f0;
-      --shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background:
-        radial-gradient(circle at top left, rgba(38,198,218,0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(76,175,80,0.12), transparent 28%),
-        var(--bg);
-      color: var(--text);
-      font-family: "DM Sans", sans-serif;
-    }
-
-    .shell {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 32px 20px 96px;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 18px;
-      margin-bottom: 22px;
-    }
-
-    .hero-card,
-    .summary-card,
-    .source-card,
-    .empty-card {
-      background: rgba(255,255,255,0.94);
-      border: 1px solid rgba(226,232,240,0.9);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-    }
-
-    .hero-card {
-      padding: 28px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96)),
-        var(--card);
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--soft);
-      margin-bottom: 10px;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--green), var(--teal));
-    }
-
-    h1, h2, h3 {
-      font-family: "Nunito", sans-serif;
-      margin: 0;
-      color: var(--text);
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.4rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      margin-bottom: 12px;
-    }
-
-    .hero-copy {
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--muted);
-      max-width: 55ch;
-    }
-
-    .hero-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .summary-card {
-      padding: 22px;
-      display: grid;
-      gap: 14px;
-      align-content: start;
-    }
-
-    .summary-metric {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #fff, #f8fafc);
-      border: 1px solid var(--border);
-    }
-
-    .summary-metric strong {
-      display: block;
-      font-size: 28px;
-      font-family: "Nunito", sans-serif;
-      margin-bottom: 4px;
-    }
-
-    .summary-metric span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .notice {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: rgba(255,193,7,0.12);
-      border: 1px solid rgba(255,193,7,0.28);
-      color: #8a5b00;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin: 24px 0 16px;
-    }
-
-    .actions h2 {
-      font-size: 1.35rem;
-      letter-spacing: -0.03em;
-    }
-
-    .actions p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      border-radius: 999px;
-      cursor: pointer;
-      padding: 13px 18px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 800;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-    }
-
-    .btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--green), #3fa95f);
-      box-shadow: 0 14px 28px rgba(76,175,80,0.24);
-    }
-
-    .btn-secondary {
-      color: var(--green);
-      background: rgba(76,175,80,0.1);
-      border: 1px solid rgba(76,175,80,0.2);
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    .sources-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .source-card {
-      padding: 20px;
-    }
-
-    .source-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: start;
-      margin-bottom: 16px;
-    }
-
-    .source-top h3 {
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-    }
-
-    .source-meta {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .source-type {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: rgba(63,81,181,0.1);
-      color: var(--blue);
-    }
-
-    .toggle-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      border: 1px solid var(--border);
-    }
-
-    .toggle-row strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 3px;
-    }
-
-    .toggle-row span {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .toggle {
-      position: relative;
-      width: 52px;
-      height: 30px;
-      flex-shrink: 0;
-    }
-
-    .toggle input {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .toggle-ui {
-      position: absolute;
-      inset: 0;
-      border-radius: 999px;
-      background: #dbe5ef;
-      transition: background 0.18s ease;
-    }
-
-    .toggle-ui::after {
-      content: "";
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: #fff;
-      box-shadow: 0 6px 12px rgba(15,23,42,0.12);
-      transition: transform 0.18s ease;
-    }
-
-    .toggle input:checked + .toggle-ui {
-      background: linear-gradient(135deg, var(--green), var(--teal));
-    }
-
-    .toggle input:checked + .toggle-ui::after {
-      transform: translateX(22px);
-    }
-
-    .save-bar {
-      position: sticky;
-      bottom: 16px;
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: var(--radius-lg);
-      background: rgba(18,32,51,0.94);
-      color: #fff;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      box-shadow: 0 22px 40px rgba(15,23,42,0.24);
-    }
-
-    .save-bar.show {
-      display: flex;
-    }
-
-    .save-copy strong {
-      display: block;
-      font-size: 15px;
-      margin-bottom: 3px;
-    }
-
-    .save-copy span {
-      color: rgba(255,255,255,0.72);
-      font-size: 13px;
-    }
-
-    .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #122033;
-      color: #fff;
-      font-size: 13px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.2s ease;
-      pointer-events: none;
-      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .toast.error {
-      background: #8c2333;
-    }
-
-    .empty-card {
-      padding: 28px;
-      text-align: center;
-    }
-
-    .empty-card h3 {
-      font-size: 1.2rem;
-      margin-bottom: 8px;
-    }
-
-    .empty-card p {
-      color: var(--muted);
-      line-height: 1.7;
-      max-width: 54ch;
-      margin: 0 auto 18px;
-    }
-
-    @media (max-width: 920px) {
-      .hero,
-      .sources-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .save-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Préférences Alertes Stock — Blink</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;--green:#4CAF50;--teal:#26C6DA;--blue:#3F51B5;--amber:#FFC107;--text:#213547;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;--shadow:0 8px 24px rgba(15,23,42,.08);--r-xl:24px;--r-lg:18px;--r-md:14px;--r-sm:10px;--nav-h:52px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+/* Nav */
+.nav{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:var(--nav-h);padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-family:"Nunito",sans-serif;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-family:"Nunito",sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.logo-text strong{color:var(--green);font-weight:900}
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(76,175,80,.12);color:var(--green);letter-spacing:.04em}
+.avatar{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+/* Wizard */
+.wizard{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;flex-shrink:0}
+.wstep{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wdot{width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--border);color:var(--soft);flex-shrink:0}
+.wdot.done{background:var(--green);color:#fff}
+.wdot.active{background:var(--text);color:#fff}
+.wlabel{font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap}
+.wlabel.active{color:var(--text)}
+.wline{flex:1;height:2px;background:var(--border);margin:0 6px 12px}
+.wline.done{background:var(--green)}
+/* Shell */
+.shell{max-width:520px;margin:0 auto;padding:20px 16px 80px;width:100%}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card-title{font-family:"Nunito",sans-serif;font-weight:800;font-size:13px;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal))}
+.section-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em;margin-bottom:2px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+/* Row items */
+.row-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none;padding-bottom:0}
+/* Check */
+.check{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.check.on{background:var(--green);border-color:var(--green)}
+.check.on::after{content:"✓";font-size:10px;color:#fff;font-weight:900}
+/* Toggle */
+.toggle-wrap{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--r-md);border:1px solid var(--border);background:#fff;cursor:pointer;transition:background .15s}
+.toggle-wrap:hover{background:var(--surface)}
+.cat-icon{font-size:20px;flex-shrink:0}
+.cat-text{flex:1}
+.cat-label{font-size:12px;font-weight:700}
+.cat-desc{font-size:10px;color:var(--muted)}
+.toggle{width:36px;height:20px;border-radius:999px;background:var(--border);position:relative;flex-shrink:0;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--green)}
+.toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s}
+.toggle.on .toggle-knob{transform:translateX(16px)}
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700}
+.badge-green{background:rgba(76,175,80,.12);color:#2E7D32}
+.badge-teal{background:rgba(38,198,218,.12);color:#00838F}
+.badge-blue{background:rgba(63,81,181,.1);color:#1A237E}
+.badge-gray{background:rgba(148,163,184,.15);color:var(--muted)}
+/* Note */
+.note{background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.25);border-radius:var(--r-sm);padding:10px 12px;font-size:11px;color:#8a5b00;line-height:1.5}
+.info-box{background:rgba(63,81,181,.04);border:1px solid rgba(63,81,181,.15);border-radius:var(--r-sm);padding:12px 14px}
+/* Consent */
+.consent-box{background:rgba(63,81,181,.04);border:1px solid rgba(63,81,181,.15);border-radius:var(--r-md);padding:14px}
+.consent-text{font-size:11px;line-height:1.7;color:var(--muted);margin:6px 0}
+.consent-meta{font-size:10px;color:var(--soft);font-family:monospace;margin-top:8px}
+.consent-check{display:flex;align-items:flex-start;gap:10px;margin-top:4px}
+.consent-check span{font-size:11px;line-height:1.6}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;cursor:pointer;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;transition:transform .15s,box-shadow .15s;text-decoration:none;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--green),#3FA95F);box-shadow:0 8px 20px rgba(76,175,80,.24)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn-outline{color:var(--green);background:rgba(76,175,80,.08);border:1.5px solid rgba(76,175,80,.25)}
+.btn-outline:hover:not(:disabled){background:rgba(76,175,80,.14)}
+.btn-full{width:100%;padding:13px}
+/* Nav between steps */
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.step-nav.end{justify-content:flex-end}
+/* Toast */
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:14px;background:#122033;color:#fff;font-size:13px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 24px rgba(15,23,42,.2);z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#8c2333}
+/* Gap utility */
+.gap{display:flex;flex-direction:column;gap:10px}
+/* Success */
+.success-box{text-align:center;padding:32px 20px}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:22px;margin-bottom:8px}
+.success-sub{color:var(--muted);font-size:13px;line-height:1.6}
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+</style>
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <div class="hero-card">
-        <div class="eyebrow">Préférences pharmaciens</div>
-        <h1>Choisissez qui peut vous envoyer des alertes WhatsApp.</h1>
-        <div class="hero-copy">
-          Vous gardez un contrôle fin par source et par catégorie. Aucune campagne sortante n’est envoyée sans consentement actif.
-        </div>
-        <div class="hero-badges">
-          <div class="badge">Consentement granulaire</div>
-          <div class="badge">STOP géré automatiquement</div>
-          <div class="badge">Historique versionné</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-metric">
-          <strong id="metricSources">—</strong>
-          <span>sources validées disponibles</span>
-        </div>
-        <div class="summary-metric">
-          <strong id="metricEnabled">—</strong>
-          <span>préférences actives</span>
-        </div>
-        <div class="notice">
-          Les alertes concernent uniquement les mises à jour professionnelles de stock, rappels, nouveautés et informations réglementaires.
-        </div>
-      </div>
-    </section>
 
-    <section class="actions">
-      <div>
-        <h2>Mes autorisations</h2>
-        <p>Activez ou retirez les catégories pour chaque laboratoire ou grossiste validé par Blink.</p>
-      </div>
-      <button id="saveTopBtn" class="btn btn-primary" disabled>Enregistrer</button>
-    </section>
-
-    <section id="stateHost" class="sources-grid"></section>
-
-    <div id="saveBar" class="save-bar">
-      <div class="save-copy">
-        <strong>Modifications non enregistrées</strong>
-        <span>Vos préférences seront versionnées avec l’adresse IP et l’agent utilisateur.</span>
-      </div>
-      <button id="saveBottomBtn" class="btn btn-primary" disabled>Enregistrer mes préférences</button>
-    </div>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-text">Blink <strong>Alertes</strong></span>
+    <span class="role-badge">Pharmacien</span>
   </div>
+  <div class="avatar" id="avatarEl">PH</div>
+</nav>
 
-  <div id="toast" class="toast"></div>
+<div class="wizard" id="wizardBar">
+  <div class="wstep">
+    <div class="wdot active" id="dot1">1</div>
+    <span class="wlabel active" id="lbl1">Sources</span>
+  </div>
+  <div class="wline" id="line1"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot2">2</div>
+    <span class="wlabel" id="lbl2">Catégories</span>
+  </div>
+  <div class="wline" id="line2"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot3">3</div>
+    <span class="wlabel" id="lbl3">Confirmation</span>
+  </div>
+</div>
 
-  <script>
-    const CATEGORY_META = {
-      stock_recovery: {
-        title: 'Reprise de stock',
-        hint: 'Retour en disponibilité confirmé',
-      },
-      out_of_stock: {
-        title: 'Rupture',
-        hint: 'Rupture ou tension d’approvisionnement',
-      },
-      product_recall: {
-        title: 'Rappel produit',
-        hint: 'Notification prioritaire de retrait ou rappel',
-      },
-      new_product: {
-        title: 'Nouveau produit',
-        hint: 'Arrivée ou lancement validé',
-      },
-      regulatory_info: {
-        title: 'Info réglementaire',
-        hint: 'Communication réglementaire et conformité',
-      },
-    };
+<div class="shell">
+  <div id="mainContent"><div class="loading">Chargement…</div></div>
+</div>
 
-    const state = {
-      payload: null,
-      draft: new Map(),
-      dirty: false,
-    };
+<div class="toast" id="toast"></div>
 
-    const stateHost = document.getElementById('stateHost');
-    const saveBar = document.getElementById('saveBar');
-    const saveTopBtn = document.getElementById('saveTopBtn');
-    const saveBottomBtn = document.getElementById('saveBottomBtn');
+<script>
+const CATEGORY_META = {
+  stock_recovery:  { icon:'📦', label:'Retour en stock',     desc:'Médicament de nouveau disponible',        defaultOn:true  },
+  out_of_stock:    { icon:'⚠️', label:'Rupture de stock',     desc:'Produit indisponible chez un grossiste',  defaultOn:true  },
+  product_recall:  { icon:'🚨', label:'Rappel produit',       desc:'Alerte sécurité / retrait de lot',        defaultOn:true  },
+  new_product:     { icon:'✨', label:'Nouveau produit',       desc:'Nouvelle référence Medindex',             defaultOn:false },
+  regulatory_info: { icon:'📋', label:'Info réglementaire',   desc:'Circulaires, prix, AMM',                  defaultOn:false },
+};
 
-    function toast(message, isError = false) {
-      const el = document.getElementById('toast');
-      el.textContent = message;
-      el.className = 'toast show' + (isError ? ' error' : '');
-      window.clearTimeout(el._hideTimer);
-      el._hideTimer = window.setTimeout(() => {
-        el.className = 'toast' + (isError ? ' error' : '');
-      }, 2600);
+let step = 1;
+let apiData = null;
+let selectedSources = new Set();
+let selectedCategories = new Set();
+let consentAgreed = false;
+
+const main = document.getElementById('mainContent');
+
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast'+(isError?' error':''), 2800);
+}
+
+function updateWizard() {
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById('dot'+i);
+    const lbl = document.getElementById('lbl'+i);
+    dot.className = 'wdot ' + (i < step ? 'done' : i === step ? 'active' : '');
+    dot.textContent = i < step ? '✓' : i;
+    lbl.className = 'wlabel' + (i === step ? ' active' : '');
+  });
+  [1,2].forEach(i => {
+    const ln = document.getElementById('line'+i);
+    if (ln) ln.className = 'wline' + (i < step ? ' done' : '');
+  });
+}
+
+function goStep(n) { step = n; updateWizard(); renderStep(); window.scrollTo(0,0); }
+
+function renderStep() {
+  if (!apiData) return;
+  if (step === 1) renderSources();
+  else if (step === 2) renderCategories();
+  else renderConfirm();
+}
+
+function toggleSource(id) {
+  selectedSources.has(id) ? selectedSources.delete(id) : selectedSources.add(id);
+  renderSources();
+}
+
+function toggleCategory(key) {
+  selectedCategories.has(key) ? selectedCategories.delete(key) : selectedCategories.add(key);
+  renderCategories();
+}
+
+function renderSources() {
+  const sources = apiData.sources || [];
+  const wholesalers = sources.filter(s => s.source_type === 'wholesaler');
+  const labs = sources.filter(s => s.source_type === 'laboratory');
+
+  function sourceRows(list) {
+    if (!list.length) return '<p style="font-size:12px;color:var(--muted);padding:4px 0">Aucune source disponible</p>';
+    return list.map(s => {
+      const on = selectedSources.has(s.source_id);
+      const active = s.status === 'validated';
+      return `<div class="row-item" onclick="toggleSource('${s.source_id}')">
+        <div class="check ${on?'on':''}"></div>
+        <span style="flex:1;font-size:12px;font-weight:${on?700:400}">${s.name}</span>
+        <span class="badge ${active?'badge-green':'badge-gray'}">${active?'Actif':'Inactif'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Préférences alertes WhatsApp</div>
+      <div class="section-title">Choisissez vos sources</div>
+      <p class="subtitle">Seuls les partenaires que vous sélectionnez pourront vous envoyer des alertes.</p>
+    </div>
+    <div class="gap">
+      ${wholesalers.length ? `<div class="card"><div class="card-title">🏭 Grossistes répartiteurs</div>${sourceRows(wholesalers)}</div>` : ''}
+      ${labs.length ? `<div class="card"><div class="card-title">🔬 Laboratoires</div>${sourceRows(labs)}</div>` : ''}
+      ${!wholesalers.length && !labs.length ? `<div class="card" style="text-align:center;padding:28px"><p style="color:var(--muted);font-size:13px">Aucune source validée pour le moment.<br>Les laboratoires et grossistes apparaîtront ici dès leur validation.</p></div>` : ''}
+      <div class="note">Les partenaires <strong>Inactifs</strong> sont en cours de validation par Blink Admin.</div>
+    </div>
+    <div class="step-nav end">
+      <button class="btn btn-primary" onclick="goStep(2)">Suivant →</button>
+    </div>`;
+}
+
+function renderCategories() {
+  const cats = Object.entries(CATEGORY_META);
+  const rows = cats.map(([key, meta]) => {
+    const on = selectedCategories.has(key);
+    return `<div class="toggle-wrap" onclick="toggleCategory('${key}')">
+      <span class="cat-icon">${meta.icon}</span>
+      <div class="cat-text">
+        <div class="cat-label">${meta.label}</div>
+        <div class="cat-desc">${meta.desc}</div>
+      </div>
+      <div class="toggle ${on?'on':''}"><div class="toggle-knob"></div></div>
+    </div>`;
+  }).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Catégories d'alertes</div>
+      <div class="section-title">Que voulez-vous recevoir ?</div>
+      <p class="subtitle">Ces réglages s'appliquent à toutes vos sources autorisées.</p>
+    </div>
+    <div class="gap">${rows}</div>
+    <div class="info-box" style="margin-top:10px">
+      <strong style="font-size:11px">Granularité avancée</strong>
+      <p style="font-size:10px;color:var(--muted);margin-top:2px">Vous pourrez affiner par source individuellement depuis votre tableau de bord.</p>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Suivant →</button>
+    </div>`;
+}
+
+function renderConfirm() {
+  const sources = apiData.sources || [];
+  const selSrc = sources.filter(s => selectedSources.has(s.source_id));
+  const gros = selSrc.filter(s => s.source_type === 'wholesaler');
+  const labs = selSrc.filter(s => s.source_type === 'laboratory');
+  const cats = [...selectedCategories].map(k => CATEGORY_META[k]).filter(Boolean);
+  const version = apiData.consent_text_version || '1.2';
+
+  const catBadges = cats.map(m => `<span class="badge badge-green" style="font-size:11px">${m.icon} ${m.label}</span>`).join('');
+  const now = new Date().toLocaleDateString('fr-MA');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Récapitulatif</div>
+      <div class="section-title">Votre consentement</div>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          ${gros.length ? `<span class="badge badge-green">${gros.length} grossiste${gros.length>1?'s':''}</span>` : ''}
+          ${labs.length ? `<span class="badge badge-teal">${labs.length} laboratoire${labs.length>1?'s':''}</span>` : ''}
+          <span class="badge badge-blue">${cats.length} catégorie${cats.length>1?'s':''}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${catBadges}</div>
+      </div>
+      <div class="consent-box">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px">Texte de consentement v${version}</div>
+        <p class="consent-text">En confirmant, vous autorisez les partenaires sélectionnés à vous envoyer des alertes WhatsApp professionnelles via Blink Pharma. Vous pouvez révoquer à tout moment en répondant <strong>STOP</strong> ou en modifiant vos préférences.</p>
+        <div class="consent-meta" id="consentMeta">IP: … · Agent: … · v${version} · ${now}</div>
+      </div>
+      <div class="consent-check">
+        <div class="check ${consentAgreed?'on':''}" id="consentCheck" onclick="toggleConsent()" style="margin-top:1px;flex-shrink:0"></div>
+        <span>J'accepte de recevoir des alertes WhatsApp professionnelles de la part des partenaires sélectionnés.</span>
+      </div>
+      <button class="btn btn-primary btn-full" id="confirmBtn" onclick="submitPreferences()" ${consentAgreed?'':'disabled'}>✓ Confirmer mes préférences</button>
+      <div class="note">Consentement enregistré côté serveur avec horodatage, IP, user-agent et version du texte.</div>
+    </div>
+    <div class="step-nav" style="margin-top:0">
+      <button class="btn btn-outline" onclick="goStep(2)">← Retour</button>
+    </div>`;
+
+  // Fill in actual IP/agent info
+  fetch('/api/stock-alerts/preferences').then(r=>r.json()).catch(()=>{});
+  const metaEl = document.getElementById('consentMeta');
+  if (metaEl) metaEl.textContent = `IP: — · Agent: ${navigator.userAgent.split(' ').slice(-1)[0]} · v${version} · ${now}`;
+}
+
+function toggleConsent() {
+  consentAgreed = !consentAgreed;
+  const check = document.getElementById('consentCheck');
+  const btn = document.getElementById('confirmBtn');
+  if (check) check.className = 'check ' + (consentAgreed ? 'on' : '');
+  if (btn) btn.disabled = !consentAgreed;
+}
+
+async function submitPreferences() {
+  if (!consentAgreed) return;
+  const btn = document.getElementById('confirmBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+
+  const sources = apiData.sources || [];
+  const preferences = [];
+  for (const s of sources) {
+    if (!selectedSources.has(s.source_id)) continue;
+    for (const cat of selectedCategories) {
+      preferences.push({ source_type: s.source_type, source_id: s.source_id, category: cat });
+    }
+  }
+
+  try {
+    const res = await fetch('/api/stock-alerts/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ consent_text_version: apiData.consent_text_version, preferences }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Échec de la sauvegarde');
+    }
+    showSuccess();
+  } catch(e) {
+    toast(e.message, true);
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Confirmer mes préférences'; }
+  }
+}
+
+function showSuccess() {
+  document.getElementById('wizardBar').style.display = 'none';
+  main.innerHTML = `
+    <div class="card success-box">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Préférences enregistrées</div>
+      <p class="success-sub">Vos autorisations ont été sauvegardées.<br>Vous recevrez uniquement les alertes des sources et catégories sélectionnées.</p>
+      <p style="margin-top:16px;font-size:12px;color:var(--muted)">Répondez <strong>STOP</strong> à tout moment sur WhatsApp pour révoquer.</p>
+    </div>`;
+}
+
+function showUnauthorized() {
+  document.getElementById('wizardBar').style.display = 'none';
+  main.innerHTML = `
+    <div class="card" style="text-align:center;padding:32px">
+      <div style="font-size:40px;margin-bottom:12px">🔒</div>
+      <h3 style="font-family:Nunito,sans-serif;font-size:18px;margin-bottom:8px">Lien sécurisé requis</h3>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;max-width:42ch;margin:0 auto 18px">Cette page s'ouvre depuis un accès sécurisé envoyé par Blink. Demandez l'activation des alertes à votre interlocuteur Blink.</p>
+      <a href="/actu.html" class="btn btn-outline">Voir la page actu</a>
+    </div>`;
+}
+
+async function init() {
+  try {
+    const res = await fetch('/api/stock-alerts/preferences');
+    if (res.status === 401) { showUnauthorized(); return; }
+    if (!res.ok) throw new Error('Erreur serveur');
+    apiData = await res.json();
+
+    // Init selected sources
+    const activeSrcs = new Set((apiData.preferences||[]).filter(p=>p.status==='active').map(p=>p.source_id));
+    if (activeSrcs.size > 0) selectedSources = activeSrcs;
+    else (apiData.sources||[]).forEach(s => selectedSources.add(s.source_id));
+
+    // Init selected categories
+    const activeCats = new Set((apiData.preferences||[]).filter(p=>p.status==='active').map(p=>p.category));
+    if (activeCats.size > 0) selectedCategories = activeCats;
+    else Object.entries(CATEGORY_META).forEach(([k,m]) => { if (m.defaultOn) selectedCategories.add(k); });
+
+    // Set avatar initials
+    const ph = apiData.pharmacist;
+    if (ph && ph.name) {
+      const parts = String(ph.name).trim().split(/\s+/);
+      document.getElementById('avatarEl').textContent = parts.map(p=>p[0]).join('').toUpperCase().slice(0,2) || 'PH';
     }
 
-    function preferenceKey(sourceType, sourceId, category) {
-      return [sourceType, sourceId, category].join('::');
-    }
+    renderSources();
+  } catch(e) {
+    main.innerHTML = `<div class="card" style="text-align:center;padding:28px;color:var(--muted)">${e.message}</div>`;
+  }
+}
 
-    function syncDirtyUi() {
-      saveBar.classList.toggle('show', state.dirty);
-      saveTopBtn.disabled = !state.dirty;
-      saveBottomBtn.disabled = !state.dirty;
-    }
-
-    function currentSelectionList() {
-      return Array.from(state.draft.entries())
-        .filter(([, enabled]) => enabled)
-        .map(([key]) => {
-          const [source_type, source_id, category] = key.split('::');
-          return { source_type, source_id, category };
-        });
-    }
-
-    function renderUnauthorized() {
-      stateHost.innerHTML = `
-        <article class="empty-card">
-          <h3>Lien sécurisé requis</h3>
-          <p>Cette page de préférences s’ouvre depuis un accès sécurisé envoyé par Blink. Si vous êtes pharmacien, demandez l’activation des alertes à votre interlocuteur Blink ou depuis votre espace admin.</p>
-          <a class="btn btn-secondary" href="/actu.html">Voir la page actu</a>
-        </article>
-      `;
-    }
-
-    function renderEmpty(title, copy) {
-      stateHost.innerHTML = `
-        <article class="empty-card">
-          <h3>${title}</h3>
-          <p>${copy}</p>
-        </article>
-      `;
-    }
-
-    function renderPreferences() {
-      const payload = state.payload;
-      if (!payload) {
-        return;
-      }
-
-      document.getElementById('metricSources').textContent = String(payload.sources.length);
-      document.getElementById('metricEnabled').textContent = String(currentSelectionList().length);
-
-      if (!payload.sources.length) {
-        renderEmpty(
-          'Aucune source validée pour le moment',
-          'Les laboratoires et grossistes apparaîtront ici dès qu’ils auront été validés dans Blink Admin.'
-        );
-        return;
-      }
-
-      const grouped = payload.sources.reduce((acc, source) => {
-        const bucket = source.source_type === 'laboratory' ? 'laboratories' : 'wholesalers';
-        acc[bucket].push(source);
-        return acc;
-      }, { laboratories: [], wholesalers: [] });
-
-      const ordered = [...grouped.laboratories, ...grouped.wholesalers];
-
-      stateHost.innerHTML = ordered.map((source) => {
-        const sourceTypeLabel = source.source_type === 'laboratory' ? 'Laboratoire' : 'Grossiste';
-        const rows = payload.categories.map((category) => {
-          const meta = CATEGORY_META[category] || { title: category, hint: '' };
-          const key = preferenceKey(source.source_type, source.source_id, category);
-          const checked = state.draft.get(key) ? 'checked' : '';
-          return `
-            <label class="toggle-row">
-              <div>
-                <strong>${meta.title}</strong>
-                <span>${meta.hint}</span>
-              </div>
-              <span class="toggle">
-                <input type="checkbox" data-key="${key}" ${checked} />
-                <span class="toggle-ui"></span>
-              </span>
-            </label>
-          `;
-        }).join('');
-
-        return `
-          <article class="source-card">
-            <div class="source-top">
-              <div>
-                <h3>${source.name}</h3>
-                <div class="source-meta">${source.city || 'Maroc'} • ${source.status}</div>
-              </div>
-              <span class="source-type">${sourceTypeLabel}</span>
-            </div>
-            <div class="toggle-list">${rows}</div>
-          </article>
-        `;
-      }).join('');
-
-      stateHost.querySelectorAll('input[type="checkbox"][data-key]').forEach((input) => {
-        input.addEventListener('change', (event) => {
-          state.draft.set(event.target.dataset.key, event.target.checked);
-          state.dirty = true;
-          document.getElementById('metricEnabled').textContent = String(currentSelectionList().length);
-          syncDirtyUi();
-        });
-      });
-    }
-
-    async function loadPreferences() {
-      const response = await fetch('/api/stock-alerts/preferences');
-      if (response.status === 401) {
-        renderUnauthorized();
-        return;
-      }
-      if (!response.ok) {
-        renderEmpty('Préférences indisponibles', 'Nous n’avons pas pu charger vos autorisations pour le moment.');
-        return;
-      }
-
-      state.payload = await response.json();
-      state.draft = new Map();
-      (state.payload.preferences || []).forEach((row) => {
-        const active = row.status === 'active';
-        state.draft.set(preferenceKey(row.source_type, row.source_id, row.category), active);
-      });
-      state.dirty = false;
-      renderPreferences();
-      syncDirtyUi();
-    }
-
-    async function savePreferences() {
-      if (!state.payload || !state.dirty) {
-        return;
-      }
-      saveTopBtn.disabled = true;
-      saveBottomBtn.disabled = true;
-      try {
-        const response = await fetch('/api/stock-alerts/preferences', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            consent_text_version: state.payload.consent_text_version,
-            preferences: currentSelectionList(),
-          }),
-        });
-        if (!response.ok) {
-          const errorPayload = await response.json().catch(() => ({}));
-          throw new Error(errorPayload.error || errorPayload.message || 'Échec de la sauvegarde');
-        }
-        toast('Préférences enregistrées');
-        await loadPreferences();
-      } catch (error) {
-        toast(error.message || 'Échec de la sauvegarde', true);
-        syncDirtyUi();
-      }
-    }
-
-    saveTopBtn.addEventListener('click', savePreferences);
-    saveBottomBtn.addEventListener('click', savePreferences);
-    loadPreferences();
-  </script>
+init();
+</script>
 </body>
 </html>

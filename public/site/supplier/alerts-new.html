@@ -1,588 +1,528 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Composeur d’alertes fournisseur — Blink</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f4f7fb;
-      --card: #fff;
-      --surface: #f8fafc;
-      --green: #4caf50;
-      --teal: #26c6da;
-      --blue: #3f51b5;
-      --orange: #ff7043;
-      --red: #ef5350;
-      --text: #213547;
-      --muted: #64748b;
-      --soft: #94a3b8;
-      --border: #e2e8f0;
-      --shadow: 0 20px 50px rgba(15,23,42,0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "DM Sans", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(76,175,80,0.16), transparent 28%),
-        radial-gradient(circle at top right, rgba(63,81,181,0.14), transparent 34%),
-        var(--bg);
-    }
-
-    .shell {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 32px 20px 96px;
-    }
-
-    .hero,
-    .layout {
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 18px;
-    }
-
-    .layout { margin-top: 22px; }
-
-    .panel {
-      background: rgba(255,255,255,0.94);
-      border: 1px solid rgba(226,232,240,0.92);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-    }
-
-    .hero-main,
-    .hero-side,
-    .card {
-      padding: 24px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--soft);
-      margin-bottom: 10px;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--green), var(--teal));
-    }
-
-    h1, h2, h3 { margin: 0; font-family: "Nunito", sans-serif; }
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.25rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      margin-bottom: 12px;
-    }
-
-    .copy,
-    .section-copy {
-      color: var(--muted);
-      line-height: 1.72;
-      font-size: 14px;
-    }
-
-    .copy { margin: 0 0 18px; }
-    .section-copy { margin: 0 0 16px; }
-
-    .hero-points,
-    .summary,
-    .list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .hero-point,
-    .metric,
-    .row {
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .hero-point,
-    .row {
-      padding: 14px 16px;
-    }
-
-    .hero-point {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .metric {
-      padding: 14px 16px;
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 30px;
-      font-family: "Nunito", sans-serif;
-      margin-bottom: 4px;
-    }
-
-    .metric span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .notice {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: rgba(255,193,7,0.14);
-      border: 1px solid rgba(255,193,7,0.28);
-      color: #8a5b00;
-      font-size: 13px;
-      line-height: 1.65;
-    }
-
-    .section-title {
-      font-size: 1.35rem;
-      letter-spacing: -0.03em;
-      margin-bottom: 6px;
-    }
-
-    form,
-    .fields {
-      display: grid;
-      gap: 12px;
-    }
-
-    .fields.two {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      padding: 12px 14px;
-      font: inherit;
-      color: var(--text);
-      outline: none;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--green);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(76,175,80,0.12);
-    }
-
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 13px 18px;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-    }
-
-    .btn:hover:not(:disabled) { transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--green), #3fa95f);
-      box-shadow: 0 14px 28px rgba(76,175,80,0.24);
-    }
-
-    .btn-secondary {
-      color: var(--green);
-      background: rgba(76,175,80,0.1);
-      border: 1px solid rgba(76,175,80,0.2);
-    }
-
-    .btn-plain {
-      color: var(--blue);
-      background: rgba(63,81,181,0.08);
-      border: 1px solid rgba(63,81,181,0.18);
-    }
-
-    .status-pill,
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 7px 12px;
-    }
-
-    .status-pill,
-    .tag.orange { background: rgba(255,193,7,0.16); color: #8a5b00; }
-    .tag.green { background: rgba(76,175,80,0.12); color: #2e7d32; }
-    .tag.blue { background: rgba(63,81,181,0.12); color: #1a237e; }
-    .tag.red { background: rgba(239,83,80,0.12); color: #b71c1c; }
-
-    .row-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .row-top strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .row-top span,
-    .row-bottom {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .hidden { display: none !important; }
-
-    .auth-empty {
-      text-align: center;
-      padding: 32px 20px;
-    }
-
-    .auth-empty p {
-      max-width: 52ch;
-      margin: 10px auto 0;
-    }
-
-    .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #122033;
-      color: #fff;
-      font-size: 13px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.2s ease;
-      pointer-events: none;
-      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
-    }
-
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: #8c2333; }
-
-    @media (max-width: 980px) {
-      .hero,
-      .layout,
-      .fields.two {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Nouvelle Alerte — Blink Alertes</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;--green:#4CAF50;--teal:#26C6DA;--blue:#3F51B5;--orange:#FF7043;--purple:#9C27B0;--amber:#FFC107;--text:#213547;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;--shadow:0 8px 24px rgba(15,23,42,.08);--r-xl:24px;--r-lg:18px;--r-md:14px;--r-sm:10px;--nav-h:52px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.nav{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:var(--nav-h);padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-family:"Nunito",sans-serif;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-family:"Nunito",sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.logo-text strong{color:var(--green);font-weight:900}
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(76,175,80,.12);color:var(--green);letter-spacing:.04em}
+.nav-tabs{display:flex;gap:4px;align-items:center}
+.nav-tab{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;color:var(--muted);cursor:pointer;transition:all .2s;text-decoration:none}
+.nav-tab.active{background:rgba(76,175,80,.12);color:var(--green)}
+.avatar{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.wizard{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;flex-shrink:0}
+.wstep{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wdot{width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--border);color:var(--soft);flex-shrink:0}
+.wdot.done{background:var(--green);color:#fff}
+.wdot.active{background:var(--text);color:#fff}
+.wlabel{font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap}
+.wlabel.active{color:var(--text)}
+.wline{flex:1;height:2px;background:var(--border);margin:0 6px 12px}
+.wline.done{background:var(--green)}
+.shell{max-width:520px;margin:0 auto;padding:20px 16px 80px;width:100%}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card-title{font-family:"Nunito",sans-serif;font-weight:800;font-size:13px;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal))}
+.section-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em;margin-bottom:2px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+.fields{display:grid;gap:10px}
+.fields.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.field-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+input,select,textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);padding:9px 11px;font:inherit;font-size:12px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(76,175,80,.12)}
+textarea{min-height:70px;resize:vertical;appearance:auto}
+select{background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.row-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none}
+.radio{width:17px;height:17px;border-radius:999px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.radio.on{border-color:var(--green)}
+.radio.on::after{content:"";width:8px;height:8px;border-radius:999px;background:var(--green)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700}
+.badge-green{background:rgba(76,175,80,.12);color:#2E7D32}
+.badge-blue{background:rgba(63,81,181,.1);color:#1A237E}
+.badge-purple{background:rgba(156,39,176,.1);color:#6A1B9A}
+.badge-amber{background:rgba(255,193,7,.14);color:#E65100}
+.badge-gray{background:rgba(148,163,184,.15);color:var(--muted)}
+.product-pill{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.2);border-radius:var(--r-md)}
+.product-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(76,175,80,.15),rgba(38,198,218,.12));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.wa-preview{background:#f1fdf4;border:1px solid #a5d6a7;border-radius:var(--r-md);padding:14px}
+.wa-bubble{background:#E7FFDB;border:1px solid #b7e4a0;border-radius:16px 16px 4px 16px;padding:10px 13px;font-size:11px;line-height:1.6;max-width:90%;display:inline-block}
+.note{background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.25);border-radius:var(--r-sm);padding:10px 12px;font-size:11px;color:#8a5b00;line-height:1.5}
+.wf-note{font-size:10px;color:var(--soft);font-style:italic;display:flex;align-items:flex-start;gap:4px;line-height:1.5}
+.wf-note::before{content:"↳";font-style:normal;color:var(--teal);flex-shrink:0}
+.info-box{background:rgba(63,81,181,.04);border:1px solid rgba(63,81,181,.15);border-radius:var(--r-md);padding:10px 13px;font-size:11px;line-height:1.6;color:var(--muted)}
+.summary-purple{background:rgba(156,39,176,.04);border:1px solid rgba(156,39,176,.18);border-radius:var(--r-md);padding:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;cursor:pointer;padding:9px 18px;font-family:inherit;font-size:12px;font-weight:700;transition:transform .15s,box-shadow .15s;text-decoration:none;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--green),#3FA95F);box-shadow:0 8px 20px rgba(76,175,80,.24)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn-outline{color:var(--green);background:rgba(76,175,80,.08);border:1.5px solid rgba(76,175,80,.25)}
+.btn-outline:hover:not(:disabled){background:rgba(76,175,80,.14)}
+.btn-purple{color:#fff;background:linear-gradient(135deg,var(--purple),#7B1FA2);box-shadow:0 8px 20px rgba(156,39,176,.24)}
+.btn-purple:hover:not(:disabled){transform:translateY(-1px)}
+.btn-sm{padding:5px 12px!important;font-size:11px!important}
+.btn-full{width:100%;padding:13px}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.step-nav.end{justify-content:flex-end}
+.gap{display:flex;flex-direction:column;gap:10px}
+.success-box{text-align:center;padding:32px 20px}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:22px;margin-bottom:8px}
+.success-sub{color:var(--muted);font-size:13px;line-height:1.6}
+.unauth-box{text-align:center;padding:40px 20px}
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:14px;background:#122033;color:#fff;font-size:13px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 24px rgba(15,23,42,.2);z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#8c2333}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+</style>
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <article class="panel hero-main">
-        <div class="eyebrow">Campagnes sortantes</div>
-        <h1>Préparez des alertes WhatsApp déterministes, validées et consenties.</h1>
-        <p class="copy">Le composeur Blink isole complètement les campagnes fournisseurs du chatbot entrant. Chaque envoi reste lié à un template approuvé, à une organisation validée et à une population consentie calculée avant diffusion.</p>
-        <div class="hero-points">
-          <div class="hero-point">Choisissez un produit MedIndex validé, un type d’alerte, une zone et un commentaire utile.</div>
-          <div class="hero-point">Les laboratoires sont bloqués tant que le produit n’a pas été validé dans leur catalogue.</div>
-          <div class="hero-point">La première campagne passe par Blink Admin avant envoi effectif sur WhatsApp.</div>
-        </div>
-      </article>
-      <aside class="panel hero-side">
-        <div class="summary">
-          <div class="metric">
-            <strong id="metricProducts">—</strong>
-            <span>produits validés disponibles</span>
-          </div>
-          <div class="metric">
-            <strong id="metricAlerts">—</strong>
-            <span>alertes enregistrées</span>
-          </div>
-          <div class="notice">
-            Les envois ne partent jamais sans consentement actif. Les destinataires sont recalculés au moment de l’approbation / envoi.
-          </div>
-        </div>
-      </aside>
-    </section>
 
-    <div class="layout" id="appLayout">
-      <section class="panel card" id="composerCard">
-        <div class="eyebrow">Composeur</div>
-        <h2 class="section-title">Nouvelle alerte fournisseur</h2>
-        <p class="section-copy">Composez une campagne prête à être soumise. Le statut recommandé pour un nouveau brouillon est <strong>pending_approval</strong>.</p>
-        <div class="status-pill" id="orgStatus">Statut —</div>
-        <div class="notice hidden" id="productNotice" style="margin-top: 16px;">
-          Ajoutez d’abord au moins un produit MedIndex validé depuis votre cockpit laboratoire ou grossiste avant de créer une alerte.
-        </div>
-        <form id="alertForm" class="fields" style="margin-top: 16px;">
-          <div class="fields two">
-            <label>Source
-              <input id="sourceType" disabled />
-            </label>
-            <label>Produit validé
-              <select id="productSelect" required></select>
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Type d’alerte
-              <select id="alertType" required></select>
-            </label>
-            <label>Statut disponibilité
-              <select id="availabilityStatus">
-                <option value="available">available</option>
-                <option value="limited">limited</option>
-                <option value="recalled">recalled</option>
-                <option value="out_of_stock">out_of_stock</option>
-              </select>
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Quantité disponible
-              <input id="availableQuantity" type="number" min="0" placeholder="Optionnel" />
-            </label>
-            <label>Zone géographique
-              <input id="geographicZone" placeholder="Ex: Casablanca / Nord / National" />
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Segment cible
-              <input id="targetSegment" placeholder="Ex: officines premium, réseau nord" />
-            </label>
-            <label>Envoi programmé
-              <input id="scheduledAt" type="datetime-local" />
-            </label>
-          </div>
-          <label>Commentaire
-            <textarea id="comment" placeholder="Message utile pour les pharmaciens et l’admin d’approbation."></textarea>
-          </label>
-          <label>Statut du brouillon
-            <select id="alertStatus">
-              <option value="pending_approval">pending_approval</option>
-              <option value="draft">draft</option>
-            </select>
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-primary" type="submit">Créer l’alerte</button>
-            <a class="btn btn-plain" href="/laboratory/register">Catalogue laboratoire</a>
-            <a class="btn btn-plain" href="/wholesaler/register">Cockpit grossiste</a>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel card" id="historyCard">
-        <div class="eyebrow">Historique</div>
-        <h2 class="section-title">Alertes créées</h2>
-        <p class="section-copy">Suivez vos brouillons, demandes d’approbation et campagnes déjà envoyées.</p>
-        <div class="list" id="alertList"></div>
-      </section>
-    </div>
-
-    <section class="panel card hidden auth-empty" id="unauthorizedState">
-      <div class="eyebrow">Accès sécurisé</div>
-      <h2 class="section-title">Lien fournisseur requis</h2>
-      <p class="section-copy">Le composeur s’ouvre depuis un cockpit sécurisé Blink. Si vous êtes laboratoire ou grossiste, utilisez d’abord votre lien d’onboarding pour activer la session.</p>
-      <div class="btn-row" style="justify-content: center;">
-        <a class="btn btn-secondary" href="/laboratory/register">Créer un accès laboratoire</a>
-        <a class="btn btn-secondary" href="/wholesaler/register">Créer un accès grossiste</a>
-      </div>
-    </section>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-text">Blink <strong>Alertes</strong></span>
+    <span class="role-badge" id="roleBadge">Fournisseur</span>
   </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="nav-tabs">
+      <span class="nav-tab active">Nouvelle alerte</span>
+      <span class="nav-tab">Mes alertes</span>
+    </div>
+    <div class="avatar" id="avatarEl">SP</div>
+  </div>
+</nav>
 
-  <div id="toast" class="toast"></div>
+<div class="wizard" id="wizardBar">
+  <div class="wstep">
+    <div class="wdot active" id="dot1">1</div>
+    <span class="wlabel active" id="lbl1">Produit</span>
+  </div>
+  <div class="wline" id="line1"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot2">2</div>
+    <span class="wlabel" id="lbl2">Détails</span>
+  </div>
+  <div class="wline" id="line2"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot3">3</div>
+    <span class="wlabel" id="lbl3">Ciblage</span>
+  </div>
+  <div class="wline" id="line3"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot4">4</div>
+    <span class="wlabel" id="lbl4">Planification</span>
+  </div>
+</div>
 
-  <script>
-    const CATEGORY_LABELS = {
-      stock_recovery: 'Reprise de stock',
-      out_of_stock: 'Rupture',
-      product_recall: 'Rappel produit',
-      new_product: 'Nouveau produit',
-      regulatory_info: 'Info réglementaire',
-    };
+<div class="shell">
+  <div id="mainContent"><div class="loading">Chargement…</div></div>
+</div>
 
-    const state = {
-      context: null,
-    };
+<div class="toast" id="toast"></div>
 
-    function toast(message, isError = false) {
-      const el = document.getElementById('toast');
-      el.textContent = message;
-      el.className = 'toast show' + (isError ? ' error' : '');
-      window.clearTimeout(el._timer);
-      el._timer = window.setTimeout(() => {
-        el.className = 'toast' + (isError ? ' error' : '');
-      }, 2600);
-    }
+<script>
+const CATEGORY_LABELS = {
+  stock_recovery:  { icon:'📦', label:'Retour en stock' },
+  out_of_stock:    { icon:'⚠️', label:'Rupture de stock' },
+  product_recall:  { icon:'🚨', label:'Rappel produit' },
+  new_product:     { icon:'✨', label:'Nouveau produit' },
+  regulatory_info: { icon:'📋', label:'Info réglementaire' },
+};
 
-    function tagClass(status) {
-      if (status === 'approved' || status === 'sent') return 'green';
-      if (status === 'draft') return 'blue';
-      if (status === 'cancelled') return 'red';
-      return 'orange';
-    }
+const AVAILABILITY_LABELS = {
+  available: '✅ Disponible',
+  limited: '⚡ Limité',
+  recalled: '⛔ Rappelé',
+  out_of_stock: '❌ Indisponible',
+};
 
-    function setAuthorized(enabled) {
-      document.getElementById('appLayout').classList.toggle('hidden', !enabled);
-      document.getElementById('unauthorizedState').classList.toggle('hidden', enabled);
-    }
+let step = 1;
+let ctx = null;
 
-    function buildProductOptions(products) {
-      const validated = products.filter((item) => item.match_status === 'validated');
-      const select = document.getElementById('productSelect');
-      const submitButton = document.querySelector('#alertForm button[type="submit"]');
-      select.innerHTML = validated.length
-        ? validated.map((product) => `<option value="${product.product_id_medindex}" data-name="${product.product_name}">${product.product_name}</option>`).join('')
-        : '<option value="">Aucun produit validé disponible</option>';
-      select.disabled = !validated.length;
-      submitButton.disabled = !validated.length;
-      document.getElementById('productNotice').classList.toggle('hidden', validated.length > 0);
-    }
+const state = {
+  product: null,
+  alertType: 'stock_recovery',
+  availabilityStatus: 'available',
+  availableQty: '',
+  geoZone: '',
+  comment: '',
+  segment: 'all',
+  scheduledAt: '',
+  status: 'pending_approval',
+};
 
-    function renderHistory() {
-      const alerts = (state.context && state.context.alerts) || [];
-      const host = document.getElementById('alertList');
-      host.innerHTML = alerts.length ? alerts.map((alert) => `
-        <div class="row">
-          <div class="row-top">
-            <div>
-              <strong>${alert.product_name}</strong>
-              <span>${CATEGORY_LABELS[alert.alert_type] || alert.alert_type} • ${alert.availability_status}</span>
-            </div>
-            <span class="tag ${tagClass(alert.status)}">${alert.status}</span>
+const main = document.getElementById('mainContent');
+
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast'+(isError?' error':''), 2800);
+}
+
+function updateWizard() {
+  [1,2,3,4].forEach(i => {
+    const dot = document.getElementById('dot'+i);
+    const lbl = document.getElementById('lbl'+i);
+    if (!dot) return;
+    dot.className = 'wdot ' + (i < step ? 'done' : i === step ? 'active' : '');
+    dot.textContent = i < step ? '✓' : i;
+    lbl.className = 'wlabel' + (i === step ? ' active' : '');
+  });
+  [1,2,3].forEach(i => {
+    const ln = document.getElementById('line'+i);
+    if (ln) ln.className = 'wline' + (i < step ? ' done' : '');
+  });
+}
+
+function goStep(n) { step = n; updateWizard(); renderStep(); window.scrollTo(0,0); }
+
+function renderStep() {
+  if (step === 1) renderProduit();
+  else if (step === 2) renderDetails();
+  else if (step === 3) renderCiblage();
+  else renderPlanification();
+}
+
+/* ── Step 1: Produit ── */
+function renderProduit() {
+  const validated = (ctx?.products||[]).filter(p => p.match_status === 'validated');
+
+  const productRows = validated.map((p,i) => {
+    const sel = state.product?.product_id_medindex === p.product_id_medindex;
+    return `<div class="row-item" onclick="selectProduct(${i})" style="cursor:pointer">
+      <div class="radio ${sel?'on':''}"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:${sel?700:400}">${esc(p.product_name)}</div>
+        <div style="font-size:10px;color:var(--muted)">${esc(p.product_id_medindex||'Sans ID Medindex')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Création d'alerte</div>
+      <div class="section-title">Sélectionnez un produit</div>
+      <p class="subtitle">Choisissez parmi vos produits MedIndex validés.</p>
+    </div>
+    <div class="gap">
+      ${ctx?.organization ? `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm)">
+        <span class="badge badge-green">${esc(ctx.organization.name)}</span>
+        <span style="font-size:11px;color:var(--muted)">${esc(ctx.organization.organization_type)} • ${esc(ctx.organization.status)}</span>
+      </div>` : ''}
+      <div class="card">
+        <div class="card-title">💊 Produits validés disponibles</div>
+        ${validated.length ? productRows : `<p style="font-size:12px;color:var(--muted);padding:8px 0">Aucun produit validé. Ajoutez des produits depuis votre cockpit <a href="/laboratory/register" style="color:var(--green)">laboratoire</a> ou <a href="/wholesaler/register" style="color:var(--green)">grossiste</a>.</p>`}
+      </div>
+      ${!validated.length ? '' : ''}
+    </div>
+    <div class="step-nav end">
+      <button class="btn btn-primary" onclick="goStep(2)" ${!state.product?'disabled':''} id="nextBtn1">Suivant : Détails →</button>
+    </div>`;
+
+  ctx._validatedRef = validated;
+}
+
+function selectProduct(i) {
+  const validated = ctx?._validatedRef || (ctx?.products||[]).filter(p=>p.match_status==='validated');
+  state.product = validated[i] || null;
+  renderProduit();
+}
+
+/* ── Step 2: Détails ── */
+function renderDetails() {
+  const cats = ctx?.categories || Object.keys(CATEGORY_LABELS);
+  const typeOptions = cats.map(c => {
+    const m = CATEGORY_LABELS[c] || {icon:'', label:c};
+    return `<option value="${c}" ${state.alertType===c?'selected':''}>${m.icon} ${m.label}</option>`;
+  }).join('');
+  const availOptions = Object.entries(AVAILABILITY_LABELS).map(([v,l]) =>
+    `<option value="${v}" ${state.availabilityStatus===v?'selected':''}>${l}</option>`).join('');
+
+  const waPreview = buildWaPreview();
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Création d'alerte</div>
+      <div class="section-title">Détails du stock</div>
+    </div>
+    <div class="gap">
+      <div class="card" style="padding:10px 14px">
+        <div class="card-title">Produit sélectionné</div>
+        <div class="product-pill">
+          <div class="product-icon">💊</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:700">${esc(state.product?.product_name||'—')}</div>
+            <div style="font-size:10px;color:var(--muted)">Medindex · ${esc(state.product?.product_id_medindex||'—')}</div>
           </div>
-          <div class="row-bottom">${alert.comment || 'Aucun commentaire'}${alert.scheduled_at ? ' • ' + alert.scheduled_at : ''}</div>
+          <button class="btn btn-outline btn-sm" onclick="goStep(1)">Changer</button>
         </div>
-      `).join('') : '<div class="row"><div class="row-bottom">Aucune alerte créée pour le moment.</div></div>';
-    }
+      </div>
 
-    function renderContext() {
-      const context = state.context;
-      if (!context) return;
-      document.getElementById('sourceType').value =
-        context.organization.organization_type === 'laboratory' ? 'Laboratoire' : 'Grossiste';
-      document.getElementById('orgStatus').textContent =
-        `${context.organization.name} • ${context.organization.status}`;
-      document.getElementById('metricProducts').textContent = String(
-        (context.products || []).filter((item) => item.match_status === 'validated').length,
-      );
-      document.getElementById('metricAlerts').textContent = String((context.alerts || []).length);
-      document.getElementById('alertType').innerHTML = (context.categories || []).map((category) => `
-        <option value="${category}">${CATEGORY_LABELS[category] || category}</option>
-      `).join('');
-      buildProductOptions(context.products || []);
-      renderHistory();
-    }
+      <div class="fields two">
+        <div>
+          <div class="field-label">Type d'alerte</div>
+          <select id="alertType" onchange="state.alertType=this.value;updateWaPreview()">${typeOptions}</select>
+        </div>
+        <div>
+          <div class="field-label">Statut disponibilité</div>
+          <select id="availStatus" onchange="state.availabilityStatus=this.value;updateWaPreview()">${availOptions}</select>
+        </div>
+      </div>
+      <div class="fields two">
+        <div>
+          <div class="field-label">Quantité disponible (opt.)</div>
+          <input id="qty" type="number" min="0" placeholder="ex: 2 000" value="${esc(state.availableQty)}" oninput="state.availableQty=this.value;updateWaPreview()"/>
+        </div>
+        <div>
+          <div class="field-label">Zone géographique (opt.)</div>
+          <input id="zone" placeholder="ex: Grand Casablanca" value="${esc(state.geoZone)}" oninput="state.geoZone=this.value;updateWaPreview()"/>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Commentaire interne (opt.)</div>
+        <textarea id="comment" placeholder="Précisions sur la disponibilité, conditions de commande minimum…" oninput="state.comment=this.value">${esc(state.comment)}</textarea>
+      </div>
 
-    async function loadContext() {
-      const response = await fetch('/api/stock-alerts/supplier/context');
-      if (response.status === 401) {
-        setAuthorized(false);
-        return;
-      }
-      if (!response.ok) {
-        toast('Impossible de charger le composeur', true);
-        return;
-      }
-      state.context = await response.json();
-      setAuthorized(true);
-      renderContext();
-    }
+      <div class="wa-preview">
+        <div class="card-title" style="color:#2E7D32;margin-bottom:8px">📱 Aperçu message WhatsApp</div>
+        <div class="wa-bubble" id="waPreview">${waPreview}</div>
+        <div class="wf-note" style="margin-top:8px">Template Twilio: ${state.alertType}_${ctx?.organization?.organization_type||'wholesaler'} · variables: {product}, {zone}, {qty}</div>
+      </div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(1)">← Retour</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="saveDraft()">💾 Brouillon</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Ciblage →</button>
+      </div>
+    </div>`;
+}
 
-    document.getElementById('alertForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const productSelect = document.getElementById('productSelect');
-      const selectedOption = productSelect.options[productSelect.selectedIndex];
-      const payload = {
-        product_id_medindex: productSelect.value,
-        product_name: selectedOption ? selectedOption.dataset.name : '',
-        alert_type: document.getElementById('alertType').value,
-        availability_status: document.getElementById('availabilityStatus').value,
-        available_quantity: document.getElementById('availableQuantity').value || null,
-        geographic_zone: document.getElementById('geographicZone').value.trim(),
-        comment: document.getElementById('comment').value.trim(),
-        target_segment: document.getElementById('targetSegment').value.trim(),
-        scheduled_at: document.getElementById('scheduledAt').value || null,
-        status: document.getElementById('alertStatus').value,
-      };
+function buildWaPreview() {
+  const m = CATEGORY_LABELS[state.alertType] || {icon:'📦', label:state.alertType};
+  const orgName = ctx?.organization?.name || 'Fournisseur';
+  const product = state.product?.product_name || 'Produit';
+  const zone = state.geoZone || 'Toutes régions';
+  const qty = state.availableQty ? ` · Qté: ${state.availableQty} bts` : '';
+  return `<strong>${m.icon} ${esc(m.label)}</strong> · ${esc(orgName)}<br>${esc(product)} · ${esc(zone)}${qty ? `<br>${qty}` : ''}<br><br><em style="font-size:10px;color:#666">Répondez STOP pour vous désabonner.</em>`;
+}
 
-      const button = event.currentTarget.querySelector('button[type="submit"]');
-      button.disabled = true;
-      try {
-        const response = await fetch('/api/stock-alerts/supplier/alerts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Création impossible');
-        }
-        toast('Alerte créée et soumise');
-        event.currentTarget.reset();
-        await loadContext();
-      } catch (error) {
-        toast(error.message || 'Création impossible', true);
-      } finally {
-        button.disabled = false;
-      }
+function updateWaPreview() {
+  const el = document.getElementById('waPreview');
+  if (el) el.innerHTML = buildWaPreview();
+}
+
+async function saveDraft() {
+  state.status = 'draft';
+  await submitAlert();
+}
+
+/* ── Step 3: Ciblage ── */
+function renderCiblage() {
+  const segments = [
+    { id: 'all', label: 'Toutes les pharmacies abonnées (consentement actif)', count: '—' },
+    { id: 'zone', label: state.geoZone ? `${state.geoZone} uniquement` : 'Zone géographique sélectionnée', count: '—' },
+    { id: 'custom', label: 'Segment personnalisé', count: '—' },
+  ];
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Ciblage</div>
+      <div class="section-title">À qui envoyer ?</div>
+      <p class="subtitle">Définissez le segment cible de votre alerte.</p>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div class="card-title">🎯 Segment cible</div>
+        ${segments.map(s => `
+          <div class="row-item" onclick="state.segment='${s.id}';renderCiblage()" style="cursor:pointer">
+            <div class="radio ${state.segment===s.id?'on':''}"></div>
+            <span style="flex:1;font-size:12px;font-weight:${state.segment===s.id?700:400}">${esc(s.label)}</span>
+            <span class="badge badge-blue">${s.count} pharm.</span>
+          </div>`).join('')}
+      </div>
+      ${state.segment === 'custom' ? `<div>
+        <div class="field-label">Critères de segment</div>
+        <input id="segmentInput" placeholder="Ex: officines premium, réseau nord…" value="${esc(state.segmentText||'')}" oninput="state.segmentText=this.value"/>
+      </div>` : ''}
+      <div class="info-box">Les destinataires sont recalculés au moment de l'approbation / envoi — jamais avant.</div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Planification →</button>
+    </div>`;
+}
+
+/* ── Step 4: Planification ── */
+function renderPlanification() {
+  const m = CATEGORY_LABELS[state.alertType] || {icon:'📦', label:state.alertType};
+  const product = state.product?.product_name || '—';
+  const zone = state.geoZone || 'Toutes régions';
+  const summaryBadges = [
+    m.icon + ' ' + m.label,
+    product,
+    zone,
+    state.segment === 'all' ? 'Toutes pharmacies' : state.segment === 'zone' ? zone : 'Segment custom',
+    state.scheduledAt ? 'Planifié' : 'Envoi immédiat',
+  ].map(t => `<span class="badge badge-purple">${esc(t)}</span>`).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Planification</div>
+      <div class="section-title">Quand envoyer ?</div>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div class="card-title">🕐 Planification de l'envoi</div>
+        <div class="fields two">
+          <div>
+            <div class="field-label">Envoi programmé (optionnel)</div>
+            <input type="datetime-local" id="scheduledAt" value="${state.scheduledAt}" onchange="state.scheduledAt=this.value"/>
+          </div>
+          <div>
+            <div class="field-label">Statut du brouillon</div>
+            <select id="alertStatus" onchange="state.status=this.value">
+              <option value="pending_approval" ${state.status==='pending_approval'?'selected':''}>pending_approval</option>
+              <option value="draft" ${state.status==='draft'?'selected':''}>draft</option>
+            </select>
+          </div>
+        </div>
+        <div class="wf-note" style="margin-top:8px">Envoi par lots de 100 msg/min pour respecter les limites de débit Twilio.</div>
+      </div>
+
+      <div class="summary-purple">
+        <div class="card-title" style="color:var(--purple);margin-bottom:8px">📋 Résumé avant soumission</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${summaryBadges}</div>
+        <div class="wf-note">Première campagne → soumise à approbation Blink Admin avant l'envoi.</div>
+      </div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(3)">← Retour</button>
+      <button class="btn btn-purple btn-full" id="submitBtn" onclick="submitAlert()" style="margin-top:12px;max-width:none">📤 Soumettre pour approbation</button>
+    </div>`;
+}
+
+async function submitAlert() {
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+
+  const payload = {
+    product_id_medindex: state.product?.product_id_medindex,
+    product_name: state.product?.product_name,
+    alert_type: state.alertType,
+    availability_status: state.availabilityStatus,
+    available_quantity: state.availableQty ? parseInt(state.availableQty, 10) : null,
+    geographic_zone: state.geoZone || null,
+    comment: state.comment || null,
+    target_segment: state.segment === 'custom' ? (state.segmentText||'') : state.segment,
+    scheduled_at: state.scheduledAt || null,
+    status: state.status || 'pending_approval',
+  };
+
+  try {
+    const res = await fetch('/api/stock-alerts/supplier/alerts', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
     });
+    const result = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(result.error || result.message || 'Création impossible');
+    showSuccess(result);
+  } catch(err) {
+    toast(err.message, true);
+    if (btn) { btn.disabled = false; btn.textContent = '📤 Soumettre pour approbation'; }
+  }
+}
 
-    loadContext();
-  </script>
+function showSuccess(result) {
+  [1,2,3,4].forEach(i => {
+    const d = document.getElementById('dot'+i);
+    if (d) { d.className='wdot done'; d.textContent='✓'; }
+  });
+  [1,2,3].forEach(i => {
+    const l = document.getElementById('line'+i);
+    if (l) l.className='wline done';
+  });
+  const m = CATEGORY_LABELS[state.alertType] || {icon:'📦', label:state.alertType};
+  main.innerHTML = `
+    <div class="card success-box">
+      <div class="success-icon">📤</div>
+      <div class="success-title">Alerte soumise</div>
+      <p class="success-sub"><strong>${m.icon} ${esc(m.label)}</strong> pour <strong>${esc(state.product?.product_name||'—')}</strong> a été soumise avec succès.<br>Elle sera examinée par Blink Admin avant diffusion.</p>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="resetAlert()">+ Créer une nouvelle alerte</button>
+        <a class="btn btn-outline" href="/actu.html">Retour aux actualités</a>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px">Les destinataires seront calculés au moment de l'approbation. Aucun message n'est envoyé sans consentement actif.</div>`;
+}
+
+function resetAlert() {
+  Object.assign(state, {
+    product: null, alertType: 'stock_recovery', availabilityStatus: 'available',
+    availableQty: '', geoZone: '', comment: '', segment: 'all', scheduledAt: '', status: 'pending_approval',
+  });
+  goStep(1);
+}
+
+function showUnauthorized() {
+  document.getElementById('wizardBar').style.display = 'none';
+  main.innerHTML = `
+    <div class="card unauth-box">
+      <div style="font-size:40px;margin-bottom:12px">🔒</div>
+      <h3 style="font-family:Nunito,sans-serif;font-size:18px;margin-bottom:8px">Accès sécurisé requis</h3>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;max-width:42ch;margin:0 auto 18px">Le composeur s'ouvre depuis un cockpit sécurisé Blink. Utilisez votre lien d'onboarding pour activer la session.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn-outline" href="/laboratory/register">Créer un accès laboratoire</a>
+        <a class="btn btn-outline" href="/wholesaler/register">Créer un accès grossiste</a>
+      </div>
+    </div>`;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function init() {
+  try {
+    const res = await fetch('/api/stock-alerts/supplier/context');
+    if (res.status === 401) { showUnauthorized(); return; }
+    if (!res.ok) throw new Error('Impossible de charger le composeur');
+    ctx = await res.json();
+
+    const org = ctx.organization;
+    if (org) {
+      const badge = document.getElementById('roleBadge');
+      if (badge) badge.textContent = org.organization_type === 'laboratory' ? 'Laboratoire' : 'Grossiste';
+      const avatar = document.getElementById('avatarEl');
+      if (avatar) {
+        const parts = String(org.name||'').trim().split(/\s+/);
+        avatar.textContent = parts.map(p=>p[0]).join('').toUpperCase().slice(0,2) || 'SP';
+      }
+    }
+
+    ctx._validatedRef = (ctx.products||[]).filter(p=>p.match_status==='validated');
+    renderProduit();
+  } catch(e) {
+    main.innerHTML = `<div class="card" style="text-align:center;padding:28px;color:var(--muted)">${e.message}</div>`;
+  }
+}
+
+init();
+</script>
 </body>
 </html>

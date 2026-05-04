@@ -1,725 +1,517 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Laboratoire — Onboarding Alertes Blink</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f4f7fb;
-      --card: #fff;
-      --surface: #f8fafc;
-      --green: #4caf50;
-      --teal: #26c6da;
-      --blue: #3f51b5;
-      --amber: #ffc107;
-      --red: #ef5350;
-      --text: #213547;
-      --muted: #64748b;
-      --soft: #94a3b8;
-      --border: #e2e8f0;
-      --shadow: 0 20px 50px rgba(15,23,42,0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "DM Sans", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(76,175,80,0.16), transparent 28%),
-        radial-gradient(circle at top right, rgba(63,81,181,0.14), transparent 32%),
-        var(--bg);
-      color: var(--text);
-    }
-
-    .shell {
-      max-width: 1220px;
-      margin: 0 auto;
-      padding: 32px 20px 96px;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 18px;
-      margin-bottom: 22px;
-    }
-
-    .panel {
-      background: rgba(255,255,255,0.94);
-      border: 1px solid rgba(226,232,240,0.92);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-    }
-
-    .hero-copy {
-      padding: 28px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--soft);
-      margin-bottom: 10px;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--green), var(--teal));
-    }
-
-    h1, h2, h3 {
-      font-family: "Nunito", sans-serif;
-      margin: 0;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.35rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      margin-bottom: 12px;
-    }
-
-    .hero-copy p {
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.75;
-      max-width: 56ch;
-      margin: 0 0 16px;
-    }
-
-    .hero-points {
-      display: grid;
-      gap: 10px;
-    }
-
-    .hero-point {
-      display: flex;
-      gap: 10px;
-      align-items: start;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .hero-metrics {
-      padding: 22px;
-      display: grid;
-      gap: 14px;
-      align-content: start;
-    }
-
-    .metric {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #fff, #f8fafc);
-      border: 1px solid var(--border);
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 30px;
-      font-family: "Nunito", sans-serif;
-      margin-bottom: 4px;
-    }
-
-    .metric span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .notice {
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: rgba(255,193,7,0.12);
-      border: 1px solid rgba(255,193,7,0.3);
-      color: #865b00;
-      font-size: 13px;
-      line-height: 1.65;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 0.95fr 1.05fr;
-      gap: 18px;
-    }
-
-    .card {
-      padding: 22px;
-    }
-
-    .section-title {
-      font-size: 1.35rem;
-      letter-spacing: -0.03em;
-      margin-bottom: 6px;
-    }
-
-    .section-copy {
-      margin: 0 0 16px;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 14px;
-    }
-
-    .field-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .field-grid.two {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      padding: 12px 14px;
-      font: inherit;
-      color: var(--text);
-      outline: none;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--green);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(76,175,80,0.12);
-    }
-
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 13px 18px;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-    }
-
-    .btn:hover:not(:disabled) { transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--green), #3fa95f);
-      box-shadow: 0 14px 28px rgba(76,175,80,0.24);
-    }
-
-    .btn-secondary {
-      color: var(--green);
-      background: rgba(76,175,80,0.1);
-      border: 1px solid rgba(76,175,80,0.2);
-    }
-
-    .btn-plain {
-      color: var(--blue);
-      background: rgba(63,81,181,0.08);
-      border: 1px solid rgba(63,81,181,0.18);
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      background: rgba(255,193,7,0.16);
-      color: #8a5b00;
-    }
-
-    .results,
-    .product-list,
-    .upload-list,
-    .alert-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .result-row,
-    .product-row,
-    .upload-row,
-    .alert-row {
-      padding: 14px;
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      border: 1px solid var(--border);
-    }
-
-    .row-top {
-      display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .row-top strong {
-      font-size: 14px;
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .row-top span,
-    .row-bottom {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .tag.green { background: rgba(76,175,80,0.12); color: #2e7d32; }
-    .tag.orange { background: rgba(255,112,67,0.12); color: #bf360c; }
-    .tag.red { background: rgba(239,83,80,0.12); color: #b71c1c; }
-    .tag.blue { background: rgba(63,81,181,0.1); color: #1a237e; }
-
-    .auth-empty {
-      display: none;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #122033;
-      color: #fff;
-      font-size: 13px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.2s ease;
-      pointer-events: none;
-      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
-    }
-
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: #8c2333; }
-
-    @media (max-width: 980px) {
-      .hero,
-      .grid,
-      .field-grid.two {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Inscription Laboratoire — Blink Alertes</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;--green:#4CAF50;--teal:#26C6DA;--blue:#3F51B5;--amber:#FFC107;--text:#213547;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;--shadow:0 8px 24px rgba(15,23,42,.08);--r-xl:24px;--r-lg:18px;--r-md:14px;--r-sm:10px;--nav-h:52px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.nav{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:var(--nav-h);padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-family:"Nunito",sans-serif;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-family:"Nunito",sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.logo-text strong{color:var(--green);font-weight:900}
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(76,175,80,.12);color:var(--green);letter-spacing:.04em}
+.avatar{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.wizard{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;flex-shrink:0}
+.wstep{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wdot{width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--border);color:var(--soft);flex-shrink:0}
+.wdot.done{background:var(--green);color:#fff}
+.wdot.active{background:var(--text);color:#fff}
+.wlabel{font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap}
+.wlabel.active{color:var(--text)}
+.wline{flex:1;height:2px;background:var(--border);margin:0 6px 12px}
+.wline.done{background:var(--green)}
+.shell{max-width:520px;margin:0 auto;padding:20px 16px 80px;width:100%}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card-title{font-family:"Nunito",sans-serif;font-weight:800;font-size:13px;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--teal))}
+.section-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em;margin-bottom:2px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+.fields{display:grid;gap:10px}
+.fields.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.field-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+input,select,textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);padding:9px 11px;font:inherit;font-size:12px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(76,175,80,.12)}
+textarea{min-height:70px;resize:vertical}
+.row-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none}
+.check{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.check.on{background:var(--green);border-color:var(--green)}
+.check.on::after{content:"✓";font-size:10px;color:#fff;font-weight:900}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700}
+.badge-green{background:rgba(76,175,80,.12);color:#2E7D32}
+.badge-teal{background:rgba(38,198,218,.12);color:#00838F}
+.badge-amber{background:rgba(255,193,7,.14);color:#E65100}
+.badge-blue{background:rgba(63,81,181,.1);color:#1A237E}
+.badge-red{background:rgba(239,83,80,.1);color:#B71C1C}
+.badge-gray{background:rgba(148,163,184,.15);color:var(--muted)}
+.note{background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.25);border-radius:var(--r-sm);padding:10px 12px;font-size:11px;color:#8a5b00;line-height:1.5}
+.wf-note{font-size:10px;color:var(--soft);font-style:italic;display:flex;align-items:flex-start;gap:4px;line-height:1.5}
+.wf-note::before{content:"↳";font-style:normal;color:var(--teal);flex-shrink:0}
+.upload-zone{border:2px dashed rgba(76,175,80,.4);border-radius:var(--r-lg);padding:18px;text-align:center;background:rgba(76,175,80,.04);display:flex;flex-direction:column;align-items:center;gap:6px}
+.upload-icon{font-size:24px}
+.upload-title{font-size:12px;font-weight:700;color:var(--text)}
+.upload-sub{font-size:10px;color:var(--soft)}
+.product-table{width:100%;border-collapse:collapse}
+.th{font-size:10px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;background:var(--surface);text-align:left}
+.td{font-size:11px;color:var(--text);padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;cursor:pointer;padding:9px 18px;font-family:inherit;font-size:12px;font-weight:700;transition:transform .15s,box-shadow .15s;text-decoration:none;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--green),#3FA95F);box-shadow:0 8px 20px rgba(76,175,80,.24)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn-outline{color:var(--green);background:rgba(76,175,80,.08);border:1.5px solid rgba(76,175,80,.25)}
+.btn-outline:hover:not(:disabled){background:rgba(76,175,80,.14)}
+.btn-sm{padding:5px 12px!important;font-size:11px!important}
+.btn-full{width:100%;padding:13px}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.step-nav.end{justify-content:flex-end}
+.gap{display:flex;flex-direction:column;gap:10px}
+.contact-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.18);border-radius:var(--r-md);padding:14px}
+.success-box{text-align:center;padding:32px 20px}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:22px;margin-bottom:8px}
+.success-sub{color:var(--muted);font-size:13px;line-height:1.6}
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:14px;background:#122033;color:#fff;font-size:13px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 24px rgba(15,23,42,.2);z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#8c2333}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <article class="panel hero-copy">
-        <div class="eyebrow">Laboratoire</div>
-        <h1>Activez vos alertes de reprise de stock avec contrôle produit.</h1>
-        <p>Chaque campagne laboratoire est bornée à des produits validés MedIndex, soumise à l’approbation admin Blink, puis diffusée uniquement aux pharmaciens ayant donné un consentement actif.</p>
-        <div class="hero-points">
-          <div class="hero-point">Validez votre organisation puis rattachez votre catalogue à MedIndex avant toute campagne.</div>
-          <div class="hero-point">Les ambiguïtés sont automatiquement rangées en revue manuelle pour éviter tout envoi incertain.</div>
-          <div class="hero-point">Le cockpit sécurisé vous donne ensuite accès au composeur d’alertes WhatsApp.</div>
-        </div>
-      </article>
-      <aside class="panel hero-metrics">
-        <div class="metric">
-          <strong id="metricProducts">—</strong>
-          <span>produits chargés</span>
-        </div>
-        <div class="metric">
-          <strong id="metricValidated">—</strong>
-          <span>produits validés</span>
-        </div>
-        <div class="notice">
-          Les imports Excel, CSV et TSV sont acceptés. Les lignes ambiguës seront conservées pour validation Blink afin de garder un matching MedIndex déterministe.
-        </div>
-      </aside>
-    </section>
 
-    <div class="grid">
-      <section class="panel card" id="registerPanel">
-        <div class="eyebrow">Étape 1</div>
-        <h2 class="section-title">Créer votre accès laboratoire</h2>
-        <p class="section-copy">Déclarez votre société et votre contact principal. Blink vous génère ensuite un cockpit sécurisé pour charger vos produits et préparer vos campagnes.</p>
-        <form id="registerForm" class="field-grid">
-          <div class="field-grid two">
-            <label>Nom commercial
-              <input name="name" placeholder="Ex: Laboratoire Atlas" required />
-            </label>
-            <label>Raison sociale
-              <input name="legal_name" placeholder="Ex: Atlas Pharma SA" />
-            </label>
-          </div>
-          <div class="field-grid two">
-            <label>Nom du contact
-              <input name="contact_name" placeholder="Ex: Sara El Mansouri" required />
-            </label>
-            <label>Fonction
-              <input name="contact_role" placeholder="Ex: Market access manager" />
-            </label>
-          </div>
-          <div class="field-grid two">
-            <label>Email professionnel
-              <input name="contact_email" type="email" placeholder="prenom@laboratoire.ma" required />
-            </label>
-            <label>Téléphone WhatsApp
-              <input name="contact_phone" placeholder="+2126..." required />
-            </label>
-          </div>
-          <div class="field-grid two">
-            <label>Ville
-              <input name="city" placeholder="Casablanca" />
-            </label>
-            <label>Registre / RC
-              <input name="registration_number" placeholder="RC / IF / ICE" />
-            </label>
-          </div>
-          <label>Site web
-            <input name="website" placeholder="https://..." />
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-primary" type="submit">Créer mon cockpit sécurisé</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel card hidden" id="consolePanel">
-        <div class="eyebrow">Étape 2</div>
-        <h2 class="section-title">Catalogue laboratoire</h2>
-        <p class="section-copy">Chargez vos produits validés ou importez un fichier pour faire matcher votre catalogue avec MedIndex.</p>
-        <div class="status-pill" id="orgStatus">Statut —</div>
-
-        <div class="field-grid" style="margin-top: 16px;">
-          <label>Recherche MedIndex
-            <input id="searchInput" placeholder="Nom produit ou DCI" />
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-primary" id="searchBtn" type="button">Rechercher</button>
-            <a class="btn btn-plain" href="/supplier/alerts/new">Ouvrir le composeur d’alertes</a>
-          </div>
-        </div>
-        <div class="results" id="searchResults"></div>
-
-        <div class="field-grid" style="margin-top: 20px;">
-          <label>Importer un export catalogue
-            <input id="fileInput" type="file" accept=".csv,.txt,.tsv,.xlsx,.xls" />
-          </label>
-          <label>Ou coller un extrait tabulaire
-            <textarea id="fileText" placeholder="Une ligne par produit ou tableau CSV/TSV."></textarea>
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-secondary" id="uploadBtn" type="button">Traiter l’import</button>
-          </div>
-        </div>
-
-        <div class="upload-list" id="uploadList"></div>
-        <div class="product-list" id="productList"></div>
-      </section>
-    </div>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-text">Blink <strong>Alertes</strong></span>
+    <span class="role-badge">Laboratoire</span>
   </div>
+  <div class="avatar">LB</div>
+</nav>
 
-  <div id="toast" class="toast"></div>
+<div class="wizard" id="wizardBar">
+  <div class="wstep">
+    <div class="wdot active" id="dot1">1</div>
+    <span class="wlabel active" id="lbl1">Société</span>
+  </div>
+  <div class="wline" id="line1"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot2">2</div>
+    <span class="wlabel" id="lbl2">Produits</span>
+  </div>
+  <div class="wline" id="line2"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot3">3</div>
+    <span class="wlabel" id="lbl3">Validation</span>
+  </div>
+</div>
 
-  <script>
-    const state = {
-      context: null,
-    };
+<div class="shell">
+  <div id="mainContent"></div>
+</div>
 
-    function toast(message, isError = false) {
-      const el = document.getElementById('toast');
-      el.textContent = message;
-      el.className = 'toast show' + (isError ? ' error' : '');
-      window.clearTimeout(el._timer);
-      el._timer = window.setTimeout(() => {
-        el.className = 'toast' + (isError ? ' error' : '');
-      }, 2600);
-    }
+<div class="toast" id="toast"></div>
 
-    function setAuthenticatedView(enabled) {
-      document.getElementById('registerPanel').classList.toggle('hidden', enabled);
-      document.getElementById('consolePanel').classList.toggle('hidden', !enabled);
-    }
+<script>
+let step = 1;
+const state = {
+  org: null,
+  accessToken: null,
+  cguAccepted: false,
+  products: [],
+  manualProducts: [],
+  searchResults: [],
+};
 
-    function arrayBufferToBase64(buffer) {
-      const bytes = new Uint8Array(buffer);
-      const chunkSize = 0x8000;
-      let binary = '';
-      for (let index = 0; index < bytes.length; index += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
-      }
-      return btoa(binary);
-    }
+const main = document.getElementById('mainContent');
 
-    function statusTag(status) {
-      if (status === 'validated' || status === 'active' || status === 'parsed') return 'green';
-      if (status === 'pending' || status === 'pending_manual_review') return 'orange';
-      if (status === 'rejected' || status === 'failed') return 'red';
-      return 'blue';
-    }
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast'+(isError?' error':''), 2800);
+}
 
-    function refreshMetrics() {
-      const products = (state.context && state.context.products) || [];
-      const validated = products.filter((item) => item.match_status === 'validated').length;
-      document.getElementById('metricProducts').textContent = String(products.length);
-      document.getElementById('metricValidated').textContent = String(validated);
-    }
+function updateWizard() {
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById('dot'+i);
+    const lbl = document.getElementById('lbl'+i);
+    dot.className = 'wdot ' + (i < step ? 'done' : i === step ? 'active' : '');
+    dot.textContent = i < step ? '✓' : i;
+    lbl.className = 'wlabel' + (i === step ? ' active' : '');
+  });
+  [1,2].forEach(i => {
+    const ln = document.getElementById('line'+i);
+    if (ln) ln.className = 'wline' + (i < step ? ' done' : '');
+  });
+}
 
-    function renderConsole() {
-      const context = state.context;
-      if (!context) {
-        return;
-      }
+function goStep(n) { step = n; updateWizard(); renderStep(); window.scrollTo(0,0); }
 
-      document.getElementById('orgStatus').textContent =
-        `${context.organization.name} • ${context.organization.status}`;
+function renderStep() {
+  if (step === 1) renderSociete();
+  else if (step === 2) renderProduits();
+  else renderValidation();
+}
 
-      const uploadList = document.getElementById('uploadList');
-      const uploads = context.uploads || [];
-      uploadList.innerHTML = uploads.length ? uploads.slice(0, 4).map((upload) => `
-        <div class="upload-row">
-          <div class="row-top">
+/* ── Step 1: Société ── */
+function renderSociete() {
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Inscription laboratoire</div>
+      <div class="section-title">Informations société</div>
+      <p class="subtitle">Déclarez votre laboratoire et votre contact principal.</p>
+    </div>
+    <form id="societyForm" class="gap">
+      <div class="fields two">
+        <div>
+          <div class="field-label">Raison sociale *</div>
+          <input name="name" placeholder="Ex: Sanofi Maroc SA" required value="${esc(state.form_name||'')}"/>
+        </div>
+        <div>
+          <div class="field-label">N° RC</div>
+          <input name="registration_number" placeholder="123456" value="${esc(state.form_rc||'')}"/>
+        </div>
+      </div>
+      <div class="fields two">
+        <div>
+          <div class="field-label">ICE</div>
+          <input name="ice" placeholder="001234567000012" value="${esc(state.form_ice||'')}"/>
+        </div>
+        <div>
+          <div class="field-label">Ville</div>
+          <input name="city" placeholder="Casablanca" value="${esc(state.form_city||'')}"/>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Adresse complète</div>
+        <input name="address" placeholder="Km 12 Route de Rabat, Ain Sebaâ..." value="${esc(state.form_address||'')}"/>
+      </div>
+
+      <div class="contact-card">
+        <div class="card-title">👤 Contact principal</div>
+        <div class="fields">
+          <div class="fields two">
             <div>
-              <strong>${upload.filename}</strong>
-              <span>${upload.matched_count || 0} validés • ${upload.pending_count || 0} à revoir • ${upload.rejected_count || 0} rejetés</span>
+              <div class="field-label">Prénom Nom *</div>
+              <input name="contact_name" placeholder="Ahmed Benali" required value="${esc(state.form_contact_name||'')}"/>
             </div>
-            <span class="tag ${statusTag(upload.parse_status)}">${upload.parse_status}</span>
+            <div>
+              <div class="field-label">Poste</div>
+              <input name="contact_role" placeholder="Dir. commercial" value="${esc(state.form_contact_role||'')}"/>
+            </div>
+          </div>
+          <div>
+            <div class="field-label">Email professionnel *</div>
+            <input name="contact_email" type="email" placeholder="a.benali@labo.ma" required value="${esc(state.form_contact_email||'')}"/>
+          </div>
+          <div>
+            <div class="field-label">Téléphone WhatsApp *</div>
+            <input name="contact_phone" placeholder="+212 6XX XXX XXX" required value="${esc(state.form_contact_phone||'')}"/>
           </div>
         </div>
-      `).join('') : '';
+      </div>
 
-      const productList = document.getElementById('productList');
-      const products = context.products || [];
-      productList.innerHTML = products.length ? products.slice(0, 12).map((product) => `
-        <div class="product-row">
-          <div class="row-top">
-            <div>
-              <strong>${product.product_name}</strong>
-              <span>${product.product_id_medindex || 'Sans identifiant MedIndex'} • Source ${product.source}</span>
-            </div>
-            <span class="tag ${statusTag(product.match_status)}">${product.match_status}</span>
-          </div>
-          ${product.rejection_reason ? `<div class="row-bottom">${product.rejection_reason}</div>` : ''}
-        </div>
-      `).join('') : '<div class="product-row">Aucun produit chargé pour le moment.</div>';
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="check ${state.cguAccepted?'on':''}" id="cguCheck" onclick="toggleCgu()" style="margin-top:1px;flex-shrink:0"></div>
+        <span style="font-size:11px;line-height:1.6">J'accepte les <strong>conditions d'utilisation</strong> Blink Alertes</span>
+      </div>
 
-      refreshMetrics();
-    }
+      <div class="step-nav end">
+        <button class="btn btn-primary" type="submit" id="submitSociety">Suivant : Produits →</button>
+      </div>
+    </form>`;
 
-    async function loadContext() {
-      const response = await fetch('/api/stock-alerts/supplier/context');
-      if (response.status === 401) {
-        setAuthenticatedView(false);
-        return false;
-      }
-      if (!response.ok) {
-        toast('Impossible de charger le cockpit laboratoire', true);
-        return false;
-      }
+  document.getElementById('societyForm').addEventListener('submit', handleSocietySubmit);
+}
 
-      state.context = await response.json();
-      setAuthenticatedView(true);
-      renderConsole();
-      return true;
-    }
+function toggleCgu() {
+  state.cguAccepted = !state.cguAccepted;
+  const el = document.getElementById('cguCheck');
+  if (el) el.className = 'check ' + (state.cguAccepted ? 'on' : '');
+}
 
-    document.getElementById('registerForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(event.currentTarget);
-      const payload = Object.fromEntries(formData.entries());
-      const submitButton = event.currentTarget.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      try {
-        const response = await fetch('/api/stock-alerts/laboratories/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Inscription impossible');
-        }
-        toast('Cockpit laboratoire créé');
-        window.location.href = result.products_url || result.portal_url || '/supplier/alerts/new';
-      } catch (error) {
-        toast(error.message || 'Inscription impossible', true);
-      } finally {
-        submitButton.disabled = false;
-      }
+async function handleSocietySubmit(e) {
+  e.preventDefault();
+  const fd = new FormData(e.currentTarget);
+  const data = Object.fromEntries(fd.entries());
+
+  // Save form values in state for back navigation
+  Object.assign(state, {
+    form_name: data.name, form_rc: data.registration_number,
+    form_ice: data.ice, form_city: data.city, form_address: data.address,
+    form_contact_name: data.contact_name, form_contact_role: data.contact_role,
+    form_contact_email: data.contact_email, form_contact_phone: data.contact_phone,
+  });
+
+  if (!state.cguAccepted) { toast('Veuillez accepter les conditions d\'utilisation', true); return; }
+
+  const btn = document.getElementById('submitSociety');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+  try {
+    const res = await fetch('/api/stock-alerts/laboratories/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name: data.name,
+        legal_name: data.name,
+        registration_number: data.registration_number || data.ice || undefined,
+        city: data.city,
+        contact_name: data.contact_name,
+        contact_role: data.contact_role || undefined,
+        contact_email: data.contact_email,
+        contact_phone: data.contact_phone,
+      }),
     });
+    const result = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(result.error || result.message || 'Inscription impossible');
+    state.org = result.organization;
+    state.accessToken = result.access_token;
+    toast('Laboratoire enregistré');
+    goStep(2);
+  } catch(err) {
+    toast(err.message, true);
+    btn.disabled = false; btn.textContent = 'Suivant : Produits →';
+  }
+}
 
-    document.getElementById('searchBtn').addEventListener('click', async () => {
-      const query = document.getElementById('searchInput').value.trim();
-      if (!query) {
-        toast('Saisissez un nom produit ou une DCI', true);
-        return;
-      }
-      const response = await fetch('/api/stock-alerts/supplier/medindex/search?q=' + encodeURIComponent(query));
-      const host = document.getElementById('searchResults');
-      if (!response.ok) {
-        host.innerHTML = '<div class="result-row">Recherche indisponible.</div>';
-        return;
-      }
-      const payload = await response.json();
-      const results = payload.results || [];
-      if (!results.length) {
-        host.innerHTML = '<div class="result-row">Aucun résultat MedIndex.</div>';
-        return;
-      }
-      host.innerHTML = results.map((item) => `
-        <div class="result-row">
-          <div class="row-top">
-            <div>
-              <strong>${item.name}</strong>
-              <span>${item.dci || 'DCI non renseignée'} • ${item.laboratory || 'Laboratoire non renseigné'}</span>
-            </div>
-            <button class="btn btn-secondary" type="button" data-add-product="${encodeURIComponent(JSON.stringify({
-              product_id_medindex: item.id,
-              product_name: item.name,
-              dci: item.dci,
-              laboratory: item.laboratory,
-              dosage: item.dosage,
-            }))}">Ajouter</button>
-          </div>
+/* ── Step 2: Produits ── */
+function renderProduits() {
+  const rows = state.products.map(p => {
+    const scoreClass = p.score >= 95 ? 'badge-green' : p.score > 0 ? 'badge-amber' : '';
+    const statusBadge = p.match_status === 'validated'
+      ? '<span class="badge badge-green">✓ Validé</span>'
+      : p.match_status === 'pending_manual_review'
+        ? '<span class="badge badge-amber">⚠ Révision</span>'
+        : '<span class="badge badge-red">✗ Manquant</span>';
+    return `<tr>
+      <td class="td" style="font-weight:600">${esc(p.product_name)}</td>
+      <td class="td" style="color:var(--muted)">${esc(p.product_id_medindex||'—')}</td>
+      <td class="td">${p.score > 0 ? `<span class="badge ${scoreClass}">${p.score}%</span>` : ''}</td>
+      <td class="td">${statusBadge}</td>
+    </tr>`;
+  }).join('');
+
+  const manualRows = state.manualProducts.map((p,i) => `
+    <div class="row-item">
+      <span style="flex:1;font-size:12px;font-weight:600">${esc(p.product_name)}</span>
+      <span style="font-size:11px;color:var(--muted)">${esc(p.product_id_medindex||'Sans MedIndex')}</span>
+      <button class="btn btn-sm" style="color:var(--soft);background:none;border:none;font-size:16px;cursor:pointer" onclick="removeManual(${i})">×</button>
+    </div>`).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Catalogue produits</div>
+      <div class="section-title">Import & matching Medindex</div>
+      <p class="subtitle">Ajoutez vos produits pour activer les campagnes d'alertes.</p>
+    </div>
+    <div class="gap">
+      <div class="upload-zone">
+        <div class="upload-icon">📂</div>
+        <div class="upload-title">Déposez votre fichier Excel / CSV ici</div>
+        <div class="upload-sub">ou sélectionnez depuis la base Medindex</div>
+        <input type="file" id="fileInput" accept=".csv,.txt,.tsv,.xlsx,.xls" style="display:none" onchange="handleFileUpload()"/>
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;justify-content:center">
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('fileInput').click()">📁 Importer fichier</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleSearch()">🔍 Parcourir Medindex</button>
         </div>
-      `).join('');
+      </div>
 
-      host.querySelectorAll('[data-add-product]').forEach((button) => {
-        button.addEventListener('click', async () => {
-          const product = JSON.parse(decodeURIComponent(button.dataset.addProduct));
-          button.disabled = true;
-          const res = await fetch('/api/stock-alerts/supplier/products/manual', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: [product] }),
-          });
-          const payload = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            toast(payload.error || 'Ajout impossible', true);
-            button.disabled = false;
-            return;
-          }
-          toast('Produit ajouté au catalogue laboratoire');
-          await loadContext();
-        });
+      <div id="searchBlock" class="hidden">
+        <div class="card">
+          <div class="card-title">🔍 Recherche Medindex</div>
+          <div style="display:flex;gap:8px">
+            <input id="searchInput" placeholder="Nom produit ou DCI" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();doSearch()}"/>
+            <button class="btn btn-outline btn-sm" onclick="doSearch()">Rechercher</button>
+          </div>
+          <div id="searchResults" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card-title" style="margin-bottom:8px">➕ Ajouter manuellement</div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1">
+            <div class="field-label">Nom du produit</div>
+            <input id="manualName" placeholder="Ex: Doliprane 500mg"/>
+          </div>
+          <div style="flex:1">
+            <div class="field-label">ID Medindex (optionnel)</div>
+            <input id="manualMedindex" placeholder="MX-00421"/>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="addManual()" style="flex-shrink:0;margin-bottom:1px">Ajouter</button>
+        </div>
+        <div id="manualList" style="margin-top:10px">${manualRows || '<p style="font-size:12px;color:var(--muted);padding:4px 0">Aucun produit ajouté manuellement.</p>'}</div>
+      </div>
+
+      ${state.products.length ? `
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+          <span class="card-title" style="margin:0">Résultats du matching</span>
+          <span class="badge badge-amber">${state.products.filter(p=>p.match_status==='pending_manual_review').length} à réviser</span>
+        </div>
+        <table class="product-table">
+          <thead><tr>
+            <th class="th">Produit importé</th>
+            <th class="th">Correspondance Medindex</th>
+            <th class="th">Score</th>
+            <th class="th">Statut</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>` : ''}
+
+      <div class="wf-note">Produits en révision soumis à validation manuelle Blink Admin avant tout envoi d'alerte.</div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" id="submitProducts" onclick="handleProductsSubmit()">Soumettre pour validation →</button>
+    </div>`;
+}
+
+function toggleSearch() {
+  const el = document.getElementById('searchBlock');
+  if (el) el.classList.toggle('hidden');
+}
+
+async function doSearch() {
+  const q = (document.getElementById('searchInput')?.value||'').trim();
+  const host = document.getElementById('searchResults');
+  if (!q || !host) return;
+  host.innerHTML = '<p style="font-size:12px;color:var(--muted)">Recherche…</p>';
+  const res = await fetch('/api/stock-alerts/supplier/medindex/search?q=' + encodeURIComponent(q) + (state.accessToken ? '&access_token='+encodeURIComponent(state.accessToken) : ''));
+  if (!res.ok) { host.innerHTML = '<p style="font-size:12px;color:var(--muted)">Recherche indisponible.</p>'; return; }
+  const data = await res.json();
+  const results = data.results || [];
+  if (!results.length) { host.innerHTML = '<p style="font-size:12px;color:var(--muted)">Aucun résultat.</p>'; return; }
+  state.searchResults = results;
+  host.innerHTML = results.map((item, i) => `
+    <div class="row-item">
+      <span style="flex:1;font-size:12px;font-weight:600">${esc(item.name)}</span>
+      <span style="font-size:11px;color:var(--muted)">${esc(item.dci||'')}</span>
+      <button class="btn btn-outline btn-sm" onclick="addFromSearch(${i})">Ajouter</button>
+    </div>`).join('');
+}
+
+function addFromSearch(i) {
+  const item = state.searchResults[i];
+  if (!item) return;
+  state.manualProducts.push({ product_name: item.name, product_id_medindex: item.id || null });
+  renderProduits();
+}
+
+function removeManual(i) {
+  state.manualProducts.splice(i, 1);
+  renderProduits();
+}
+
+function addManual() {
+  const name = (document.getElementById('manualName')?.value||'').trim();
+  const mid = (document.getElementById('manualMedindex')?.value||'').trim();
+  if (!name) { toast('Saisissez un nom de produit', true); return; }
+  state.manualProducts.push({ product_name: name, product_id_medindex: mid || null });
+  renderProduits();
+}
+
+async function handleFileUpload() {
+  const input = document.getElementById('fileInput');
+  if (!input?.files?.[0]) return;
+  const file = input.files[0];
+  const btn = document.getElementById('submitProducts');
+  if (btn) { btn.disabled = true; btn.textContent = 'Traitement…'; }
+  try {
+    let fileBase64 = null, text = null;
+    if (/\.(xlsx|xls)$/i.test(file.name)) {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = ''; const chunk = 0x8000;
+      for (let idx = 0; idx < bytes.length; idx += chunk) bin += String.fromCharCode(...bytes.subarray(idx, idx+chunk));
+      fileBase64 = btoa(bin);
+    } else {
+      text = await file.text();
+    }
+    const url = '/api/stock-alerts/supplier/products/upload' + (state.accessToken ? '?access_token='+encodeURIComponent(state.accessToken) : '');
+    const res = await fetch(url, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ filename: file.name, file_text: text, file_base64: fileBase64, mime_type: file.type||'text/csv', file_size_bytes: file.size }),
+    });
+    const result = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(result.error || 'Import impossible');
+    toast('Import traité');
+    await refreshContext();
+  } catch(err) { toast(err.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Soumettre pour validation →'; } }
+}
+
+async function refreshContext() {
+  if (!state.accessToken) return;
+  const res = await fetch('/api/stock-alerts/supplier/context?access_token=' + encodeURIComponent(state.accessToken));
+  if (res.ok) {
+    const ctx = await res.json();
+    state.products = ctx.products || [];
+  }
+  renderProduits();
+}
+
+async function handleProductsSubmit() {
+  if (!state.manualProducts.length && !state.products.length) {
+    goStep(3); return;
+  }
+  if (state.manualProducts.length) {
+    const btn = document.getElementById('submitProducts');
+    if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+    try {
+      const url = '/api/stock-alerts/supplier/products/manual' + (state.accessToken ? '?access_token='+encodeURIComponent(state.accessToken) : '');
+      const res = await fetch(url, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ products: state.manualProducts }),
       });
-    });
+      const result = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(result.error || 'Ajout impossible');
+      toast('Produits enregistrés');
+      state.manualProducts = [];
+    } catch(err) {
+      toast(err.message, true);
+      if (btn) { btn.disabled = false; btn.textContent = 'Soumettre pour validation →'; }
+      return;
+    }
+  }
+  goStep(3);
+}
 
-    document.getElementById('uploadBtn').addEventListener('click', async () => {
-      const fileInput = document.getElementById('fileInput');
-      const textarea = document.getElementById('fileText');
-      let text = textarea.value.trim();
-      let filename = 'catalogue.csv';
-      let fileBase64 = null;
-      let mimeType = 'text/csv';
-      let fileSizeBytes = text.length;
+/* ── Step 3: Validation ── */
+function renderValidation() {
+  const orgName = state.org?.name || state.form_name || 'Votre laboratoire';
+  document.getElementById('wizardBar').querySelectorAll('.wdot').forEach((d,i) => {
+    d.className = 'wdot done'; d.textContent = '✓';
+  });
+  document.getElementById('wizardBar').querySelectorAll('.wline').forEach(l => l.className='wline done');
+  main.innerHTML = `
+    <div class="card success-box">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Demande soumise</div>
+      <p class="success-sub"><strong>${esc(orgName)}</strong> a été enregistré.<br>Votre dossier est en attente de validation Blink Admin (24–48h).<br>Un email de confirmation vous sera envoyé.</p>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:center">
+        ${state.accessToken ? `<a class="btn btn-primary" href="/supplier/alerts/new?access_token=${encodeURIComponent(state.accessToken)}">Ouvrir le composeur d'alertes</a>` : ''}
+        <a class="btn btn-outline" href="/actu.html">Voir les actualités Blink</a>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px">⏱ Validation Blink Admin sous 24–48h. Un email de confirmation vous sera envoyé à <strong>${esc(state.form_contact_email||'')}</strong>.</div>`;
+}
 
-      if (!text && fileInput.files && fileInput.files[0]) {
-        const file = fileInput.files[0];
-        filename = file.name;
-        mimeType = file.type || 'application/octet-stream';
-        fileSizeBytes = file.size || 0;
-        if (/\.(xlsx|xls)$/i.test(filename)) {
-          fileBase64 = arrayBufferToBase64(await file.arrayBuffer());
-        } else {
-          text = await file.text();
-          fileSizeBytes = text.length;
-        }
-      }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-      if (!text && !fileBase64) {
-        toast('Ajoutez un fichier ou collez un tableau avant traitement', true);
-        return;
-      }
-
-      const response = await fetch('/api/stock-alerts/supplier/products/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename,
-          file_text: text,
-          file_base64: fileBase64,
-          mime_type: mimeType,
-          file_size_bytes: fileSizeBytes,
-        }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        toast(payload.error || 'Import impossible', true);
-        return;
-      }
-      toast('Import catalogue traité');
-      textarea.value = '';
-      fileInput.value = '';
-      await loadContext();
-    });
-
-    loadContext();
-  </script>
+// Init
+renderSociete();
+</script>
 </body>
 </html>

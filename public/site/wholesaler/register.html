@@ -1,675 +1,428 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grossiste — Onboarding Alertes Blink</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f4f7fb;
-      --card: #fff;
-      --surface: #f8fafc;
-      --green: #4caf50;
-      --teal: #26c6da;
-      --blue: #3f51b5;
-      --orange: #ff7043;
-      --amber: #ffc107;
-      --text: #213547;
-      --muted: #64748b;
-      --soft: #94a3b8;
-      --border: #e2e8f0;
-      --shadow: 0 20px 50px rgba(15,23,42,0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "DM Sans", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(255,112,67,0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(38,198,218,0.14), transparent 34%),
-        var(--bg);
-    }
-
-    .shell {
-      max-width: 1220px;
-      margin: 0 auto;
-      padding: 32px 20px 96px;
-    }
-
-    .hero,
-    .grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-    }
-
-    .grid { margin-top: 22px; }
-
-    .panel {
-      background: rgba(255,255,255,0.94);
-      border: 1px solid rgba(226,232,240,0.92);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-    }
-
-    .hero-main,
-    .hero-side,
-    .card {
-      padding: 24px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--soft);
-      margin-bottom: 10px;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--orange), var(--teal));
-    }
-
-    h1, h2, h3 {
-      margin: 0;
-      font-family: "Nunito", sans-serif;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.25rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      margin-bottom: 12px;
-    }
-
-    .copy {
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 15px;
-      margin: 0 0 18px;
-    }
-
-    .stack { display: grid; gap: 10px; }
-
-    .point,
-    .metric,
-    .row {
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .point {
-      padding: 14px 16px;
-      font-size: 14px;
-      line-height: 1.65;
-      color: var(--muted);
-    }
-
-    .metric {
-      padding: 14px 16px;
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 30px;
-      font-family: "Nunito", sans-serif;
-      margin-bottom: 4px;
-    }
-
-    .metric span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .notice {
-      margin-top: 12px;
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      background: rgba(255,193,7,0.14);
-      border: 1px solid rgba(255,193,7,0.28);
-      color: #8a5b00;
-      font-size: 13px;
-      line-height: 1.65;
-    }
-
-    .section-title {
-      font-size: 1.35rem;
-      letter-spacing: -0.03em;
-      margin-bottom: 6px;
-    }
-
-    .section-copy {
-      margin: 0 0 16px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.7;
-    }
-
-    .fields { display: grid; gap: 12px; }
-    .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      padding: 12px 14px;
-      font: inherit;
-      color: var(--text);
-      outline: none;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--orange);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(255,112,67,0.12);
-    }
-
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 13px 18px;
-      font: inherit;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-    }
-
-    .btn:hover:not(:disabled) { transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--orange), #f48d44);
-      box-shadow: 0 14px 28px rgba(255,112,67,0.24);
-    }
-
-    .btn-secondary {
-      color: var(--blue);
-      background: rgba(63,81,181,0.08);
-      border: 1px solid rgba(63,81,181,0.18);
-    }
-
-    .btn-outline {
-      color: var(--orange);
-      background: rgba(255,112,67,0.1);
-      border: 1px solid rgba(255,112,67,0.2);
-    }
-
-    .status-pill,
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 7px 12px;
-    }
-
-    .status-pill,
-    .tag.orange { background: rgba(255,193,7,0.16); color: #8a5b00; }
-    .tag.green { background: rgba(76,175,80,0.12); color: #2e7d32; }
-    .tag.blue { background: rgba(63,81,181,0.12); color: #1a237e; }
-
-    .list { display: grid; gap: 10px; margin-top: 14px; }
-
-    .row { padding: 14px; }
-
-    .row-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .row-top strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .row-top span,
-    .row-bottom {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .hidden { display: none !important; }
-
-    .toast {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #122033;
-      color: #fff;
-      font-size: 13px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.2s ease;
-      pointer-events: none;
-      box-shadow: 0 12px 30px rgba(15,23,42,0.22);
-    }
-
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: #8c2333; }
-
-    @media (max-width: 980px) {
-      .hero,
-      .grid,
-      .fields.two {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Inscription Grossiste — Blink Alertes</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;--green:#4CAF50;--teal:#26C6DA;--blue:#3F51B5;--orange:#FF7043;--amber:#FFC107;--text:#213547;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;--shadow:0 8px 24px rgba(15,23,42,.08);--r-xl:24px;--r-lg:18px;--r-md:14px;--r-sm:10px;--nav-h:52px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.nav{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:var(--nav-h);padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--orange),var(--teal));display:flex;align-items:center;justify-content:center;font-family:"Nunito",sans-serif;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.logo-text{font-family:"Nunito",sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.logo-text strong{color:var(--orange);font-weight:900}
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,112,67,.12);color:var(--orange);letter-spacing:.04em}
+.avatar{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--orange),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.wizard{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;flex-shrink:0}
+.wstep{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wdot{width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--border);color:var(--soft);flex-shrink:0}
+.wdot.done{background:var(--green);color:#fff}
+.wdot.active{background:var(--text);color:#fff}
+.wlabel{font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap}
+.wlabel.active{color:var(--text)}
+.wline{flex:1;height:2px;background:var(--border);margin:0 6px 12px}
+.wline.done{background:var(--green)}
+.shell{max-width:520px;margin:0 auto;padding:20px 16px 80px;width:100%}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card-title{font-family:"Nunito",sans-serif;font-weight:800;font-size:13px;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:linear-gradient(135deg,var(--orange),var(--teal))}
+.section-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:20px;color:var(--text);letter-spacing:-.02em;margin-bottom:2px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+.fields{display:grid;gap:10px}
+.fields.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.field-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+input,select,textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);padding:9px 11px;font:inherit;font-size:12px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(255,112,67,.12)}
+.row-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none}
+.check{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.check.on{background:var(--green);border-color:var(--green)}
+.check.on::after{content:"✓";font-size:10px;color:#fff;font-weight:900}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700}
+.badge-green{background:rgba(76,175,80,.12);color:#2E7D32}
+.badge-orange{background:rgba(255,112,67,.12);color:#BF360C}
+.badge-amber{background:rgba(255,193,7,.14);color:#E65100}
+.badge-blue{background:rgba(63,81,181,.1);color:#1A237E}
+.badge-gray{background:rgba(148,163,184,.15);color:var(--muted)}
+.note{background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.25);border-radius:var(--r-sm);padding:10px 12px;font-size:11px;color:#8a5b00;line-height:1.5}
+.info-box{background:linear-gradient(135deg,rgba(76,175,80,.07),rgba(38,198,218,.05));border:1px solid rgba(76,175,80,.16);border-radius:var(--r-md);padding:10px 13px;font-size:11px;line-height:1.6;color:var(--muted)}
+.wf-note{font-size:10px;color:var(--soft);font-style:italic;display:flex;align-items:flex-start;gap:4px;line-height:1.5}
+.wf-note::before{content:"↳";font-style:normal;color:var(--teal);flex-shrink:0}
+.contact-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.18);border-radius:var(--r-md);padding:14px}
+.zone-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.zone-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 0}
+.zone-label{font-size:12px}
+.doc-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.doc-row:last-child{border-bottom:none}
+.doc-name{font-size:11px;color:var(--text)}
+.doc-status{font-size:10px;color:var(--soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;cursor:pointer;padding:9px 18px;font-family:inherit;font-size:12px;font-weight:700;transition:transform .15s,box-shadow .15s;text-decoration:none;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--orange),#f48d44);box-shadow:0 8px 20px rgba(255,112,67,.24)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn-outline{color:var(--orange);background:rgba(255,112,67,.08);border:1.5px solid rgba(255,112,67,.25)}
+.btn-outline:hover:not(:disabled){background:rgba(255,112,67,.14)}
+.btn-sm{padding:5px 12px!important;font-size:11px!important}
+.btn-full{width:100%;padding:13px}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.step-nav.end{justify-content:flex-end}
+.gap{display:flex;flex-direction:column;gap:10px}
+.summary-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.summary-item:last-child{border-bottom:none}
+.summary-label{color:var(--muted);font-weight:500}
+.summary-value{font-weight:700;text-align:right}
+.success-box{text-align:center;padding:32px 20px}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-title{font-family:"Nunito",sans-serif;font-weight:900;font-size:22px;margin-bottom:8px}
+.success-sub{color:var(--muted);font-size:13px;line-height:1.6}
+.toast{position:fixed;right:16px;bottom:16px;padding:12px 16px;border-radius:14px;background:#122033;color:#fff;font-size:13px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 24px rgba(15,23,42,.2);z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#8c2333}
+</style>
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <article class="panel hero-main">
-        <div class="eyebrow">Grossiste</div>
-        <h1>Diffusez vos reprises stock vers les bonnes officines, avec consentement actif.</h1>
-        <p class="copy">Le canal grossiste Blink permet de préparer des alertes WhatsApp ciblées sans jamais mélanger le chatbot entrant et les campagnes sortantes. Chaque message reste borné à un template approuvé et à une base consentie.</p>
-        <div class="stack">
-          <div class="point">Créez votre compte grossiste et faites valider votre organisation côté Blink Admin.</div>
-          <div class="point">Chargez en option un fichier de disponibilité pour accélérer la préparation des campagnes.</div>
-          <div class="point">Une fois approuvé, composez vos alertes produit par produit avec batch sending contrôlé.</div>
-        </div>
-      </article>
-      <aside class="panel hero-side">
-        <div class="metric">
-          <strong id="metricAlerts">—</strong>
-          <span>alertes créées</span>
-        </div>
-        <div class="metric">
-          <strong id="metricUploads">—</strong>
-          <span>imports disponibilité</span>
-        </div>
-        <div class="notice">
-          Les grossistes peuvent créer des alertes stock immédiatement après onboarding, mais la première campagne reste soumise à validation Blink avant envoi.
-        </div>
-      </aside>
-    </section>
 
-    <div class="grid">
-      <section class="panel card" id="registerPanel">
-        <div class="eyebrow">Étape 1</div>
-        <h2 class="section-title">Créer votre accès grossiste</h2>
-        <p class="section-copy">Déclarez votre société, votre contact principal et votre zone de couverture. Blink vous renvoie ensuite un cockpit sécurisé pour préparer vos campagnes de disponibilité.</p>
-        <form id="registerForm" class="fields">
-          <div class="fields two">
-            <label>Nom de l’enseigne
-              <input name="name" placeholder="Ex: Atlas Distribution Pharma" required />
-            </label>
-            <label>Raison sociale
-              <input name="legal_name" placeholder="Ex: Atlas Distribution SARL" />
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Nom du contact
-              <input name="contact_name" placeholder="Ex: Youssef Alaoui" required />
-            </label>
-            <label>Fonction
-              <input name="contact_role" placeholder="Ex: Responsable réseau officines" />
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Email professionnel
-              <input name="contact_email" type="email" placeholder="prenom@grossiste.ma" required />
-            </label>
-            <label>Téléphone WhatsApp
-              <input name="contact_phone" placeholder="+2126..." required />
-            </label>
-          </div>
-          <div class="fields two">
-            <label>Ville
-              <input name="city" placeholder="Casablanca" />
-            </label>
-            <label>Identifiant légal
-              <input name="registration_number" placeholder="RC / IF / ICE" />
-            </label>
-          </div>
-          <label>Site web
-            <input name="website" placeholder="https://..." />
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-primary" type="submit">Créer mon cockpit sécurisé</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel card hidden" id="consolePanel">
-        <div class="eyebrow">Étape 2</div>
-        <h2 class="section-title">Pilotage grossiste</h2>
-        <p class="section-copy">Suivez votre statut, importez des disponibilités si besoin et ouvrez le composeur d’alertes dès que votre premier envoi est prêt.</p>
-        <div class="status-pill" id="orgStatus">Statut —</div>
-
-        <div class="fields" style="margin-top: 16px;">
-          <label>Recherche MedIndex
-            <input id="searchInput" placeholder="Nom produit ou DCI" />
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-primary" id="searchBtn" type="button">Rechercher</button>
-            <a class="btn btn-secondary" href="/supplier/alerts/new">Ouvrir le composeur d’alertes</a>
-          </div>
-        </div>
-
-        <div class="list" id="searchResults"></div>
-
-        <div class="fields" style="margin-top: 18px;">
-          <label>Importer un export disponibilité (optionnel)
-            <input id="fileInput" type="file" accept=".csv,.txt,.tsv,.xlsx,.xls" />
-          </label>
-          <label>Ou coller un tableau disponibilité
-            <textarea id="fileText" placeholder="Une ligne par produit ou tableau CSV/TSV."></textarea>
-          </label>
-          <div class="btn-row">
-            <button class="btn btn-outline" id="uploadBtn" type="button">Traiter l’import</button>
-          </div>
-        </div>
-
-        <div class="list" id="uploadList"></div>
-        <div class="list" id="productList"></div>
-        <div class="list" id="alertList"></div>
-      </section>
-    </div>
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">G</div>
+    <span class="logo-text">Blink <strong>Alertes</strong></span>
+    <span class="role-badge">Grossiste</span>
   </div>
+  <div class="avatar">GR</div>
+</nav>
 
-  <div id="toast" class="toast"></div>
+<div class="wizard" id="wizardBar">
+  <div class="wstep">
+    <div class="wdot active" id="dot1">1</div>
+    <span class="wlabel active" id="lbl1">Société</span>
+  </div>
+  <div class="wline" id="line1"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot2">2</div>
+    <span class="wlabel" id="lbl2">Zones</span>
+  </div>
+  <div class="wline" id="line2"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot3">3</div>
+    <span class="wlabel" id="lbl3">Documents</span>
+  </div>
+  <div class="wline" id="line3"></div>
+  <div class="wstep">
+    <div class="wdot" id="dot4">4</div>
+    <span class="wlabel" id="lbl4">Soumission</span>
+  </div>
+</div>
 
-  <script>
-    const state = { context: null };
+<div class="shell">
+  <div id="mainContent"></div>
+</div>
 
-    function toast(message, isError = false) {
-      const el = document.getElementById('toast');
-      el.textContent = message;
-      el.className = 'toast show' + (isError ? ' error' : '');
-      window.clearTimeout(el._timer);
-      el._timer = window.setTimeout(() => {
-        el.className = 'toast' + (isError ? ' error' : '');
-      }, 2600);
-    }
+<div class="toast" id="toast"></div>
 
-    function statusTag(status) {
-      if (status === 'validated' || status === 'active' || status === 'sent' || status === 'parsed') return 'green';
-      if (status === 'pending' || status === 'pending_approval' || status === 'sending' || status === 'pending_manual_review') return 'orange';
-      if (status === 'rejected' || status === 'failed') return 'red';
-      return 'blue';
-    }
+<script>
+const ZONES = ['Grand Casa', 'Rabat-Salé', 'Marrakech', 'Fès-Meknès', 'Tanger-Tétouan', 'Agadir-Souss', 'Oriental', 'Laâyoune-Sakia'];
+const DOCS = [
+  { id: 'agrement', label: 'Agrément ministériel de grossiste' },
+  { id: 'rc', label: 'Copie du registre du commerce' },
+  { id: 'rib', label: 'RIB bancaire' },
+];
 
-    function setAuthenticatedView(enabled) {
-      document.getElementById('registerPanel').classList.toggle('hidden', enabled);
-      document.getElementById('consolePanel').classList.toggle('hidden', !enabled);
-    }
+let step = 1;
+const state = {
+  name: '', legal_name: '', registration_number: '', ice: '', city: '',
+  region: '', contact_name: '', contact_role: '', contact_email: '', contact_phone: '',
+  zones: new Set(['Grand Casa', 'Rabat-Salé']),
+  docs: {},
+  org: null, accessToken: null,
+};
 
-    function arrayBufferToBase64(buffer) {
-      const bytes = new Uint8Array(buffer);
-      const chunkSize = 0x8000;
-      let binary = '';
-      for (let index = 0; index < bytes.length; index += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
-      }
-      return btoa(binary);
-    }
+const main = document.getElementById('mainContent');
 
-    function renderConsole() {
-      const context = state.context;
-      if (!context) return;
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast'+(isError?' error':''), 2800);
+}
 
-      document.getElementById('orgStatus').textContent =
-        `${context.organization.name} • ${context.organization.status}`;
-      document.getElementById('metricAlerts').textContent = String((context.alerts || []).length);
-      document.getElementById('metricUploads').textContent = String((context.uploads || []).length);
+function updateWizard() {
+  [1,2,3,4].forEach(i => {
+    const dot = document.getElementById('dot'+i);
+    const lbl = document.getElementById('lbl'+i);
+    if (!dot) return;
+    dot.className = 'wdot ' + (i < step ? 'done' : i === step ? 'active' : '');
+    dot.textContent = i < step ? '✓' : i;
+    lbl.className = 'wlabel' + (i === step ? ' active' : '');
+  });
+  [1,2,3].forEach(i => {
+    const ln = document.getElementById('line'+i);
+    if (ln) ln.className = 'wline' + (i < step ? ' done' : '');
+  });
+}
 
-      document.getElementById('uploadList').innerHTML = (context.uploads || []).length
-        ? context.uploads.slice(0, 6).map((upload) => `
-            <div class="row">
-              <div class="row-top">
-                <div>
-                  <strong>${upload.filename}</strong>
-                  <span>${upload.matched_count || 0} validés • ${upload.pending_count || 0} à revoir</span>
-                </div>
-                <span class="tag ${statusTag(upload.parse_status)}">${upload.parse_status}</span>
-              </div>
-            </div>
-          `).join('')
-        : '';
+function goStep(n) { step = n; updateWizard(); renderStep(); window.scrollTo(0,0); }
 
-      document.getElementById('productList').innerHTML = (context.products || []).length
-        ? context.products.slice(0, 8).map((product) => `
-            <div class="row">
-              <div class="row-top">
-                <div>
-                  <strong>${product.product_name}</strong>
-                  <span>${product.product_id_medindex || 'Sans identifiant MedIndex'} • ${product.source}</span>
-                </div>
-                <span class="tag ${statusTag(product.match_status)}">${product.match_status}</span>
-              </div>
-              ${product.rejection_reason ? `<div class="row-bottom">${product.rejection_reason}</div>` : ''}
-            </div>
-          `).join('')
-        : '';
+function renderStep() {
+  if (step === 1) renderSociete();
+  else if (step === 2) renderZones();
+  else if (step === 3) renderDocuments();
+  else renderSoumission();
+}
 
-      document.getElementById('alertList').innerHTML = (context.alerts || []).length
-        ? context.alerts.slice(0, 8).map((alert) => `
-            <div class="row">
-              <div class="row-top">
-                <div>
-                  <strong>${alert.product_name}</strong>
-                  <span>${alert.alert_type} • ${alert.availability_status}</span>
-                </div>
-                <span class="tag ${statusTag(alert.status)}">${alert.status}</span>
-              </div>
-              <div class="row-bottom">${alert.comment || 'Aucun commentaire'}</div>
-            </div>
-          `).join('')
-        : '<div class="row"><div class="row-bottom">Aucune alerte grossiste créée pour le moment.</div></div>';
-    }
+/* ── Step 1: Société ── */
+function renderSociete() {
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Inscription grossiste répartiteur</div>
+      <div class="section-title">Informations société</div>
+      <p class="subtitle">Déclarez votre enseigne et votre contact principal.</p>
+    </div>
+    <form id="societyForm" class="gap">
+      <div class="fields two">
+        <div>
+          <div class="field-label">Raison sociale *</div>
+          <input name="name" placeholder="Ex: PharmAgro Distribution" required value="${esc(state.name)}"/>
+        </div>
+        <div>
+          <div class="field-label">N° Agrément grossiste</div>
+          <input name="registration_number" placeholder="GR-2024-0042" value="${esc(state.registration_number)}"/>
+        </div>
+      </div>
+      <div class="fields two">
+        <div>
+          <div class="field-label">ICE</div>
+          <input name="ice" placeholder="001234567000012" value="${esc(state.ice)}"/>
+        </div>
+        <div>
+          <div class="field-label">Région principale</div>
+          <select name="region">
+            <option value="">Sélectionner…</option>
+            ${['Grand Casablanca','Rabat-Salé-Kénitra','Marrakech-Safi','Fès-Meknès','Tanger-Tétouan-Al Hoceima','Souss-Massa','Oriental'].map(r=>`<option value="${r}" ${state.region===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
+      </div>
 
-    async function loadContext() {
-      const response = await fetch('/api/stock-alerts/supplier/context');
-      if (response.status === 401) {
-        setAuthenticatedView(false);
-        return;
-      }
-      if (!response.ok) {
-        toast('Impossible de charger le cockpit grossiste', true);
-        return;
-      }
-      state.context = await response.json();
-      setAuthenticatedView(true);
-      renderConsole();
-    }
-
-    document.getElementById('searchBtn').addEventListener('click', async () => {
-      const query = document.getElementById('searchInput').value.trim();
-      const host = document.getElementById('searchResults');
-      if (!query) {
-        toast('Saisissez un nom produit ou une DCI', true);
-        return;
-      }
-
-      const response = await fetch('/api/stock-alerts/supplier/medindex/search?q=' + encodeURIComponent(query));
-      if (!response.ok) {
-        host.innerHTML = '<div class="row"><div class="row-bottom">Recherche indisponible.</div></div>';
-        return;
-      }
-
-      const payload = await response.json();
-      const results = payload.results || [];
-      if (!results.length) {
-        host.innerHTML = '<div class="row"><div class="row-bottom">Aucun résultat MedIndex.</div></div>';
-        return;
-      }
-
-      host.innerHTML = results.map((item) => `
-        <div class="row">
-          <div class="row-top">
+      <div class="contact-card">
+        <div class="card-title">👤 Contact principal</div>
+        <div class="fields">
+          <div class="fields two">
             <div>
-              <strong>${item.name}</strong>
-              <span>${item.dci || 'DCI non renseignée'} • ${item.laboratory || 'Laboratoire non renseigné'}</span>
+              <div class="field-label">Prénom Nom *</div>
+              <input name="contact_name" placeholder="Youssef Alaoui" required value="${esc(state.contact_name)}"/>
             </div>
-            <button class="btn btn-secondary" type="button" data-add-product="${encodeURIComponent(JSON.stringify({
-              product_id_medindex: item.id,
-              product_name: item.name,
-              dci: item.dci,
-              laboratory: item.laboratory,
-              dosage: item.dosage,
-            }))}">Ajouter</button>
+            <div>
+              <div class="field-label">Poste</div>
+              <input name="contact_role" placeholder="Responsable réseau" value="${esc(state.contact_role)}"/>
+            </div>
+          </div>
+          <div>
+            <div class="field-label">Email professionnel *</div>
+            <input name="contact_email" type="email" placeholder="y.alaoui@grossiste.ma" required value="${esc(state.contact_email)}"/>
+          </div>
+          <div>
+            <div class="field-label">Téléphone WhatsApp *</div>
+            <input name="contact_phone" placeholder="+212 6XX XXX XXX" required value="${esc(state.contact_phone)}"/>
           </div>
         </div>
-      `).join('');
+      </div>
 
-      host.querySelectorAll('[data-add-product]').forEach((button) => {
-        button.addEventListener('click', async () => {
-          const product = JSON.parse(decodeURIComponent(button.dataset.addProduct));
-          button.disabled = true;
-          const res = await fetch('/api/stock-alerts/supplier/products/manual', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: [product] }),
-          });
-          const addPayload = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            toast(addPayload.error || 'Ajout impossible', true);
-            button.disabled = false;
-            return;
-          }
-          toast('Produit MedIndex ajouté au cockpit grossiste');
-          await loadContext();
-        });
-      });
+      <div class="step-nav end">
+        <button class="btn btn-primary" type="submit">Suivant : Zones →</button>
+      </div>
+    </form>`;
+
+  document.getElementById('societyForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    Object.assign(state, {
+      name: fd.get('name'), legal_name: fd.get('name'),
+      registration_number: fd.get('registration_number'),
+      ice: fd.get('ice'), region: fd.get('region'),
+      contact_name: fd.get('contact_name'), contact_role: fd.get('contact_role'),
+      contact_email: fd.get('contact_email'), contact_phone: fd.get('contact_phone'),
     });
+    goStep(2);
+  });
+}
 
-    document.getElementById('registerForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(event.currentTarget);
-      const payload = Object.fromEntries(formData.entries());
-      const button = event.currentTarget.querySelector('button[type="submit"]');
-      button.disabled = true;
-      try {
-        const response = await fetch('/api/stock-alerts/wholesalers/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Inscription impossible');
-        }
-        toast('Cockpit grossiste créé');
-        window.location.href = result.products_url || result.portal_url || '/supplier/alerts/new';
-      } catch (error) {
-        toast(error.message || 'Inscription impossible', true);
-      } finally {
-        button.disabled = false;
-      }
+/* ── Step 2: Zones ── */
+function renderZones() {
+  const zoneItems = ZONES.map(z => {
+    const on = state.zones.has(z);
+    return `<div class="zone-item" onclick="toggleZone('${esc(z)}')">
+      <div class="check ${on?'on':''}" id="zone_${esc(z.replace(/\s/g,'_'))}"></div>
+      <span class="zone-label" style="font-weight:${on?700:400}">${esc(z)}</span>
+    </div>`;
+  }).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Zones de distribution</div>
+      <div class="section-title">Couverture géographique</div>
+      <p class="subtitle">Sélectionnez les régions où vous êtes actif.</p>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div class="card-title">🗺️ Zones de distribution</div>
+        <div class="zone-grid">${zoneItems}</div>
+      </div>
+      <div class="info-box">Vous pourrez modifier vos zones de distribution depuis votre cockpit après validation.</div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Suivant : Documents →</button>
+    </div>`;
+}
+
+function toggleZone(z) {
+  state.zones.has(z) ? state.zones.delete(z) : state.zones.add(z);
+  renderZones();
+}
+
+/* ── Step 3: Documents ── */
+function renderDocuments() {
+  const docRows = DOCS.map(doc => {
+    const attached = state.docs[doc.id];
+    return `<div class="doc-row">
+      <div>
+        <div class="doc-name">${esc(doc.label)}</div>
+        ${attached ? `<div class="doc-status" style="color:var(--green)">✓ ${esc(attached)}</div>` : '<div class="doc-status">Non joint</div>'}
+      </div>
+      <label style="cursor:pointer">
+        <input type="file" style="display:none" onchange="attachDoc('${doc.id}',this)"/>
+        <span class="btn btn-outline btn-sm">📎 Joindre</span>
+      </label>
+    </div>`;
+  }).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Documents justificatifs</div>
+      <div class="section-title">Pièces requises</div>
+      <p class="subtitle">Ces documents permettent la vérification de votre agrément grossiste.</p>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div class="card-title">📎 Documents justificatifs</div>
+        ${docRows}
+      </div>
+      <div class="note">Les documents sont transmis de façon sécurisée à l'équipe Blink Admin pour vérification.</div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Suivant : Récapitulatif →</button>
+    </div>`;
+}
+
+function attachDoc(id, input) {
+  if (input.files?.[0]) {
+    state.docs[id] = input.files[0].name;
+    renderDocuments();
+  }
+}
+
+/* ── Step 4: Soumission ── */
+function renderSoumission() {
+  if (state.org) { renderSuccess(); return; }
+
+  const zoneList = [...state.zones].join(', ') || '—';
+  const docsAttached = Object.keys(state.docs).length;
+
+  main.innerHTML = `
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Récapitulatif</div>
+      <div class="section-title">Avant soumission</div>
+      <p class="subtitle">Vérifiez les informations avant d'envoyer votre dossier.</p>
+    </div>
+    <div class="gap">
+      <div class="card">
+        <div class="card-title">🏢 Société</div>
+        <div class="summary-item"><span class="summary-label">Raison sociale</span><span class="summary-value">${esc(state.name)}</span></div>
+        <div class="summary-item"><span class="summary-label">Agrément</span><span class="summary-value">${esc(state.registration_number||'—')}</span></div>
+        <div class="summary-item"><span class="summary-label">Région principale</span><span class="summary-value">${esc(state.region||'—')}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">👤 Contact</div>
+        <div class="summary-item"><span class="summary-label">Nom</span><span class="summary-value">${esc(state.contact_name)}</span></div>
+        <div class="summary-item"><span class="summary-label">Email</span><span class="summary-value">${esc(state.contact_email)}</span></div>
+        <div class="summary-item"><span class="summary-label">Téléphone</span><span class="summary-value">${esc(state.contact_phone)}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗺️ Zones & documents</div>
+        <div class="summary-item"><span class="summary-label">Zones sélectionnées</span><span class="summary-value" style="max-width:60%;text-align:right;font-size:11px">${esc(zoneList)}</span></div>
+        <div class="summary-item"><span class="summary-label">Documents joints</span><span class="summary-value">${docsAttached} / ${DOCS.length}</span></div>
+      </div>
+      <div class="info-box">⏱ Validation Blink Admin sous 24–48h. Un email de confirmation vous sera envoyé.</div>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-outline" onclick="goStep(3)">← Retour</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">Soumettre →</button>
+    </div>`;
+}
+
+async function handleSubmit() {
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+  try {
+    const res = await fetch('/api/stock-alerts/wholesalers/register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name: state.name,
+        legal_name: state.legal_name || state.name,
+        registration_number: state.registration_number || undefined,
+        city: [...state.zones][0] || state.region || undefined,
+        contact_name: state.contact_name,
+        contact_role: state.contact_role || undefined,
+        contact_email: state.contact_email,
+        contact_phone: state.contact_phone,
+      }),
     });
+    const result = await res.json().catch(()=>({}));
+    if (!res.ok) throw new Error(result.error || result.message || 'Inscription impossible');
+    state.org = result.organization;
+    state.accessToken = result.access_token;
+    toast('Dossier soumis avec succès');
+    renderSuccess();
+  } catch(err) {
+    toast(err.message, true);
+    if (btn) { btn.disabled = false; btn.textContent = 'Soumettre →'; }
+  }
+}
 
-    document.getElementById('uploadBtn').addEventListener('click', async () => {
-      const fileInput = document.getElementById('fileInput');
-      const textarea = document.getElementById('fileText');
-      let text = textarea.value.trim();
-      let filename = 'disponibilite.csv';
-      let fileBase64 = null;
-      let mimeType = 'text/csv';
-      let fileSizeBytes = text.length;
+function renderSuccess() {
+  [1,2,3,4].forEach(i => {
+    const d = document.getElementById('dot'+i);
+    if (d) { d.className='wdot done'; d.textContent='✓'; }
+  });
+  [1,2,3].forEach(i => {
+    const l = document.getElementById('line'+i);
+    if (l) l.className='wline done';
+  });
+  main.innerHTML = `
+    <div class="card success-box">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Dossier soumis</div>
+      <p class="success-sub"><strong>${esc(state.name)}</strong> a été enregistré.<br>Votre dossier est en attente de validation Blink Admin (24–48h).<br>Un email de confirmation vous sera envoyé.</p>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:center">
+        ${state.accessToken ? `<a class="btn btn-primary" href="/supplier/alerts/new?access_token=${encodeURIComponent(state.accessToken)}">Ouvrir le composeur d'alertes</a>` : ''}
+        <a class="btn btn-outline" href="/actu.html">Voir les actualités Blink</a>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px">⏱ Validation Blink Admin sous 24–48h. Confirmation envoyée à <strong>${esc(state.contact_email)}</strong>.</div>`;
+}
 
-      if (!text && fileInput.files && fileInput.files[0]) {
-        const file = fileInput.files[0];
-        filename = file.name;
-        mimeType = file.type || 'application/octet-stream';
-        fileSizeBytes = file.size || 0;
-        if (/\.(xlsx|xls)$/i.test(filename)) {
-          fileBase64 = arrayBufferToBase64(await file.arrayBuffer());
-        } else {
-          text = await file.text();
-          fileSizeBytes = text.length;
-        }
-      }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-      if (!text && !fileBase64) {
-        toast('Ajoutez un fichier ou collez un tableau avant traitement', true);
-        return;
-      }
-
-      const response = await fetch('/api/stock-alerts/supplier/products/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename,
-          file_text: text,
-          file_base64: fileBase64,
-          mime_type: mimeType,
-          file_size_bytes: fileSizeBytes,
-        }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        toast(payload.error || 'Import impossible', true);
-        return;
-      }
-      toast('Import disponibilité traité');
-      textarea.value = '';
-      fileInput.value = '';
-      await loadContext();
-    });
-
-    loadContext();
-  </script>
+renderSociete();
+</script>
 </body>
 </html>
