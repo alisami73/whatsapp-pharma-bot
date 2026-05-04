@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Alertes Réglementaires — AMMPS · Blink</title>
+<title>Portail AMMPS — Blink</title>
 <script src="/admin/auth-guard.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -12,11 +12,14 @@
 :root{
   --bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;
   --purple:#7B1FA2;--purple-d:#4A148C;--purple-soft:rgba(123,31,162,.07);--purple-mid:rgba(123,31,162,.16);
-  --green:#1a6640;--text:#1A2332;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;
+  --red:#C62828;--red-soft:rgba(198,40,40,.08);--red-mid:rgba(198,40,40,.2);
+  --amber:#E65100;--amber-soft:rgba(230,81,0,.08);--amber-mid:rgba(230,81,0,.2);
+  --green:#1B5E20;--green-soft:rgba(27,94,32,.08);--green-mid:rgba(27,94,32,.2);
+  --text:#1A2332;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;
   --shadow:0 4px 20px rgba(15,23,42,.07);--r:14px;--r-sm:9px
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,sans-serif;font-size:15px;line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
 
 /* Header */
 .hdr{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow);position:sticky;top:0;z-index:50}
@@ -30,31 +33,58 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,
 .btn-logout{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s}
 .btn-logout:hover{color:var(--text);border-color:#c4cdd8}
 
-/* Toolbar */
-.toolbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.toolbar-left{display:flex;align-items:center;gap:10px;flex:1}
-.toolbar-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--text)}
-.badge-count{display:inline-flex;align-items:center;justify-content:center;background:var(--purple);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 8px}
-.filter-tabs{display:flex;gap:5px}
-.ftab{padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;font-family:inherit}
-.ftab.active{background:var(--purple-soft);border-color:var(--purple-mid);color:var(--purple)}
-.ftab:hover:not(.active){background:var(--surface)}
-.btn-export{background:var(--purple-soft);border:1.5px solid var(--purple-mid);color:var(--purple);border-radius:9px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap}
-.btn-export:hover{background:var(--purple-mid)}
+/* Tabs */
+.tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:0}
+.tab{padding:14px 20px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--purple);border-color:var(--purple)}
+.tab-count{background:var(--purple-soft);color:var(--purple);font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px}
+.tab-count.red{background:var(--red-soft);color:var(--red)}
 
 /* Body */
-.body{padding:24px 28px 60px;flex:1}
+.body{padding:24px 28px 60px;flex:1;max-width:1100px;width:100%;margin:0 auto}
 
 /* Stats */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow)}
-.stat-num{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:var(--purple);line-height:1}
-.stat-num.orange{color:#D84315}
-.stat-num.green{color:#1B5E20}
-.stat-num.blue{color:#1A237E}
+.stat-num{font-family:'Nunito',sans-serif;font-size:30px;font-weight:900;line-height:1}
 .stat-lbl{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500}
+.stat-num.purple{color:var(--purple)}
+.stat-num.red{color:var(--red)}
+.stat-num.blue{color:#1A237E}
 
-/* Table card */
+/* Section header */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.section-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--text)}
+.btn-new{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border-radius:999px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-new-recall{background:var(--red-soft);color:var(--red);border:1.5px solid var(--red-mid)}
+.btn-new-recall:hover{background:var(--red-mid)}
+.btn-new-warn{background:var(--purple-soft);color:var(--purple);border:1.5px solid var(--purple-mid)}
+.btn-new-warn:hover{background:var(--purple-mid)}
+
+/* Form card */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:18px;display:none}
+.form-card.open{display:block}
+.form-title{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.full{grid-template-columns:1fr}
+.field-wrap{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:13px;font-weight:600;color:var(--text)}
+.field-label .req{color:var(--red)}
+.field-wrap input,.field-wrap textarea,.field-wrap select{border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s;width:100%}
+.field-wrap input:focus,.field-wrap textarea:focus,.field-wrap select:focus{outline:none;border-color:var(--purple)}
+.field-wrap textarea{min-height:90px;resize:vertical}
+.form-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+.btn-submit{padding:11px 28px;border-radius:999px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;color:#fff;transition:all .15s}
+.btn-submit-recall{background:var(--red)}
+.btn-submit-recall:hover{background:#B71C1C}
+.btn-submit-warn{background:var(--purple)}
+.btn-submit-warn:hover{background:var(--purple-d)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.btn-cancel{background:none;border:1.5px solid var(--border);border-radius:999px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit}
+.btn-cancel:hover{color:var(--text)}
+
+/* Table */
 .table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 table{width:100%;border-collapse:collapse}
 thead tr{background:var(--surface);border-bottom:2px solid var(--border)}
@@ -62,32 +92,44 @@ th{padding:13px 18px;text-align:left;font-size:11px;font-weight:800;color:var(--
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#FAFBFD}
-td{padding:14px 18px;vertical-align:top}
+td{padding:13px 18px;vertical-align:middle}
 .td-date{white-space:nowrap;color:var(--muted);font-size:13px;font-weight:500}
-.td-product-name{font-size:14px;font-weight:700;color:var(--text)}
-.td-ref{font-size:12px;color:var(--soft);margin-top:3px;font-family:monospace}
-.td-org{font-size:13px;color:var(--muted)}
-.td-zone{font-size:13px;color:var(--muted)}
-.td-comment{font-size:13px;color:var(--text);max-width:280px;line-height:1.5}
-.td-comment.empty{color:var(--soft);font-style:italic}
-.td-segment{font-size:11px;color:var(--soft);margin-top:5px}
+.td-main{font-size:14px;font-weight:700;color:var(--text)}
+.td-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.td-pill{font-size:12px;color:var(--muted)}
 
-/* Status */
-.s-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
-.s-dot{width:6px;height:6px;border-radius:999px;background:currentColor;flex-shrink:0}
-.s-pending{background:rgba(255,112,67,.1);color:#BF360C}
-.s-approved{background:rgba(27,94,32,.1);color:#1B5E20}
-.s-sent{background:rgba(26,35,126,.1);color:#1A237E}
-.s-draft{background:rgba(148,163,184,.12);color:#4A5568}
+/* Status badges */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.badge-published{background:var(--green-soft);color:var(--green)}
+.badge-draft{background:rgba(148,163,184,.12);color:#4A5568}
+.badge-archived{background:rgba(148,163,184,.1);color:var(--soft)}
+.badge-dot{width:6px;height:6px;border-radius:999px;background:currentColor}
 
-/* Empty / loading */
+/* Action btns in table */
+.tbl-actions{display:flex;align-items:center;gap:8px}
+.tbl-btn{background:none;border:1.5px solid var(--border);border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .15s}
+.tbl-btn:hover{color:var(--text);border-color:#c4cdd8}
+.tbl-btn.danger:hover{color:var(--red);border-color:var(--red-mid);background:var(--red-soft)}
+
+/* State boxes */
 .state-box{text-align:center;padding:64px 24px}
 .state-icon{font-size:42px;margin-bottom:14px}
 .state-msg{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px}
 .state-sub{font-size:14px;color:var(--muted)}
 
+/* Toast */
+.toast{position:fixed;right:20px;bottom:20px;padding:12px 18px;border-radius:12px;background:#1A2332;color:#fff;font-size:14px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999;box-shadow:0 8px 24px rgba(15,23,42,.2)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:#7F1D1D}
+.toast.success{background:#1B5E20}
+
 /* Footer */
 .ftr{padding:14px 28px;border-top:1px solid var(--border);font-size:12px;color:var(--soft);background:#fff;text-align:center;margin-top:auto}
+
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr}
+  .hdr{padding:0 16px} .body{padding:16px 16px 60px} .tabs{padding:0 16px}
+}
 </style>
 </head>
 <body>
@@ -104,146 +146,377 @@ td{padding:14px 18px;vertical-align:top}
   </div>
 </header>
 
-<div class="toolbar">
-  <div class="toolbar-left">
-    <span class="toolbar-title">Alertes réglementaires</span>
-    <span class="badge-count" id="totalCount">—</span>
+<div class="tabs">
+  <div class="tab active" id="tab-recall" onclick="switchTab('recall')">
+    🔴 Retraits de lot <span class="tab-count red" id="cnt-recall">—</span>
   </div>
-  <div class="filter-tabs">
-    <button class="ftab active" onclick="setFilter(this,'')">Toutes</button>
-    <button class="ftab" onclick="setFilter(this,'pending_approval')">En attente</button>
-    <button class="ftab" onclick="setFilter(this,'approved')">Approuvées</button>
-    <button class="ftab" onclick="setFilter(this,'sent')">Envoyées</button>
+  <div class="tab" id="tab-warning" onclick="switchTab('warning')">
+    📋 Avertissements réglementaires <span class="tab-count" id="cnt-warning">—</span>
   </div>
-  <button class="btn-export" onclick="exportCsv()">⬇ Exporter CSV</button>
 </div>
 
 <div class="body">
+
+  <!-- ── STATS ── -->
   <div class="stats" id="statsBar"></div>
 
-  <div class="table-card" id="tableCard">
-    <div class="state-box" id="stateBox">
-      <div class="state-icon">⏳</div>
-      <div class="state-msg">Chargement…</div>
+  <!-- ══════════ RECALL TAB ══════════ -->
+  <div id="pane-recall">
+
+    <div class="section-hdr">
+      <span class="section-title">Retraits de lot</span>
+      <button class="btn-new btn-new-recall" onclick="toggleForm('recall')">＋ Nouveau retrait de lot</button>
     </div>
-    <table id="alertsTable" style="display:none">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Produit</th>
-          <th>Fournisseur</th>
-          <th>Zone géographique</th>
-          <th>Statut</th>
-          <th>Commentaire / Contenu</th>
-        </tr>
-      </thead>
-      <tbody id="alertsTbody"></tbody>
-    </table>
-  </div>
-</div>
+
+    <!-- Form -->
+    <div class="form-card" id="form-recall">
+      <div class="form-title">🔴 Nouveau retrait de lot</div>
+      <div class="form-grid">
+        <div class="field-wrap">
+          <label class="field-label">Nom du produit <span class="req">*</span></label>
+          <input id="r-product" type="text" placeholder="Ex : Paracétamol 500mg"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Numéro de lot <span class="req">*</span></label>
+          <input id="r-batch" type="text" placeholder="Ex : LOT-2025-0041"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Laboratoire / Représentant <span class="req">*</span></label>
+          <input id="r-lab" type="text" placeholder="Ex : Sanofi Maroc"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Date du retrait <span class="req">*</span></label>
+          <input id="r-date" type="date"/>
+        </div>
+      </div>
+      <div class="form-grid full" style="margin-top:14px">
+        <div class="field-wrap">
+          <label class="field-label">Raison du retrait <span class="req">*</span></label>
+          <textarea id="r-reason" placeholder="Ex : Défaut de qualité détecté — concentration hors spécification. Retrait immédiat de tous les lots concernés."></textarea>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Périmètre géographique</label>
+          <select id="r-scope">
+            <option value="national">National (tout le Maroc)</option>
+            <option value="Grand Casa">Grand Casablanca</option>
+            <option value="Rabat-Salé">Rabat-Salé-Kénitra</option>
+            <option value="Marrakech">Marrakech-Safi</option>
+            <option value="Fès-Meknès">Fès-Meknès</option>
+            <option value="Tanger-Tétouan">Tanger-Tétouan-Al Hoceïma</option>
+            <option value="Souss-Massa">Souss-Massa</option>
+            <option value="Oriental">L'Oriental</option>
+            <option value="autres">Autres régions</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-submit btn-submit-recall" id="submit-recall" onclick="submitRecall()">🔴 Publier le retrait de lot</button>
+        <button class="btn-cancel" onclick="toggleForm('recall')">Annuler</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card" id="tbl-recall-wrap">
+      <div class="state-box" id="state-recall"><div class="state-icon">⏳</div><div class="state-msg">Chargement…</div></div>
+      <table id="tbl-recall" style="display:none">
+        <thead><tr>
+          <th>Date</th><th>Produit</th><th>N° de lot</th><th>Laboratoire</th><th>Raison</th><th>Périmètre</th><th>Statut</th><th></th>
+        </tr></thead>
+        <tbody id="tbody-recall"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /pane-recall -->
+
+  <!-- ══════════ WARNING TAB ══════════ -->
+  <div id="pane-warning" style="display:none">
+
+    <div class="section-hdr">
+      <span class="section-title">Avertissements réglementaires</span>
+      <button class="btn-new btn-new-warn" onclick="toggleForm('warning')">＋ Nouvel avertissement</button>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card" id="form-warning">
+      <div class="form-title">📋 Nouvel avertissement réglementaire</div>
+      <div class="form-grid">
+        <div class="field-wrap">
+          <label class="field-label">Titre <span class="req">*</span></label>
+          <input id="w-title" type="text" placeholder="Ex : Mise en garde sur l'usage du médicament X"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">N° de référence</label>
+          <input id="w-ref" type="text" placeholder="Ex : AMMPS/2026/001"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Date d'effet</label>
+          <input id="w-date" type="date"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Périmètre géographique</label>
+          <select id="w-scope">
+            <option value="national">National (tout le Maroc)</option>
+            <option value="Grand Casa">Grand Casablanca</option>
+            <option value="Rabat-Salé">Rabat-Salé-Kénitra</option>
+            <option value="Marrakech">Marrakech-Safi</option>
+            <option value="Fès-Meknès">Fès-Meknès</option>
+            <option value="Tanger-Tétouan">Tanger-Tétouan-Al Hoceïma</option>
+            <option value="Souss-Massa">Souss-Massa</option>
+            <option value="Oriental">L'Oriental</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid full" style="margin-top:14px">
+        <div class="field-wrap">
+          <label class="field-label">Contenu / Description <span class="req">*</span></label>
+          <textarea id="w-content" style="min-height:120px" placeholder="Rédigez ici le contenu de l'avertissement réglementaire…"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-submit btn-submit-warn" id="submit-warning" onclick="submitWarning()">📋 Publier l'avertissement</button>
+        <button class="btn-cancel" onclick="toggleForm('warning')">Annuler</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card" id="tbl-warning-wrap">
+      <div class="state-box" id="state-warning"><div class="state-icon">⏳</div><div class="state-msg">Chargement…</div></div>
+      <table id="tbl-warning" style="display:none">
+        <thead><tr>
+          <th>Date</th><th>Titre</th><th>N° Réf.</th><th>Date d'effet</th><th>Périmètre</th><th>Statut</th><th></th>
+        </tr></thead>
+        <tbody id="tbody-warning"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /pane-warning -->
+
+</div><!-- /body -->
 
 <footer class="ftr">
-  Portail AMMPS — Blink Pharma · Accès lecture seule · Données confidentielles à usage réglementaire
+  Portail AMMPS — Blink Pharma · Données confidentielles à usage réglementaire exclusif
 </footer>
 
-<script>
-let allAlerts = [];
-let currentFilter = '';
+<div class="toast" id="toast"></div>
 
-const STATUS_MAP = {
-  pending_approval: { label:'En attente',  cls:'s-pending' },
-  approved:         { label:'Approuvée',    cls:'s-approved' },
-  sent:             { label:'Envoyée',      cls:'s-sent' },
-  draft:            { label:'Brouillon',    cls:'s-draft' },
-};
+<script>
+let recalls = [];
+let warnings = [];
+let currentTab = 'recall';
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('fr-MA',{day:'2-digit',month:'short',year:'numeric'}); }catch{ return d; } }
+function truncate(s,n=80){ s=String(s||''); return s.length>n?s.slice(0,n)+'…':s; }
 
-function fmtDate(iso){
-  if(!iso) return '—';
-  return new Date(iso).toLocaleDateString('fr-MA',{day:'2-digit',month:'short',year:'numeric'});
+function toast(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(type?' '+type:'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='toast',3000);
 }
 
 function statusBadge(s){
-  const m = STATUS_MAP[s] || {label:s,cls:'s-draft'};
-  return `<span class="s-badge ${m.cls}"><span class="s-dot"></span>${m.label}</span>`;
+  const map={published:{cls:'badge-published',dot:true,lbl:'Publié'},draft:{cls:'badge-draft',dot:false,lbl:'Brouillon'},archived:{cls:'badge-archived',dot:false,lbl:'Archivé'}};
+  const m=map[s]||{cls:'badge-draft',dot:false,lbl:s};
+  return `<span class="badge ${m.cls}">${m.dot?'<span class="badge-dot"></span>':''}${m.lbl}</span>`;
 }
 
-function renderStats(alerts){
-  const total=alerts.length, pending=alerts.filter(a=>a.status==='pending_approval').length,
-        approved=alerts.filter(a=>a.status==='approved').length, sent=alerts.filter(a=>a.status==='sent').length;
+function switchTab(tab){
+  currentTab=tab;
+  ['recall','warning'].forEach(t=>{
+    document.getElementById('tab-'+t).className='tab'+(t===tab?' active':'');
+    document.getElementById('pane-'+t).style.display=t===tab?'block':'none';
+  });
+}
+
+function toggleForm(type){
+  const fc=document.getElementById('form-'+type);
+  fc.classList.toggle('open');
+  if(fc.classList.contains('open')){
+    const first=fc.querySelector('input,textarea');
+    if(first) setTimeout(()=>first.focus(),50);
+  }
+}
+
+function renderStats(){
+  const totalR=recalls.length, totalW=warnings.length;
+  const pubR=recalls.filter(r=>r.status==='published').length;
+  const pubW=warnings.filter(w=>w.status==='published').length;
+  document.getElementById('cnt-recall').textContent=totalR;
+  document.getElementById('cnt-warning').textContent=totalW;
   document.getElementById('statsBar').innerHTML=`
-    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total alertes réglementaires</div></div>
-    <div class="stat-card"><div class="stat-num orange">${pending}</div><div class="stat-lbl">En attente d'approbation</div></div>
-    <div class="stat-card"><div class="stat-num green">${approved}</div><div class="stat-lbl">Approuvées</div></div>
-    <div class="stat-card"><div class="stat-num blue">${sent}</div><div class="stat-lbl">Envoyées aux pharmaciens</div></div>
+    <div class="stat-card"><div class="stat-num red">${totalR}</div><div class="stat-lbl">Retraits de lot</div></div>
+    <div class="stat-card"><div class="stat-num red">${pubR}</div><div class="stat-lbl">Retraits publiés</div></div>
+    <div class="stat-card"><div class="stat-num purple">${totalW}</div><div class="stat-lbl">Avertissements</div></div>
+    <div class="stat-card"><div class="stat-num purple">${pubW}</div><div class="stat-lbl">Avertissements publiés</div></div>
   `;
 }
 
-function renderTable(alerts){
-  document.getElementById('totalCount').textContent=alerts.length;
-  const stateBox=document.getElementById('stateBox');
-  const table=document.getElementById('alertsTable');
-  if(!alerts.length){
-    table.style.display='none';
-    stateBox.innerHTML=`<div class="state-icon">📋</div><div class="state-msg">Aucune alerte réglementaire</div><div class="state-sub">Les alertes « Info réglementaire » apparaîtront ici dès leur création.</div>`;
-    stateBox.style.display='block';
-    return;
+function renderRecalls(){
+  const state=document.getElementById('state-recall');
+  const tbl=document.getElementById('tbl-recall');
+  if(!recalls.length){
+    tbl.style.display='none';
+    state.innerHTML='<div class="state-icon">🔴</div><div class="state-msg">Aucun retrait de lot</div><div class="state-sub">Cliquez sur « Nouveau retrait de lot » pour en créer un.</div>';
+    state.style.display='block'; return;
   }
-  stateBox.style.display='none';
-  table.style.display='table';
-  document.getElementById('alertsTbody').innerHTML=alerts.map(a=>`
+  state.style.display='none'; tbl.style.display='table';
+  document.getElementById('tbody-recall').innerHTML=recalls.map(r=>`
     <tr>
-      <td class="td-date">${fmtDate(a.created_at)}</td>
+      <td class="td-date">${fmtDate(r.recall_date||r.created_at)}</td>
+      <td><div class="td-main">${esc(r.product_name||r.title)}</div></td>
+      <td class="td-pill">${esc(r.batch_number||'—')}</td>
+      <td class="td-pill">${esc(r.lab_name||'—')}</td>
+      <td><div style="font-size:13px;max-width:220px;line-height:1.45">${esc(truncate(r.recall_reason,100))}</div></td>
+      <td class="td-pill">${esc(r.geographic_scope||'national')}</td>
+      <td>${statusBadge(r.status)}</td>
       <td>
-        <div class="td-product-name">${esc(a.product_name||'—')}</div>
-        ${a.product_id_medindex?`<div class="td-ref">${esc(a.product_id_medindex)}</div>`:''}
-      </td>
-      <td class="td-org">${esc(a.source_id||'—')}</td>
-      <td class="td-zone">${esc(a.geographic_zone||'Toutes régions')}</td>
-      <td>${statusBadge(a.status)}</td>
-      <td>
-        ${a.comment
-          ?`<div class="td-comment">${esc(a.comment)}</div>`
-          :`<div class="td-comment empty">Aucun commentaire</div>`}
-        ${a.target_segment&&a.target_segment!=='all'?`<div class="td-segment">Cible : ${esc(a.target_segment)}</div>`:''}
+        <div class="tbl-actions">
+          ${r.status==='published'?`<button class="tbl-btn" onclick="archive('${r.id}')">Archiver</button>`:''}
+          <button class="tbl-btn danger" onclick="del('${r.id}')">Supprimer</button>
+        </div>
       </td>
     </tr>
   `).join('');
 }
 
-function setFilter(btn,status){
-  currentFilter=status;
-  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTable(status ? allAlerts.filter(a=>a.status===status) : allAlerts);
-}
-
-function exportCsv(){
-  const data=currentFilter?allAlerts.filter(a=>a.status===currentFilter):allAlerts;
-  if(!data.length) return;
-  const hdr=['Date','Produit','Référence Medindex','Fournisseur','Zone','Statut','Commentaire','Cible'];
-  const rows=data.map(a=>[
-    fmtDate(a.created_at),a.product_name||'',a.product_id_medindex||'',
-    a.source_id||'',a.geographic_zone||'Toutes régions',a.status||'',a.comment||'',a.target_segment||''
-  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv=[hdr.join(','),...rows].join('\n');
-  const url=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
-  const el=document.createElement('a');
-  el.href=url; el.download=`alertes-reglementaires-${new Date().toISOString().slice(0,10)}.csv`;
-  el.click(); URL.revokeObjectURL(url);
+function renderWarnings(){
+  const state=document.getElementById('state-warning');
+  const tbl=document.getElementById('tbl-warning');
+  if(!warnings.length){
+    tbl.style.display='none';
+    state.innerHTML='<div class="state-icon">📋</div><div class="state-msg">Aucun avertissement réglementaire</div><div class="state-sub">Cliquez sur « Nouvel avertissement » pour en créer un.</div>';
+    state.style.display='block'; return;
+  }
+  state.style.display='none'; tbl.style.display='table';
+  document.getElementById('tbody-warning').innerHTML=warnings.map(w=>`
+    <tr>
+      <td class="td-date">${fmtDate(w.created_at)}</td>
+      <td>
+        <div class="td-main">${esc(w.title)}</div>
+        ${w.warning_content?`<div class="td-sub">${esc(truncate(w.warning_content,80))}</div>`:''}
+      </td>
+      <td class="td-pill">${esc(w.reference_number||'—')}</td>
+      <td class="td-pill">${fmtDate(w.effective_date)}</td>
+      <td class="td-pill">${esc(w.geographic_scope||'national')}</td>
+      <td>${statusBadge(w.status)}</td>
+      <td>
+        <div class="tbl-actions">
+          ${w.status==='published'?`<button class="tbl-btn" onclick="archive('${w.id}')">Archiver</button>`:''}
+          <button class="tbl-btn danger" onclick="del('${w.id}')">Supprimer</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
 }
 
 async function load(){
   try{
-    const res=await fetch('/admin/api/ammps/alerts');
-    if(!res.ok) throw new Error('Erreur '+res.status);
-    allAlerts=await res.json();
-    renderStats(allAlerts);
-    renderTable(allAlerts);
+    const res=await fetch('/admin/api/ammps/actions');
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      if(err.code==='MIGRATION_REQUIRED'){
+        ['state-recall','state-warning'].forEach(id=>{
+          document.getElementById(id).innerHTML=`<div class="state-icon">🛠</div><div class="state-msg">Migration requise</div><div class="state-sub">Exécutez <strong>20260504_ammps_actions.sql</strong> dans le dashboard Supabase.</div>`;
+        });
+        return;
+      }
+      throw new Error(err.error||'Erreur '+res.status);
+    }
+    const all=await res.json();
+    recalls=all.filter(a=>a.action_type==='recall');
+    warnings=all.filter(a=>a.action_type==='warning');
+    renderStats(); renderRecalls(); renderWarnings();
   }catch(e){
-    document.getElementById('stateBox').innerHTML=`<div class="state-icon">⚠️</div><div class="state-msg">Erreur de chargement</div><div class="state-sub">${esc(e.message)}</div>`;
+    ['state-recall','state-warning'].forEach(id=>{
+      document.getElementById(id).innerHTML=`<div class="state-icon">⚠️</div><div class="state-msg">Erreur de chargement</div><div class="state-sub">${esc(e.message)}</div>`;
+    });
   }
+}
+
+async function submitRecall(){
+  const btn=document.getElementById('submit-recall');
+  const product=document.getElementById('r-product').value.trim();
+  const batch=document.getElementById('r-batch').value.trim();
+  const lab=document.getElementById('r-lab').value.trim();
+  const date=document.getElementById('r-date').value;
+  const reason=document.getElementById('r-reason').value.trim();
+  const scope=document.getElementById('r-scope').value;
+
+  if(!product||!batch||!lab||!date||!reason){ toast('Tous les champs obligatoires doivent être remplis.','error'); return; }
+
+  btn.disabled=true; btn.textContent='Publication…';
+  try{
+    const res=await fetch('/admin/api/ammps/recalls',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({product_name:product,batch_number:batch,lab_name:lab,recall_date:date,recall_reason:reason,geographic_scope:scope})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error||'Erreur'); }
+    const item=await res.json();
+    recalls.unshift(item);
+    renderStats(); renderRecalls();
+    document.getElementById('form-recall').classList.remove('open');
+    ['r-product','r-batch','r-lab','r-date','r-reason'].forEach(id=>document.getElementById(id).value='');
+    toast('Retrait de lot publié.','success');
+  }catch(e){ toast(e.message,'error'); }
+  finally{ btn.disabled=false; btn.textContent='🔴 Publier le retrait de lot'; }
+}
+
+async function submitWarning(){
+  const btn=document.getElementById('submit-warning');
+  const title=document.getElementById('w-title').value.trim();
+  const ref=document.getElementById('w-ref').value.trim();
+  const date=document.getElementById('w-date').value;
+  const content=document.getElementById('w-content').value.trim();
+  const scope=document.getElementById('w-scope').value;
+
+  if(!title||!content){ toast('Titre et contenu sont obligatoires.','error'); return; }
+
+  btn.disabled=true; btn.textContent='Publication…';
+  try{
+    const res=await fetch('/admin/api/ammps/warnings',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title,reference_number:ref||null,effective_date:date||null,warning_content:content,geographic_scope:scope})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error||'Erreur'); }
+    const item=await res.json();
+    warnings.unshift(item);
+    renderStats(); renderWarnings();
+    document.getElementById('form-warning').classList.remove('open');
+    ['w-title','w-ref','w-date','w-content'].forEach(id=>document.getElementById(id).value='');
+    toast('Avertissement publié.','success');
+  }catch(e){ toast(e.message,'error'); }
+  finally{ btn.disabled=false; btn.textContent='📋 Publier l\'avertissement'; }
+}
+
+async function archive(id){
+  try{
+    const res=await fetch(`/admin/api/ammps/actions/${id}/status`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'archived'})
+    });
+    if(!res.ok) throw new Error('Erreur');
+    const updated=await res.json();
+    update(id,updated);
+    toast('Archivé.','success');
+  }catch(e){ toast(e.message,'error'); }
+}
+
+async function del(id){
+  if(!confirm('Supprimer cet élément définitivement ?')) return;
+  try{
+    const res=await fetch(`/admin/api/ammps/actions/${id}`,{method:'DELETE'});
+    if(!res.ok) throw new Error('Erreur');
+    recalls=recalls.filter(r=>r.id!==id);
+    warnings=warnings.filter(w=>w.id!==id);
+    renderStats(); renderRecalls(); renderWarnings();
+    toast('Supprimé.');
+  }catch(e){ toast(e.message,'error'); }
+}
+
+function update(id, item){
+  const idx=recalls.findIndex(r=>r.id===id);
+  if(idx>=0){ recalls[idx]=item; renderRecalls(); return; }
+  const idx2=warnings.findIndex(w=>w.id===id);
+  if(idx2>=0){ warnings[idx2]=item; renderWarnings(); }
 }
 
 function logout(){

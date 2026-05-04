@@ -15,6 +15,7 @@ const legalKb = require('./modules/legal_kb');
 const adminKbStore = require('./modules/admin_kb_store');
 const runtimePaths = require('./modules/runtime_paths');
 const stockAlerts = require('./modules/stock_alerts');
+const ammpsActions = require('./modules/ammps_actions');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
@@ -1620,17 +1621,35 @@ router.get('/api/stock-alerts/audit', asyncHandler(async (req, res) => {
 }));
 
 // ---------------------------------------------------------------------------
-// AMMPS — Portail Autorité Sanitaire (read-only, regulatory_info alerts only)
+// AMMPS — Portail Autorité Sanitaire (retraits de lot + avertissements régl.)
 // ---------------------------------------------------------------------------
 
 router.get('/ammps', (req, res) => {
   res.sendFile(path.join(adminDir, 'ammps.html'));
 });
 
-router.get('/api/ammps/alerts', asyncHandler(async (req, res) => {
-  const filters = { alert_type: 'regulatory_info' };
-  if (req.query.status) filters.status = String(req.query.status).trim();
-  res.json(await stockAlerts.listStockAlerts(filters));
+router.get('/api/ammps/actions', asyncHandler(async (req, res) => {
+  const filters = {};
+  if (req.query.action_type) filters.action_type = String(req.query.action_type).trim();
+  if (req.query.status)      filters.status      = String(req.query.status).trim();
+  res.json(await ammpsActions.listActions(filters));
+}));
+
+router.post('/api/ammps/recalls', asyncHandler(async (req, res) => {
+  res.status(201).json(await ammpsActions.createRecall(req.adminUser, req.body));
+}));
+
+router.post('/api/ammps/warnings', asyncHandler(async (req, res) => {
+  res.status(201).json(await ammpsActions.createWarning(req.adminUser, req.body));
+}));
+
+router.put('/api/ammps/actions/:id/status', asyncHandler(async (req, res) => {
+  const status = String(req.body.status || '').trim();
+  res.json(await ammpsActions.updateStatus(req.params.id, status));
+}));
+
+router.delete('/api/ammps/actions/:id', asyncHandler(async (req, res) => {
+  res.json(await ammpsActions.deleteAction(req.params.id));
 }));
 
 // ---------------------------------------------------------------------------
