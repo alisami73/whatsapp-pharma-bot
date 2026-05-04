@@ -25,32 +25,34 @@
   const CSS = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: #f0f2f5; color: #1a2332; }
+    body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; background: #f0f2f5; color: #1a2332; line-height: 1.5; }
     .adm-wrap { display: flex; height: 100vh; overflow: hidden; }
     /* Sidebar */
-    .adm-sidebar { width: 220px; min-width: 220px; background: #1a3a2a; display: flex; flex-direction: column; flex-shrink: 0; }
-    .adm-logo { padding: 18px 16px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .adm-brand { font-size: 14px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px; }
-    .adm-dot { width: 8px; height: 8px; background: #4caf82; border-radius: 50%; flex-shrink: 0; }
-    .adm-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; padding-left: 15px; }
-    .adm-nav { padding: 10px 8px; flex: 1; overflow-y: auto; }
-    .adm-section { font-size: 10px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 8px 5px; }
-    .adm-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 13px; margin-bottom: 1px; transition: all 0.15s; text-decoration: none; }
-    .adm-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
-    .adm-item.active { background: rgba(76,175,130,0.18); color: #7dd4a8; }
-    .adm-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.07); }
-    .adm-logout { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; padding: 6px 8px; border-radius: 6px; transition: color 0.15s; cursor: pointer; background: none; border: none; width: 100%; font-family: inherit; }
-    .adm-logout:hover { color: rgba(255,255,255,0.7); }
+    .adm-sidebar { width: 228px; min-width: 228px; background: #1a3a2a; display: flex; flex-direction: column; flex-shrink: 0; }
+    .adm-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .adm-brand { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; font-family: 'Nunito', 'DM Sans', sans-serif; }
+    .adm-dot { width: 9px; height: 9px; background: #4caf82; border-radius: 50%; flex-shrink: 0; }
+    .adm-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 3px; padding-left: 17px; }
+    .adm-nav { padding: 12px 8px; flex: 1; overflow-y: auto; }
+    .adm-section { font-size: 11px; color: rgba(255,255,255,0.32); text-transform: uppercase; letter-spacing: 0.1em; padding: 12px 10px 6px; font-weight: 700; }
+    .adm-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; margin-bottom: 2px; transition: all 0.15s; text-decoration: none; }
+    .adm-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+    .adm-item.active { background: rgba(76,175,130,0.18); color: #7dd4a8; font-weight: 700; }
+    .adm-footer { padding: 14px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .adm-logout { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.45); font-size: 13px; text-decoration: none; padding: 7px 10px; border-radius: 7px; transition: color 0.15s; cursor: pointer; background: none; border: none; width: 100%; font-family: inherit; }
+    .adm-logout:hover { color: rgba(255,255,255,0.75); }
     /* Main area */
     .adm-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-    .adm-topbar { background: #fff; border-bottom: 1px solid #e8ecf0; padding: 0 20px; height: 50px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-    .adm-topbar-title { font-size: 14px; font-weight: 600; color: #1a2332; }
+    .adm-topbar { background: #fff; border-bottom: 1px solid #e8ecf0; padding: 0 24px; height: 54px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .adm-topbar-title { font-size: 16px; font-weight: 700; color: #1a2332; font-family: 'Nunito', 'DM Sans', sans-serif; }
     .adm-body { flex: 1; overflow-y: auto; }
     /* Buttons */
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; border: 1px solid #dde3ea; background: #fff; color: #1a2332; font-family: inherit; transition: all 0.12s; text-decoration: none; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #dde3ea; background: #fff; color: #1a2332; font-family: inherit; transition: all 0.12s; text-decoration: none; }
     .btn:hover { background: #f5f7fa; }
     .btn-primary { background: #1a6640; color: #fff; border-color: #1a6640; }
     .btn-primary:hover { background: #154f32; border-color: #154f32; }
+    .btn-accent { background: #1a6640; color: #fff; border-color: #1a6640; }
+    .btn-accent:hover { background: #154f32; }
     .btn-danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
     .btn-danger:hover { background: #fee2e2; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -96,6 +98,14 @@
   }
 
   function inject() {
+    // Inject Google Fonts (DM Sans + Nunito)
+    if (!document.getElementById('adm-gfonts')) {
+      const lp1 = document.createElement('link'); lp1.rel = 'preconnect'; lp1.href = 'https://fonts.googleapis.com';
+      const lp2 = document.createElement('link'); lp2.rel = 'preconnect'; lp2.href = 'https://fonts.gstatic.com'; lp2.crossOrigin = '';
+      const lf = document.createElement('link'); lf.id = 'adm-gfonts'; lf.rel = 'stylesheet';
+      lf.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap';
+      document.head.append(lp1, lp2, lf);
+    }
     // Inject CSS
     if (!document.getElementById('adm-sidebar-css')) {
       const style = document.createElement('style');

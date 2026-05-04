@@ -3,78 +3,91 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Alertes Réglementaires — AMMPS</title>
+<title>Alertes Réglementaires — AMMPS · Blink</title>
 <script src="/admin/auth-guard.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#F4F7FB;--card:#fff;--purple:#7B1FA2;--purple-soft:rgba(123,31,162,.08);--purple-mid:rgba(123,31,162,.18);--text:#1A2332;--muted:#6B7A89;--border:#E6EBF0;--shadow:0 4px 16px rgba(15,23,42,.07);--r:12px}
+:root{
+  --bg:#F4F7FB;--card:#fff;--surface:#F8FAFC;
+  --purple:#7B1FA2;--purple-d:#4A148C;--purple-soft:rgba(123,31,162,.07);--purple-mid:rgba(123,31,162,.16);
+  --green:#1a6640;--text:#1A2332;--muted:#64748B;--soft:#94A3B8;--border:#E2E8F0;
+  --shadow:0 4px 20px rgba(15,23,42,.07);--r:14px;--r-sm:9px
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
 
 /* Header */
-.hdr{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow)}
-.hdr-left{display:flex;align-items:center;gap:12px}
-.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#7B1FA2,#4A148C);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
-.hdr-brand{font-size:14px;font-weight:700;color:var(--text)}
+.hdr{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow);position:sticky;top:0;z-index:50}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple-d));display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#fff;flex-shrink:0}
+.hdr-brand{font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;color:var(--text)}
 .hdr-brand span{color:var(--purple)}
-.badge-ammps{background:var(--purple-soft);color:var(--purple);font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.05em;border:1px solid var(--purple-mid)}
-.hdr-right{display:flex;align-items:center;gap:10px}
-.user-pill{font-size:12px;color:var(--muted)}
-.btn-logout{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;transition:color .15s}
-.btn-logout:hover{color:var(--text)}
+.badge-ammps{background:var(--purple-soft);color:var(--purple);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;letter-spacing:.04em;border:1.5px solid var(--purple-mid)}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.user-label{font-size:13px;color:var(--muted);font-weight:500}
+.btn-logout{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s}
+.btn-logout:hover{color:var(--text);border-color:#c4cdd8}
 
 /* Toolbar */
-.toolbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.toolbar-title{font-size:13px;font-weight:700;flex:1}
-.filter-tabs{display:flex;gap:4px}
-.ftab{padding:5px 13px;border-radius:999px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;font-family:inherit}
+.toolbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex:1}
+.toolbar-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--text)}
+.badge-count{display:inline-flex;align-items:center;justify-content:center;background:var(--purple);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 8px}
+.filter-tabs{display:flex;gap:5px}
+.ftab{padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;font-family:inherit}
 .ftab.active{background:var(--purple-soft);border-color:var(--purple-mid);color:var(--purple)}
-.badge-count{display:inline-flex;align-items:center;justify-content:center;background:var(--purple);color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px}
-.btn-export{background:var(--purple-soft);border:1.5px solid var(--purple-mid);color:var(--purple);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.ftab:hover:not(.active){background:var(--surface)}
+.btn-export{background:var(--purple-soft);border:1.5px solid var(--purple-mid);color:var(--purple);border-radius:9px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap}
 .btn-export:hover{background:var(--purple-mid)}
 
-/* Content */
-.body{padding:20px 24px;flex:1;overflow-y:auto;max-width:1100px;width:100%;margin:0 auto}
+/* Body */
+.body{padding:24px 28px 60px;flex:1}
 
-/* Stats bar */
-.stats{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;flex:1;min-width:120px}
-.stat-num{font-size:22px;font-weight:800;color:var(--purple);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.stat-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow)}
+.stat-num{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:var(--purple);line-height:1}
+.stat-num.orange{color:#D84315}
+.stat-num.green{color:#1B5E20}
+.stat-num.blue{color:#1A237E}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500}
 
-/* Table */
-.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead tr{background:#F8FAFB;border-bottom:2px solid var(--border)}
-th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+/* Table card */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface);border-bottom:2px solid var(--border)}
+th{padding:13px 18px;text-align:left;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:#FAFBFC}
-td{padding:11px 14px;vertical-align:top}
-.td-date{white-space:nowrap;color:var(--muted);font-size:12px}
-.td-product{font-weight:600;color:var(--text)}
-.td-ref{font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace}
-.td-org{font-size:12px;color:var(--muted)}
-.td-zone{font-size:12px;color:var(--muted)}
-.td-comment{font-size:12px;color:var(--text);max-width:260px;line-height:1.45}
-.td-comment.empty{color:var(--muted);font-style:italic}
+tbody tr:hover{background:#FAFBFD}
+td{padding:14px 18px;vertical-align:top}
+.td-date{white-space:nowrap;color:var(--muted);font-size:13px;font-weight:500}
+.td-product-name{font-size:14px;font-weight:700;color:var(--text)}
+.td-ref{font-size:12px;color:var(--soft);margin-top:3px;font-family:monospace}
+.td-org{font-size:13px;color:var(--muted)}
+.td-zone{font-size:13px;color:var(--muted)}
+.td-comment{font-size:13px;color:var(--text);max-width:280px;line-height:1.5}
+.td-comment.empty{color:var(--soft);font-style:italic}
+.td-segment{font-size:11px;color:var(--soft);margin-top:5px}
 
-/* Status badges */
-.s-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
-.s-pending{background:rgba(255,152,0,.12);color:#E65100}
-.s-approved{background:rgba(33,150,83,.1);color:#1B5E20}
-.s-sent{background:rgba(63,81,181,.1);color:#1A237E}
-.s-draft{background:rgba(148,163,184,.14);color:#4A5568}
-.s-dot{width:6px;height:6px;border-radius:999px;background:currentColor;display:inline-block}
+/* Status */
+.s-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.s-dot{width:6px;height:6px;border-radius:999px;background:currentColor;flex-shrink:0}
+.s-pending{background:rgba(255,112,67,.1);color:#BF360C}
+.s-approved{background:rgba(27,94,32,.1);color:#1B5E20}
+.s-sent{background:rgba(26,35,126,.1);color:#1A237E}
+.s-draft{background:rgba(148,163,184,.12);color:#4A5568}
 
 /* Empty / loading */
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty-icon{font-size:36px;margin-bottom:10px}
-.empty-msg{font-size:14px;font-weight:600}
-.empty-sub{font-size:12px;margin-top:4px}
-.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.state-box{text-align:center;padding:64px 24px}
+.state-icon{font-size:42px;margin-bottom:14px}
+.state-msg{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;margin-bottom:6px}
+.state-sub{font-size:14px;color:var(--muted)}
 
 /* Footer */
-.ftr{padding:12px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);background:#fff;text-align:center}
+.ftr{padding:14px 28px;border-top:1px solid var(--border);font-size:12px;color:var(--soft);background:#fff;text-align:center;margin-top:auto}
 </style>
 </head>
 <body>
@@ -83,29 +96,36 @@ td{padding:11px 14px;vertical-align:top}
   <div class="hdr-left">
     <div class="logo">B</div>
     <span class="hdr-brand">Blink <span>Alertes</span></span>
-    <span class="badge-ammps">📘 AMMPS — Accès Autorité Sanitaire</span>
+    <span class="badge-ammps">📘 AMMPS — Autorité Sanitaire</span>
   </div>
   <div class="hdr-right">
-    <span class="user-pill" id="userLabel"></span>
-    <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    <span class="user-label" id="userLabel"></span>
+    <button class="btn-logout" onclick="logout()">⬅ Déconnexion</button>
   </div>
 </header>
 
 <div class="toolbar">
-  <span class="toolbar-title">Alertes réglementaires <span class="badge-count" id="totalCount">—</span></span>
+  <div class="toolbar-left">
+    <span class="toolbar-title">Alertes réglementaires</span>
+    <span class="badge-count" id="totalCount">—</span>
+  </div>
   <div class="filter-tabs">
-    <button class="ftab active" data-status="" onclick="setFilter(this,'')">Toutes</button>
-    <button class="ftab" data-status="pending_approval" onclick="setFilter(this,'pending_approval')">En attente</button>
-    <button class="ftab" data-status="approved" onclick="setFilter(this,'approved')">Approuvées</button>
-    <button class="ftab" data-status="sent" onclick="setFilter(this,'sent')">Envoyées</button>
+    <button class="ftab active" onclick="setFilter(this,'')">Toutes</button>
+    <button class="ftab" onclick="setFilter(this,'pending_approval')">En attente</button>
+    <button class="ftab" onclick="setFilter(this,'approved')">Approuvées</button>
+    <button class="ftab" onclick="setFilter(this,'sent')">Envoyées</button>
   </div>
   <button class="btn-export" onclick="exportCsv()">⬇ Exporter CSV</button>
 </div>
 
 <div class="body">
   <div class="stats" id="statsBar"></div>
-  <div class="table-wrap">
-    <div class="loading" id="loadingEl">Chargement…</div>
+
+  <div class="table-card" id="tableCard">
+    <div class="state-box" id="stateBox">
+      <div class="state-icon">⏳</div>
+      <div class="state-msg">Chargement…</div>
+    </div>
     <table id="alertsTable" style="display:none">
       <thead>
         <tr>
@@ -119,153 +139,123 @@ td{padding:11px 14px;vertical-align:top}
       </thead>
       <tbody id="alertsTbody"></tbody>
     </table>
-    <div class="empty-state" id="emptyEl" style="display:none">
-      <div class="empty-icon">📋</div>
-      <div class="empty-msg">Aucune alerte réglementaire</div>
-      <div class="empty-sub">Les alertes de type « Info réglementaire » apparaîtront ici dès leur création.</div>
-    </div>
   </div>
 </div>
 
 <footer class="ftr">
-  Portail AMMPS — Blink Pharma · Lecture seule · Données confidentielles
+  Portail AMMPS — Blink Pharma · Accès lecture seule · Données confidentielles à usage réglementaire
 </footer>
 
 <script>
 let allAlerts = [];
 let currentFilter = '';
 
-const STATUS_LABELS = {
-  pending_approval: { label: 'En attente',  cls: 's-pending',  dot: true },
-  approved:         { label: 'Approuvée',    cls: 's-approved', dot: true },
-  sent:             { label: 'Envoyée',      cls: 's-sent',     dot: true },
-  draft:            { label: 'Brouillon',    cls: 's-draft',    dot: false },
+const STATUS_MAP = {
+  pending_approval: { label:'En attente',  cls:'s-pending' },
+  approved:         { label:'Approuvée',    cls:'s-approved' },
+  sent:             { label:'Envoyée',      cls:'s-sent' },
+  draft:            { label:'Brouillon',    cls:'s-draft' },
 };
 
-function statusBadge(s) {
-  const m = STATUS_LABELS[s] || { label: s, cls: 's-draft', dot: false };
-  return `<span class="s-badge ${m.cls}">${m.dot ? '<span class="s-dot"></span>' : ''}${m.label}</span>`;
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-MA',{day:'2-digit',month:'short',year:'numeric'});
 }
 
-function fmtDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleDateString('fr-MA', { day:'2-digit', month:'short', year:'numeric' });
+function statusBadge(s){
+  const m = STATUS_MAP[s] || {label:s,cls:'s-draft'};
+  return `<span class="s-badge ${m.cls}"><span class="s-dot"></span>${m.label}</span>`;
 }
 
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function renderStats(alerts) {
-  const total = alerts.length;
-  const pending = alerts.filter(a => a.status === 'pending_approval').length;
-  const approved = alerts.filter(a => a.status === 'approved').length;
-  const sent = alerts.filter(a => a.status === 'sent').length;
-
-  document.getElementById('statsBar').innerHTML = `
+function renderStats(alerts){
+  const total=alerts.length, pending=alerts.filter(a=>a.status==='pending_approval').length,
+        approved=alerts.filter(a=>a.status==='approved').length, sent=alerts.filter(a=>a.status==='sent').length;
+  document.getElementById('statsBar').innerHTML=`
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total alertes réglementaires</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:#E65100">${pending}</div><div class="stat-lbl">En attente d'approbation</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:#1B5E20">${approved}</div><div class="stat-lbl">Approuvées</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:#1A237E">${sent}</div><div class="stat-lbl">Envoyées aux pharmaciens</div></div>
+    <div class="stat-card"><div class="stat-num orange">${pending}</div><div class="stat-lbl">En attente d'approbation</div></div>
+    <div class="stat-card"><div class="stat-num green">${approved}</div><div class="stat-lbl">Approuvées</div></div>
+    <div class="stat-card"><div class="stat-num blue">${sent}</div><div class="stat-lbl">Envoyées aux pharmaciens</div></div>
   `;
 }
 
-function renderTable(alerts) {
-  document.getElementById('loadingEl').style.display = 'none';
-  document.getElementById('totalCount').textContent = alerts.length;
-
-  if (!alerts.length) {
-    document.getElementById('alertsTable').style.display = 'none';
-    document.getElementById('emptyEl').style.display = 'block';
+function renderTable(alerts){
+  document.getElementById('totalCount').textContent=alerts.length;
+  const stateBox=document.getElementById('stateBox');
+  const table=document.getElementById('alertsTable');
+  if(!alerts.length){
+    table.style.display='none';
+    stateBox.innerHTML=`<div class="state-icon">📋</div><div class="state-msg">Aucune alerte réglementaire</div><div class="state-sub">Les alertes « Info réglementaire » apparaîtront ici dès leur création.</div>`;
+    stateBox.style.display='block';
     return;
   }
-
-  document.getElementById('emptyEl').style.display = 'none';
-  document.getElementById('alertsTable').style.display = 'table';
-
-  document.getElementById('alertsTbody').innerHTML = alerts.map(a => `
+  stateBox.style.display='none';
+  table.style.display='table';
+  document.getElementById('alertsTbody').innerHTML=alerts.map(a=>`
     <tr>
       <td class="td-date">${fmtDate(a.created_at)}</td>
       <td>
-        <div class="td-product">${esc(a.product_name || '—')}</div>
-        ${a.product_id_medindex ? `<div class="td-ref">${esc(a.product_id_medindex)}</div>` : ''}
+        <div class="td-product-name">${esc(a.product_name||'—')}</div>
+        ${a.product_id_medindex?`<div class="td-ref">${esc(a.product_id_medindex)}</div>`:''}
       </td>
-      <td class="td-org">${esc(a.source_id || '—')}</td>
-      <td class="td-zone">${esc(a.geographic_zone || 'Toutes régions')}</td>
+      <td class="td-org">${esc(a.source_id||'—')}</td>
+      <td class="td-zone">${esc(a.geographic_zone||'Toutes régions')}</td>
       <td>${statusBadge(a.status)}</td>
       <td>
         ${a.comment
-          ? `<div class="td-comment">${esc(a.comment)}</div>`
-          : `<div class="td-comment empty">Aucun commentaire</div>`}
-        ${a.target_segment && a.target_segment !== 'all' ? `<div class="td-ref" style="margin-top:4px">Cible : ${esc(a.target_segment)}</div>` : ''}
+          ?`<div class="td-comment">${esc(a.comment)}</div>`
+          :`<div class="td-comment empty">Aucun commentaire</div>`}
+        ${a.target_segment&&a.target_segment!=='all'?`<div class="td-segment">Cible : ${esc(a.target_segment)}</div>`:''}
       </td>
     </tr>
   `).join('');
 }
 
-function applyFilter(status) {
-  const filtered = status ? allAlerts.filter(a => a.status === status) : allAlerts;
-  renderTable(filtered);
-}
-
-function setFilter(btn, status) {
-  currentFilter = status;
-  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+function setFilter(btn,status){
+  currentFilter=status;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  applyFilter(status);
+  renderTable(status ? allAlerts.filter(a=>a.status===status) : allAlerts);
 }
 
-function exportCsv() {
-  const filtered = currentFilter ? allAlerts.filter(a => a.status === currentFilter) : allAlerts;
-  if (!filtered.length) return;
-  const header = ['Date','Produit','Référence Medindex','Fournisseur','Zone','Statut','Commentaire','Segment cible'];
-  const rows = filtered.map(a => [
-    fmtDate(a.created_at),
-    a.product_name || '',
-    a.product_id_medindex || '',
-    a.source_id || '',
-    a.geographic_zone || 'Toutes régions',
-    a.status || '',
-    a.comment || '',
-    a.target_segment || '',
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv = [header.join(','), ...rows].join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `alertes-reglementaires-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+function exportCsv(){
+  const data=currentFilter?allAlerts.filter(a=>a.status===currentFilter):allAlerts;
+  if(!data.length) return;
+  const hdr=['Date','Produit','Référence Medindex','Fournisseur','Zone','Statut','Commentaire','Cible'];
+  const rows=data.map(a=>[
+    fmtDate(a.created_at),a.product_name||'',a.product_id_medindex||'',
+    a.source_id||'',a.geographic_zone||'Toutes régions',a.status||'',a.comment||'',a.target_segment||''
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[hdr.join(','),...rows].join('\n');
+  const url=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  const el=document.createElement('a');
+  el.href=url; el.download=`alertes-reglementaires-${new Date().toISOString().slice(0,10)}.csv`;
+  el.click(); URL.revokeObjectURL(url);
 }
 
-async function load() {
-  try {
-    const res = await fetch('/admin/api/ammps/alerts');
-    if (!res.ok) throw new Error('Erreur ' + res.status);
-    allAlerts = await res.json();
+async function load(){
+  try{
+    const res=await fetch('/admin/api/ammps/alerts');
+    if(!res.ok) throw new Error('Erreur '+res.status);
+    allAlerts=await res.json();
     renderStats(allAlerts);
-    applyFilter(currentFilter);
-  } catch(e) {
-    document.getElementById('loadingEl').textContent = 'Erreur de chargement : ' + e.message;
+    renderTable(allAlerts);
+  }catch(e){
+    document.getElementById('stateBox').innerHTML=`<div class="state-icon">⚠️</div><div class="state-msg">Erreur de chargement</div><div class="state-sub">${esc(e.message)}</div>`;
   }
 }
 
-function logout() {
-  localStorage.removeItem('admin_token');
-  localStorage.removeItem('admin_user');
-  window.location.href = '/admin/login';
+function logout(){
+  localStorage.removeItem('admin_token'); localStorage.removeItem('admin_user');
+  window.location.href='/admin/login';
 }
 
-// Set user label
-(function() {
-  try {
-    const u = JSON.parse(localStorage.getItem('admin_user') || '{}');
-    if (u.name || u.email) {
-      document.getElementById('userLabel').textContent = u.name || u.email;
-    }
-  } catch(_) {}
+(function(){
+  try{
+    const u=JSON.parse(localStorage.getItem('admin_user')||'{}');
+    if(u.name||u.email) document.getElementById('userLabel').textContent=u.name||u.email;
+  }catch(_){}
 })();
 
 load();
