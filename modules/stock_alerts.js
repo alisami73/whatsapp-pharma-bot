@@ -1236,6 +1236,9 @@ async function listStockAlerts(filters = {}) {
   if (filters.source_id) {
     query = query.eq('source_id', filters.source_id);
   }
+  if (filters.alert_type) {
+    query = query.eq('alert_type', normalizeAlertType(filters.alert_type));
+  }
   return selectMany(query, []);
 }
 

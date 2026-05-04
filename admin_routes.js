@@ -65,6 +65,17 @@ router.use((req, res, next) => {
   requireAdminAuth(req, res, next);
 });
 
+// AMMPS role: restrict to /ammps and /api/ammps only
+router.use((req, res, next) => {
+  if (!req.adminUser || req.adminUser.role !== 'ammps') return next();
+  const ammpsAllowed = req.path.startsWith('/ammps') || req.path.startsWith('/api/ammps') || req.path.startsWith('/api/auth');
+  if (!ammpsAllowed) {
+    if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Accès restreint au portail AMMPS' });
+    return res.redirect('/admin/ammps');
+  }
+  next();
+});
+
 // ---------------------------------------------------------------------------
 // Auth routes (public)
 // ---------------------------------------------------------------------------
@@ -1606,6 +1617,20 @@ router.post('/api/stock-alerts/alerts/:id/send', asyncHandler(async (req, res) =
 router.get('/api/stock-alerts/audit', asyncHandler(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 80, 250);
   res.json(await stockAlerts.listAuditLogs(limit));
+}));
+
+// ---------------------------------------------------------------------------
+// AMMPS — Portail Autorité Sanitaire (read-only, regulatory_info alerts only)
+// ---------------------------------------------------------------------------
+
+router.get('/ammps', (req, res) => {
+  res.sendFile(path.join(adminDir, 'ammps.html'));
+});
+
+router.get('/api/ammps/alerts', asyncHandler(async (req, res) => {
+  const filters = { alert_type: 'regulatory_info' };
+  if (req.query.status) filters.status = String(req.query.status).trim();
+  res.json(await stockAlerts.listStockAlerts(filters));
 }));
 
 // ---------------------------------------------------------------------------

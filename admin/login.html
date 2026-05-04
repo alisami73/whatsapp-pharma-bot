@@ -309,7 +309,8 @@
       const token = localStorage.getItem('admin_token');
       if (!token) return;
       fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
-        .then(r => { if (r.ok) window.location.href = '/admin'; })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d) window.location.href = d.role === 'ammps' ? '/admin/ammps' : '/admin'; })
         .catch(() => {});
     })();
 
@@ -339,7 +340,7 @@
         if (!res.ok) throw new Error(data.error || 'Erreur de connexion');
         localStorage.setItem('admin_token', data.token);
         localStorage.setItem('admin_user', JSON.stringify(data.user));
-        window.location.href = '/admin';
+        window.location.href = data.user && data.user.role === 'ammps' ? '/admin/ammps' : '/admin';
       } catch (ex) {
         errText.textContent = ex.message;
         banner.classList.add('visible');
