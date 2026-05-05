@@ -96,7 +96,7 @@ async function findById(id) {
   return users.find(u => u.id === id) || null;
 }
 
-async function createUser({ email, name, role = 'admin', status = 'active', password = null }) {
+async function createUser({ email, name, role = 'admin', status = 'active', password = null, pages = null }) {
   const users = await getUsers();
   const salt = crypto.randomBytes(16).toString('hex');
   const user = {
@@ -104,6 +104,7 @@ async function createUser({ email, name, role = 'admin', status = 'active', pass
     email: email.toLowerCase().trim(),
     name: String(name || email).trim(),
     role,
+    pages: Array.isArray(pages) && pages.length > 0 ? pages : null,
     status,
     password_hash: password ? hashPassword(password, salt) : null,
     password_salt: salt,
@@ -206,11 +207,12 @@ async function deleteSession(_token) {
 
 // ── Invitations ────────────────────────────────────────────────────────────
 
-async function createInviteToken(email, name, role = 'admin') {
+async function createInviteToken(email, name, role = 'admin', pages = null) {
   const token = crypto.randomBytes(24).toString('hex');
   const expires_at = new Date(Date.now() + INVITE_TTL_MS).toISOString();
   const users = await getUsers();
   const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase().trim());
+  const normalizedPages = Array.isArray(pages) && pages.length > 0 ? pages : null;
 
   if (idx !== -1) {
     if (users[idx].status === 'active') throw new Error('Cet email est déjà un utilisateur actif');
@@ -218,6 +220,7 @@ async function createInviteToken(email, name, role = 'admin') {
     users[idx].invite_token = token;
     users[idx].invite_expires_at = expires_at;
     users[idx].name = name || users[idx].name;
+    users[idx].pages = normalizedPages;
     await saveUsers(users);
     return { token, user: users[idx] };
   }
@@ -228,6 +231,7 @@ async function createInviteToken(email, name, role = 'admin') {
     email: email.toLowerCase().trim(),
     name: String(name || email).trim(),
     role,
+    pages: normalizedPages,
     status: 'invited',
     password_hash: null,
     password_salt: salt,

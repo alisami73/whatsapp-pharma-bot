@@ -1,293 +1,391 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestion des accès — Admin Blink Premium</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Gestion des accès — Admin Blink</title>
   <script src="/admin/auth-guard.js"></script>
   <script src="/admin/sidebar.js" data-page="users"></script>
-  <link rel="stylesheet" href="/admin/styles.css" />
   <style>
-    .users-grid { display: grid; gap: 20px; }
-    .invite-panel { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
-    .invite-panel h3 { margin: 0 0 1rem; font-size: 1rem; }
-    .invite-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .invite-row input { flex: 1; min-width: 180px; padding: 0.6rem 0.875rem; border: 1.5px solid var(--border); border-radius: 9px; font-size: 0.875rem; background: var(--surface); color: var(--text); }
-    .invite-row input:focus { outline: none; border-color: var(--accent); }
-    .btn { padding: 0.6rem 1.125rem; border-radius: 9px; font-size: 0.875rem; font-weight: 600; border: 1.5px solid var(--border); background: white; color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-accent { background: var(--accent); color: white; border-color: var(--accent); }
-    .btn-accent:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: white; }
-    .btn-danger { color: var(--danger); border-color: var(--danger-soft); }
-    .btn-danger:hover { background: var(--danger-soft); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .p-body { padding: 24px 28px 60px; }
+    .p-title { font-family: 'Nunito', 'DM Sans', sans-serif; font-weight: 900; font-size: 22px; color: #1A2332; margin-bottom: 4px; }
+    .p-sub { font-size: 13px; color: #64748B; margin-bottom: 22px; }
 
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
-    .section-header h2 { font-size: 1.0625rem; margin: 0; }
-    .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 100px; background: var(--accent); color: white; font-size: 0.6875rem; font-weight: 700; }
-    .badge.orange { background: #D97706; }
-    .badge.gray { background: var(--muted); }
+    /* Cards */
+    .card { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; box-shadow: 0 4px 16px rgba(15,23,42,.06); margin-bottom: 20px; overflow: hidden; }
+    .card-head { padding: 16px 22px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-title { font-family: 'Nunito','DM Sans',sans-serif; font-weight: 800; font-size: 15px; color: #1A2332; display: flex; align-items: center; gap: 8px; }
+    .card-body { padding: 22px; }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    th { text-align: left; padding: 0.5rem 0.75rem; font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1.5px solid var(--border); }
-    td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    /* Invite form */
+    .inv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 13px; font-weight: 600; color: #1A2332; }
+    .field input, .field select { border: 1.5px solid #E2E8F0; border-radius: 9px; padding: 10px 13px; font-size: 14px; font-family: inherit; color: #1A2332; background: #fff; transition: border-color .15s; }
+    .field input:focus, .field select:focus { outline: none; border-color: #1a6640; }
+
+    /* Access mode radios */
+    .access-modes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .mode-btn { display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1.5px solid #E2E8F0; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748B; background: #fff; transition: all .15s; user-select: none; }
+    .mode-btn input[type=radio] { display: none; }
+    .mode-btn.selected { border-color: #1a6640; background: rgba(26,102,64,.07); color: #1a6640; }
+    .mode-btn.selected-purple { border-color: #7B1FA2; background: rgba(123,31,162,.07); color: #7B1FA2; }
+
+    /* Page checkboxes */
+    .pages-panel { display: none; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+    .pages-panel.open { display: block; }
+    .pages-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .pages-header-title { font-size: 13px; font-weight: 700; color: #1A2332; }
+    .preset-btns { display: flex; gap: 6px; }
+    .preset-btn { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; border: 1.5px solid #E2E8F0; background: #fff; cursor: pointer; color: #64748B; transition: all .15s; font-family: inherit; }
+    .preset-btn:hover { border-color: #1a6640; color: #1a6640; }
+    .pages-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+    .page-section-label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #94A3B8; margin: 6px 0 4px; grid-column: 1 / -1; }
+    .page-check { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; }
+    .page-check input[type=checkbox] { width: 16px; height: 16px; border-radius: 4px; accent-color: #1a6640; cursor: pointer; flex-shrink: 0; }
+    .page-check span { font-size: 13px; color: #1A2332; font-weight: 500; }
+    .page-check:hover span { color: #1a6640; }
+
+    /* Buttons */
+    .btn-invite { display: inline-flex; align-items: center; gap: 8px; padding: 11px 28px; border-radius: 999px; font-size: 14px; font-weight: 700; background: #1a6640; color: #fff; border: none; cursor: pointer; font-family: inherit; transition: background .15s; }
+    .btn-invite:hover { background: #154f32; }
+    .btn-invite:disabled { opacity: .5; cursor: not-allowed; }
+    .invite-result { margin-top: 12px; font-size: 13px; display: none; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: .07em; border-bottom: 2px solid #E2E8F0; background: #F8FAFC; white-space: nowrap; }
+    td { padding: 13px 16px; border-bottom: 1px solid #E2E8F0; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--info-soft); }
+    tr:hover td { background: #FAFBFD; }
 
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 2px 9px; border-radius: 100px;
-      font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
-    }
-    .status-active { background: #D1FAE5; color: #065F46; }
-    .status-pending { background: #FEF3C7; color: #92400E; }
-    .status-invited { background: #DBEAFE; color: #1E40AF; }
-    .status-disabled { background: #F3F4F6; color: #6B7280; }
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .s-active   { background: #D1FAE5; color: #065F46; }
+    .s-pending  { background: #FEF3C7; color: #92400E; }
+    .s-invited  { background: #DBEAFE; color: #1E40AF; }
+    .s-disabled { background: #F3F4F6; color: #6B7280; }
 
-    .role-badge { font-size: 0.6875rem; color: var(--muted); background: var(--info-soft); padding: 2px 8px; border-radius: 6px; }
-    .role-superadmin { color: var(--accent); background: var(--accent-soft); }
+    .role-tag { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 6px; background: rgba(26,102,64,.1); color: #1a6640; }
+    .role-tag.superadmin { background: rgba(123,31,162,.1); color: #7B1FA2; }
+    .role-tag.ammps { background: rgba(123,31,162,.08); color: #7B1FA2; }
 
-    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .copy-link { font-size: 0.75rem; color: var(--accent); cursor: pointer; text-decoration: underline; }
+    .pages-tags { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
+    .page-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 5px; background: #EFF6FF; color: #1E40AF; }
 
-    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none; z-index: 9999; }
+    .act-btn { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; border: 1.5px solid #E2E8F0; background: #fff; cursor: pointer; color: #64748B; font-family: inherit; transition: all .15s; }
+    .act-btn:hover { border-color: #c4cdd8; color: #1A2332; }
+    .act-btn.danger:hover { border-color: rgba(198,40,40,.3); color: #C62828; background: rgba(198,40,40,.05); }
+    .act-btn.primary { background: #1a6640; color: #fff; border-color: #1a6640; }
+    .act-btn.primary:hover { background: #154f32; }
+    .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .copy-link { font-size: 12px; color: #1a6640; cursor: pointer; text-decoration: underline; }
+    .empty { text-align: center; padding: 24px; color: #94A3B8; font-size: 13px; }
+    .cnt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #1a6640; color: #fff; font-size: 11px; font-weight: 800; }
+    .cnt-badge.orange { background: #D97706; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1A2332; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; z-index: 9999; }
     .toast.show { opacity: 1; transform: translateY(0); }
-    .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.875rem; }
 
-    .panel { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; }
+    @media(max-width:640px){ .inv-row { grid-template-columns: 1fr; } .pages-sections { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <!-- Auth guard -->
-  <script>
-  (function() {
-    const token = localStorage.getItem('admin_token');
-    if (!token) { window.location.href = '/admin/login'; return; }
-    fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
-      .then(r => { if (!r.ok) { localStorage.removeItem('admin_token'); window.location.href = '/admin/login'; } })
-      .catch(() => { window.location.href = '/admin/login'; });
-  })();
-  </script>
+<div class="p-body">
+  <p class="p-title">Gestion des accès</p>
+  <p class="p-sub">Invitez des collaborateurs, définissez leurs permissions et gérez les comptes existants.</p>
 
-  <div class="shell">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Administration</p>
-        <h1>Gestion des accès</h1>
-        <p class="subtitle">Invitez des collaborateurs, approuvez les demandes en attente et gérez les comptes admin.</p>
-      </div>
-      <div class="header-actions">
-        <a class="button" href="/admin">← Tableau de bord</a>
-        <button class="button button-primary" id="logoutBtn">Déconnexion</button>
-      </div>
-    </header>
+  <!-- ── Invite form ── -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">✉️ Inviter un collaborateur</span>
+    </div>
+    <div class="card-body">
 
-    <nav class="tabs">
-      <a class="tab" href="/admin">Accueil</a>
-      <a class="tab" href="/admin/themes">Thèmes</a>
-      <a class="tab" href="/admin/crm">CRM</a>
-      <a class="tab" href="/admin/templates">Templates</a>
-      <a class="tab" href="/admin/monitoring">Monitoring</a>
-      <a class="tab active" href="/admin/users">Accès</a>
-    </nav>
-
-    <div class="users-grid">
-
-      <!-- Invite form -->
-      <div class="invite-panel">
-        <h3>✉️ Inviter un collaborateur par email</h3>
-        <div class="invite-row">
-          <input type="text" id="inviteName" placeholder="Prénom Nom" />
-          <input type="email" id="inviteEmail" placeholder="email@blinkpharmacie.com" />
-          <select id="inviteRole" style="padding:0.6rem 0.875rem;border:1.5px solid var(--border);border-radius:9px;font-size:0.875rem;background:var(--surface);color:var(--text);">
-            <option value="admin">Admin</option>
-            <option value="superadmin">Super Admin</option>
-            <option value="ammps">AMMPS — Autorité sanitaire</option>
-          </select>
-          <button class="btn btn-accent" id="inviteBtn" onclick="sendInvite()">Envoyer l'invitation</button>
+      <div class="inv-row">
+        <div class="field">
+          <label>Prénom et Nom</label>
+          <input id="inviteName" type="text" placeholder="Ex : Karim Benali"/>
         </div>
-        <div id="inviteResult" style="margin-top:0.75rem;font-size:0.8125rem;display:none;"></div>
-      </div>
-
-      <!-- Pending requests -->
-      <div class="panel">
-        <div class="section-header">
-          <h2>⏳ Demandes en attente <span class="badge orange" id="pendingBadge">0</span></h2>
-          <button class="btn" onclick="loadUsers()">Actualiser</button>
+        <div class="field">
+          <label>Adresse e-mail <span style="color:#C62828">*</span></label>
+          <input id="inviteEmail" type="email" placeholder="k.benali@organisme.ma"/>
         </div>
-        <table>
-          <thead><tr><th>Nom</th><th>Email</th><th>Demande</th><th>Actions</th></tr></thead>
-          <tbody id="pendingTable"><tr><td colspan="4" class="empty-state">Chargement…</td></tr></tbody>
-        </table>
       </div>
 
-      <!-- All users -->
-      <div class="panel">
-        <div class="section-header">
-          <h2>👥 Tous les comptes <span class="badge" id="usersBadge">0</span></h2>
+      <!-- Access mode -->
+      <div style="margin-bottom:8px;font-size:13px;font-weight:600;color:#1A2332;">Type d'accès</div>
+      <div class="access-modes">
+        <label class="mode-btn selected" id="mode-full">
+          <input type="radio" name="accessMode" value="full" checked onchange="setMode('full')"/>
+          ✅ Accès complet Admin
+        </label>
+        <label class="mode-btn" id="mode-superadmin">
+          <input type="radio" name="accessMode" value="superadmin" onchange="setMode('superadmin')"/>
+          ⭐ Super Admin
+        </label>
+        <label class="mode-btn" id="mode-custom">
+          <input type="radio" name="accessMode" value="custom" onchange="setMode('custom')"/>
+          🔐 Pages personnalisées
+        </label>
+        <label class="mode-btn" id="mode-ammps" style="border-color:rgba(123,31,162,.25)">
+          <input type="radio" name="accessMode" value="ammps" onchange="setMode('ammps')"/>
+          📘 AMMPS — Autorité sanitaire
+        </label>
+      </div>
+
+      <!-- Pages checkboxes (custom mode) -->
+      <div class="pages-panel" id="pagesPanel">
+        <div class="pages-header">
+          <span class="pages-header-title">Sélectionnez les pages accessibles</span>
+          <div class="preset-btns">
+            <button class="preset-btn" onclick="selectAll()">Tout cocher</button>
+            <button class="preset-btn" onclick="selectNone()">Tout décocher</button>
+          </div>
         </div>
-        <table>
-          <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
-          <tbody id="usersTable"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
-        </table>
+        <div class="pages-sections" id="pagesGrid"></div>
       </div>
 
+      <button class="btn-invite" id="inviteBtn" onclick="sendInvite()">✉️ Envoyer l'invitation</button>
+      <div id="inviteResult" class="invite-result"></div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- ── Pending requests ── -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">⏳ Demandes en attente <span class="cnt-badge orange" id="pendingBadge">0</span></span>
+      <button class="act-btn" onclick="loadUsers()">Actualiser</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Nom</th><th>Email</th><th>Demande</th><th>Actions</th></tr></thead>
+        <tbody id="pendingTable"><tr><td colspan="4" class="empty">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-  <script>
-    const TOKEN = localStorage.getItem('admin_token');
-    const ME = JSON.parse(localStorage.getItem('admin_user') || '{}');
-    const isSuperAdmin = ME.role === 'superadmin';
+  <!-- ── All users ── -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">👥 Tous les comptes <span class="cnt-badge" id="usersBadge">0</span></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Pages accessibles</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+        <tbody id="usersTable"><tr><td colspan="7" class="empty">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-    function authFetch(url, opts = {}) {
-      return fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN, ...(opts.headers || {}) } });
+</div><!-- /p-body -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOKEN = localStorage.getItem('admin_token');
+const ME = JSON.parse(localStorage.getItem('admin_user') || '{}');
+const isSuperAdmin = ME.role === 'superadmin';
+
+// Pages definition
+const PAGES = [
+  { section: 'Vue d\'ensemble',  key: 'dashboard',     label: 'Tableau de bord' },
+  { section: 'Contenu',          key: 'actu',           label: 'Actu Médicaments' },
+  { section: null,               key: 'themes',         label: 'Thèmes' },
+  { section: null,               key: 'content',        label: 'Base de connaissances' },
+  { section: 'Pharmaciens',      key: 'crm',            label: 'Utilisateurs WhatsApp' },
+  { section: null,               key: 'consents',       label: 'Consentements CGU' },
+  { section: 'Twilio',           key: 'templates',      label: 'Templates' },
+  { section: null,               key: 'monitoring',     label: 'Monitoring' },
+  { section: 'Système',          key: 'refopposables',  label: 'Réf. Opposables' },
+  { section: null,               key: 'stock-alerts',   label: 'Stock Alerts (Blink Alertes)' },
+  { section: null,               key: 'ammps',          label: 'Portail AMMPS' },
+  { section: null,               key: 'users',          label: 'Gestion des accès' },
+];
+
+// Build pages grid
+(function(){
+  const grid = document.getElementById('pagesGrid');
+  let currentSection = null;
+  PAGES.forEach(p => {
+    if (p.section && p.section !== currentSection) {
+      currentSection = p.section;
+      const lbl = document.createElement('div');
+      lbl.className = 'page-section-label';
+      lbl.textContent = p.section;
+      grid.appendChild(lbl);
     }
+    const label = document.createElement('label');
+    label.className = 'page-check';
+    label.innerHTML = `<input type="checkbox" value="${p.key}" id="pg-${p.key}"/><span>${p.label}</span>`;
+    grid.appendChild(label);
+  });
+})();
 
-    function toast(msg, ok = true) {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.style.background = ok ? '#18654b' : '#9a2f1f';
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 3000);
-    }
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected','selected-purple'));
+  const el = document.getElementById('mode-' + mode);
+  if (el) el.classList.add(mode === 'ammps' ? 'selected-purple' : 'selected');
+  const panel = document.getElementById('pagesPanel');
+  panel.classList.toggle('open', mode === 'custom');
+}
 
-    function fmtDate(iso) {
-      if (!iso) return '—';
-      return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
+function selectAll() { PAGES.forEach(p => { const el = document.getElementById('pg-'+p.key); if(el) el.checked = true; }); }
+function selectNone() { PAGES.forEach(p => { const el = document.getElementById('pg-'+p.key); if(el) el.checked = false; }); }
 
-    function statusBadge(s) {
-      const MAP = { active: 'Actif', pending: 'En attente', invited: 'Invité', disabled: 'Désactivé' };
-      return `<span class="status-badge status-${s}">${MAP[s] || s}</span>`;
-    }
+function authFetch(url, opts = {}) {
+  return fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN, ...(opts.headers||{}) }});
+}
 
-    async function loadUsers() {
-      const res = await authFetch('/admin/api/users');
-      if (!res.ok) { toast('Erreur de chargement', false); return; }
-      const users = await res.json();
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = ok ? '#1a6640' : '#9a2f1f';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
 
-      const pending = users.filter(u => u.status === 'pending');
-      document.getElementById('pendingBadge').textContent = pending.length;
-      document.getElementById('usersBadge').textContent = users.filter(u => u.status !== 'pending').length;
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
 
-      // Pending table
-      const pendingTbody = document.getElementById('pendingTable');
-      if (!pending.length) {
-        pendingTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune demande en attente</td></tr>';
-      } else {
-        pendingTbody.innerHTML = pending.map(u => `
-          <tr>
-            <td><strong>${u.name}</strong></td>
-            <td>${u.email}</td>
-            <td style="color:var(--muted);font-size:0.8125rem;">${fmtDate(u.created_at)}</td>
-            <td class="actions">
-              <button class="btn btn-accent" onclick="approveUser('${u.id}','${u.email}','${u.name}')">✓ Approuver</button>
-              <button class="btn btn-danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Refuser</button>
-            </td>
-          </tr>`).join('');
-      }
+function statusBadge(s) {
+  const MAP = { active:'Actif', pending:'En attente', invited:'Invité', disabled:'Désactivé' };
+  return `<span class="status-badge s-${s}">${MAP[s]||s}</span>`;
+}
 
-      // All users table (excluding pending)
-      const allTbody = document.getElementById('usersTable');
-      const others = users.filter(u => u.status !== 'pending');
-      if (!others.length) {
-        allTbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun compte</td></tr>';
-      } else {
-        allTbody.innerHTML = others.map(u => {
-          const isMe = u.id === ME.id;
-          const canDelete = isSuperAdmin && !isMe;
-          const inviteLink = u.invite_token ? `<br><span class="copy-link" onclick="copyInviteLink('${u.invite_token}')">📋 Copier le lien d'invitation</span>` : '';
-          return `
-          <tr>
-            <td><strong>${u.name}</strong>${isMe ? ' <span style="font-size:0.7rem;color:var(--muted)">(moi)</span>' : ''}</td>
-            <td>${u.email}</td>
-            <td><span class="role-badge ${u.role === 'superadmin' ? 'role-superadmin' : ''}">${u.role}</span></td>
-            <td>${statusBadge(u.status)}${inviteLink}</td>
-            <td style="font-size:0.8rem;color:var(--muted)">${fmtDate(u.last_login_at)}</td>
-            <td class="actions">
-              ${u.status === 'active' && !isMe ? `<button class="btn btn-danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Désactiver</button>` : ''}
-              ${u.status === 'disabled' ? `<button class="btn" onclick="setStatus('${u.id}','active','${u.name}')">Réactiver</button>` : ''}
-              ${u.status === 'invited' ? `<button class="btn" onclick="resendInvite('${u.email}','${u.name}')">Renvoyer</button>` : ''}
-              ${canDelete ? `<button class="btn btn-danger" onclick="deleteUser('${u.id}','${u.name}')">Supprimer</button>` : ''}
-            </td>
-          </tr>`;
-        }).join('');
-      }
-    }
+function pagesHtml(user) {
+  if (user.role === 'ammps') return '<span class="page-tag" style="background:rgba(123,31,162,.1);color:#7B1FA2">📘 AMMPS</span>';
+  if (!user.pages || user.pages.length === 0) return '<span style="font-size:12px;color:#64748B">Toutes les pages</span>';
+  const PAGE_MAP = Object.fromEntries(PAGES.map(p => [p.key, p.label]));
+  return '<div class="pages-tags">' + user.pages.map(k => `<span class="page-tag">${PAGE_MAP[k]||k}</span>`).join('') + '</div>';
+}
 
-    async function sendInvite() {
-      const email = document.getElementById('inviteEmail').value.trim();
-      const name = document.getElementById('inviteName').value.trim();
-      const role = document.getElementById('inviteRole').value;
-      if (!email) { toast('Email requis', false); return; }
-      const btn = document.getElementById('inviteBtn');
-      btn.disabled = true; btn.textContent = 'Envoi…';
-      const result = document.getElementById('inviteResult');
-      result.style.display = 'none';
+async function sendInvite() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const name  = document.getElementById('inviteName').value.trim();
+  if (!email) { toast('Email requis', false); return; }
 
-      const res = await authFetch('/admin/api/users/invite', { method: 'POST', body: JSON.stringify({ email, name, role }) });
-      const data = await res.json();
+  const mode = document.querySelector('input[name=accessMode]:checked')?.value || 'full';
+  let role = 'admin', pages = null;
+  if (mode === 'superadmin') role = 'superadmin';
+  else if (mode === 'ammps')  role = 'ammps';
+  else if (mode === 'custom') {
+    pages = PAGES.map(p => p.key).filter(k => document.getElementById('pg-'+k)?.checked);
+    if (pages.length === 0) { toast('Sélectionnez au moins une page', false); return; }
+    role = 'admin';
+  }
 
-      if (res.ok) {
-        toast('Invitation envoyée à ' + email);
-        document.getElementById('inviteEmail').value = '';
-        document.getElementById('inviteName').value = '';
-        result.style.display = 'block';
-        result.innerHTML = `<span style="color:var(--accent);font-weight:600;">✓ Invitation envoyée</span> — <span class="copy-link" onclick="navigator.clipboard.writeText('${data.invite_url}');toast('Lien copié')">📋 Copier le lien</span> <code style="font-size:0.75rem;word-break:break-all;">${data.invite_url}</code>`;
-        loadUsers();
-      } else {
-        toast(data.error || 'Erreur', false);
-      }
-      btn.disabled = false; btn.textContent = "Envoyer l'invitation";
-    }
+  const btn = document.getElementById('inviteBtn');
+  btn.disabled = true; btn.textContent = 'Envoi en cours…';
+  const result = document.getElementById('inviteResult');
+  result.style.display = 'none';
 
-    async function approveUser(id, email, name) {
-      if (!confirm(`Approuver ${name} (${email}) et lui envoyer une invitation ?`)) return;
-      const res = await authFetch(`/admin/api/users/${id}/approve`, { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) { toast(`Invitation envoyée à ${email}`); loadUsers(); }
-      else toast(data.error || 'Erreur', false);
-    }
+  const res = await authFetch('/admin/api/users/invite', { method:'POST', body: JSON.stringify({ email, name, role, pages }) });
+  const data = await res.json();
 
-    async function setStatus(id, status, name) {
-      const label = status === 'disabled' ? 'désactiver' : 'réactiver';
-      if (!confirm(`Voulez-vous ${label} le compte de ${name} ?`)) return;
-      const res = await authFetch(`/admin/api/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
-      if (res.ok) { toast(`Compte ${status === 'disabled' ? 'désactivé' : 'réactivé'}`); loadUsers(); }
-      else { const d = await res.json(); toast(d.error || 'Erreur', false); }
-    }
+  btn.disabled = false; btn.textContent = '✉️ Envoyer l\'invitation';
 
-    async function deleteUser(id, name) {
-      if (!confirm(`Supprimer définitivement le compte de ${name} ?`)) return;
-      const res = await authFetch(`/admin/api/users/${id}`, { method: 'DELETE' });
-      if (res.ok) { toast('Compte supprimé'); loadUsers(); }
-      else { const d = await res.json(); toast(d.error || 'Erreur', false); }
-    }
-
-    async function resendInvite(email, name) {
-      const res = await authFetch('/admin/api/users/invite', { method: 'POST', body: JSON.stringify({ email, name }) });
-      const data = await res.json();
-      if (res.ok) toast('Invitation renvoyée à ' + email);
-      else toast(data.error || 'Erreur', false);
-    }
-
-    function copyInviteLink(token) {
-      const url = `${location.origin}/admin/register?token=${token}`;
-      navigator.clipboard.writeText(url).then(() => toast('Lien copié !'));
-    }
-
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await authFetch('/admin/api/auth/logout', { method: 'POST' });
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      window.location.href = '/admin/login';
-    });
-
+  if (res.ok) {
+    toast('Invitation envoyée à ' + email);
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteName').value = '';
+    selectNone(); setMode('full');
+    result.style.display = 'block';
+    result.innerHTML = `<span style="color:#1a6640;font-weight:700">✓ Invitation envoyée</span> &nbsp;—&nbsp; <span class="copy-link" onclick="navigator.clipboard.writeText('${data.invite_url}').then(()=>toast('Lien copié !'))">📋 Copier le lien d'invitation</span>`;
     loadUsers();
-  </script>
+  } else {
+    toast(data.error || 'Erreur', false);
+  }
+}
+
+async function approveUser(id, email, name) {
+  if (!confirm(`Approuver ${name} (${email}) et lui envoyer une invitation ?`)) return;
+  const res = await authFetch(`/admin/api/users/${id}/approve`, { method:'POST' });
+  const data = await res.json();
+  if (res.ok) { toast(`Invitation envoyée à ${email}`); loadUsers(); }
+  else toast(data.error||'Erreur', false);
+}
+
+async function setStatus(id, status, name) {
+  const verb = status === 'disabled' ? 'désactiver' : 'réactiver';
+  if (!confirm(`Voulez-vous ${verb} le compte de ${name} ?`)) return;
+  const res = await authFetch(`/admin/api/users/${id}/status`, { method:'PUT', body:JSON.stringify({status}) });
+  if (res.ok) { toast(`Compte ${status==='disabled'?'désactivé':'réactivé'}`); loadUsers(); }
+  else { const d=await res.json(); toast(d.error||'Erreur',false); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Supprimer définitivement le compte de ${name} ?`)) return;
+  const res = await authFetch(`/admin/api/users/${id}`, { method:'DELETE' });
+  if (res.ok) { toast('Compte supprimé'); loadUsers(); }
+  else { const d=await res.json(); toast(d.error||'Erreur',false); }
+}
+
+async function resendInvite(email, name) {
+  const res = await authFetch('/admin/api/users/invite', { method:'POST', body:JSON.stringify({email,name}) });
+  const d = await res.json();
+  if (res.ok) toast('Invitation renvoyée à '+email);
+  else toast(d.error||'Erreur',false);
+}
+
+function copyInviteLink(token) {
+  navigator.clipboard.writeText(`${location.origin}/admin/register?token=${token}`).then(()=>toast('Lien copié !'));
+}
+
+async function loadUsers() {
+  const res = await authFetch('/admin/api/users');
+  if (!res.ok) { toast('Erreur de chargement', false); return; }
+  const users = await res.json();
+
+  const pending = users.filter(u => u.status === 'pending');
+  document.getElementById('pendingBadge').textContent = pending.length;
+  document.getElementById('usersBadge').textContent = users.filter(u => u.status !== 'pending').length;
+
+  const pendingTbody = document.getElementById('pendingTable');
+  if (!pending.length) {
+    pendingTbody.innerHTML = '<tr><td colspan="4" class="empty">Aucune demande en attente</td></tr>';
+  } else {
+    pendingTbody.innerHTML = pending.map(u => `<tr>
+      <td><strong>${u.name}</strong></td>
+      <td>${u.email}</td>
+      <td style="color:#64748B;font-size:13px">${fmtDate(u.created_at)}</td>
+      <td><div class="acts">
+        <button class="act-btn primary" onclick="approveUser('${u.id}','${u.email}','${u.name}')">✓ Approuver</button>
+        <button class="act-btn danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Refuser</button>
+      </div></td>
+    </tr>`).join('');
+  }
+
+  const others = users.filter(u => u.status !== 'pending');
+  const allTbody = document.getElementById('usersTable');
+  if (!others.length) {
+    allTbody.innerHTML = '<tr><td colspan="7" class="empty">Aucun compte</td></tr>';
+  } else {
+    allTbody.innerHTML = others.map(u => {
+      const isMe = u.id === ME.id;
+      const canDelete = isSuperAdmin && !isMe;
+      const inviteLink = u.invite_token ? `<br/><span class="copy-link" onclick="copyInviteLink('${u.invite_token}')">📋 Copier le lien</span>` : '';
+      return `<tr>
+        <td><strong>${u.name}</strong>${isMe?` <span style="font-size:11px;color:#94A3B8">(moi)</span>`:''}</td>
+        <td style="font-size:13px">${u.email}</td>
+        <td><span class="role-tag ${u.role}">${u.role}</span></td>
+        <td>${pagesHtml(u)}</td>
+        <td>${statusBadge(u.status)}${inviteLink}</td>
+        <td style="font-size:12px;color:#64748B">${fmtDate(u.last_login_at)}</td>
+        <td><div class="acts">
+          ${u.status==='active'&&!isMe?`<button class="act-btn danger" onclick="setStatus('${u.id}','disabled','${u.name}')">Désactiver</button>`:''}
+          ${u.status==='disabled'?`<button class="act-btn" onclick="setStatus('${u.id}','active','${u.name}')">Réactiver</button>`:''}
+          ${u.status==='invited'?`<button class="act-btn" onclick="resendInvite('${u.email}','${u.name}')">Renvoyer</button>`:''}
+          ${canDelete?`<button class="act-btn danger" onclick="deleteUser('${u.id}','${u.name}')">Supprimer</button>`:''}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+loadUsers();
+</script>
 </body>
 </html>

@@ -16,6 +16,7 @@ const adminKbStore = require('./modules/admin_kb_store');
 const runtimePaths = require('./modules/runtime_paths');
 const stockAlerts = require('./modules/stock_alerts');
 const ammpsActions = require('./modules/ammps_actions');
+const ammpsBroadcasts = require('./modules/ammps_broadcasts');
 
 const router = express.Router();
 const adminDir = path.join(__dirname, 'admin');
@@ -73,6 +74,51 @@ router.use((req, res, next) => {
   if (!ammpsAllowed) {
     if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Accès restreint au portail AMMPS' });
     return res.redirect('/admin/ammps');
+  }
+  next();
+});
+
+// Custom page-based access control (users with pages restriction)
+const PAGE_PATH_MAP = {
+  dashboard:      [/^\/?$/, /^\/api\/dashboard/],
+  actu:           [/^\/actu/, /^\/api\/actus/],
+  themes:         [/^\/themes/, /^\/api\/themes/],
+  content:        [/^\/content/, /^\/api\/kb/],
+  crm:            [/^\/crm/, /^\/api\/identity/, /^\/api\/crm/],
+  consents:       [/^\/consents/, /^\/api\/consents/],
+  templates:      [/^\/templates/, /^\/api\/templates/],
+  monitoring:     [/^\/monitoring/, /^\/api\/monitoring/],
+  refopposables:  [/^\/refopposables/, /^\/api\/refopposables/],
+  'stock-alerts': [/^\/stock-alerts/, /^\/api\/stock-alerts/],
+  ammps:          [/^\/ammps/, /^\/api\/ammps/],
+  users:          [/^\/users/, /^\/api\/users/],
+  identity:       [/^\/identity/, /^\/api\/identity/],
+};
+
+const PAGE_FIRST_PATH = {
+  dashboard: '/admin', actu: '/admin/actu', themes: '/admin/themes',
+  content: '/admin/content', crm: '/admin/crm', consents: '/admin/consents',
+  templates: '/admin/templates', monitoring: '/admin/monitoring',
+  refopposables: '/admin/refopposables', 'stock-alerts': '/admin/stock-alerts',
+  ammps: '/admin/ammps', users: '/admin/users', identity: '/admin/identity',
+};
+
+router.use((req, res, next) => {
+  if (!req.adminUser) return next();
+  const user = req.adminUser;
+  if (user.role === 'ammps') return next(); // handled above
+  if (!user.pages || user.pages.length === 0) return next(); // no restriction
+  if (req.path.startsWith('/api/auth')) return next();
+
+  const allowed = user.pages.some(page => {
+    const patterns = PAGE_PATH_MAP[page];
+    return patterns && patterns.some(re => re.test(req.path));
+  });
+
+  if (!allowed) {
+    if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Accès refusé' });
+    const first = PAGE_FIRST_PATH[user.pages[0]] || '/admin';
+    return res.redirect(first);
   }
   next();
 });
@@ -187,16 +233,19 @@ router.get('/api/users', asyncHandler(async (req, res) => {
 router.post('/api/users/invite', asyncHandler(async (req, res) => {
   const email = String(req.body.email || '').trim();
   const name = String(req.body.name || '').trim();
-  const role = ['superadmin', 'admin'].includes(req.body.role) ? req.body.role : 'admin';
+  const role = ['superadmin', 'admin', 'ammps'].includes(req.body.role) ? req.body.role : 'admin';
+  const pages = Array.isArray(req.body.pages) && req.body.pages.length > 0
+    ? req.body.pages.filter(p => typeof p === 'string' && p.trim())
+    : null;
 
   if (!email) return res.status(400).json({ error: 'Email requis' });
 
   try {
-    const { token, user } = await adminAuth.createInviteToken(email, name, role);
+    const { token, user } = await adminAuth.createInviteToken(email, name, role, pages);
     const base = String(process.env.PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
     const inviteUrl = `${base}/admin/register?token=${token}`;
 
-    await sendInviteEmail(email, user.name, inviteUrl, req.adminUser.name);
+    await sendInviteEmail(email, user.name, inviteUrl, req.adminUser.name, { role, pages });
     console.info('[admin-auth] invitation envoyée', { email, inviteUrl });
     res.status(201).json({ ok: true, invite_url: inviteUrl, user: adminAuth.publicUser(user) });
   } catch (err) {
@@ -232,24 +281,109 @@ router.delete('/api/users/:id', asyncHandler(async (req, res) => {
 
 // ── Email invitation helper ────────────────────────────────────────────────
 
-async function sendInviteEmail(toEmail, toName, inviteUrl, fromName) {
+const PAGE_LABELS = {
+  dashboard: 'Tableau de bord', actu: 'Actu Médicaments', themes: 'Thèmes',
+  content: 'Base de connaissances', crm: 'Utilisateurs WhatsApp', consents: 'Consentements CGU',
+  templates: 'Templates Twilio', monitoring: 'Monitoring', refopposables: 'Réf. Opposables',
+  'stock-alerts': 'Stock Alerts (Blink Alertes)', ammps: 'Portail AMMPS — Autorité Sanitaire',
+  users: 'Gestion des accès',
+};
+
+async function sendInviteEmail(toEmail, toName, inviteUrl, fromName, { role, pages } = {}) {
   try {
     const { getContactEmailConfig, createTransport, sendContactLeadViaMicrosoftGraph } = require('./modules/contact_leads');
     const config = getContactEmailConfig();
-    const subject = 'Invitation — Espace Admin Blink Premium';
-    const html = `
-<div style="font-family:Arial,sans-serif;color:#1f2937;max-width:560px;line-height:1.6;">
-  <h2 style="color:#18654b;">Vous avez été invité(e)</h2>
-  <p>Bonjour ${toName || toEmail},</p>
-  <p><strong>${fromName || 'Un administrateur'}</strong> vous invite à accéder à l'espace d'administration Blink Premium.</p>
-  <p style="margin:24px 0;">
-    <a href="${inviteUrl}" style="background:#18654b;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">
-      Créer mon mot de passe →
-    </a>
-  </p>
-  <p style="color:#6b7280;font-size:0.875rem;">Ce lien expire dans 72 heures.<br>Si vous n'attendiez pas cette invitation, ignorez cet email.</p>
-</div>`.trim();
-    const mail = { to: toEmail, from: config.from, subject, text: `${subject}\n\nLien : ${inviteUrl}\n(expire dans 72h)`, html };
+
+    // Build access description
+    let accessHtml = '';
+    if (role === 'ammps') {
+      accessHtml = `<div style="background:#F3E5F5;border-left:4px solid #7B1FA2;border-radius:8px;padding:14px 18px;margin:18px 0;">
+        <p style="margin:0;font-size:14px;color:#4A148C;font-weight:700;">📘 Accès Autorité Sanitaire — AMMPS</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#6A1B9A;line-height:1.5;">Vous avez accès au portail réglementaire Blink : retraits de lot, avertissements réglementaires.</p>
+      </div>`;
+    } else if (pages && pages.length > 0) {
+      const labels = pages.map(p => PAGE_LABELS[p] || p).join(', ');
+      accessHtml = `<div style="background:#E8F5E9;border-left:4px solid #1a6640;border-radius:8px;padding:14px 18px;margin:18px 0;">
+        <p style="margin:0;font-size:14px;color:#1a6640;font-weight:700;">🔐 Accès personnalisé</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#2E7D32;line-height:1.5;">Sections accessibles : <strong>${labels}</strong></p>
+      </div>`;
+    } else if (role === 'superadmin') {
+      accessHtml = `<div style="background:#EDE7F6;border-left:4px solid #5C35A8;border-radius:8px;padding:14px 18px;margin:18px 0;">
+        <p style="margin:0;font-size:14px;color:#4527A0;font-weight:700;">⭐ Accès Super Administrateur</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#512DA8;line-height:1.5;">Vous disposez d'un accès complet et illimité à l'espace d'administration, y compris la gestion des utilisateurs.</p>
+      </div>`;
+    } else {
+      accessHtml = `<div style="background:#E8F5E9;border-left:4px solid #1a6640;border-radius:8px;padding:14px 18px;margin:18px 0;">
+        <p style="margin:0;font-size:14px;color:#1a6640;font-weight:700;">✅ Accès Administrateur</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#2E7D32;line-height:1.5;">Vous disposez d'un accès complet à l'espace d'administration Blink Premium.</p>
+      </div>`;
+    }
+
+    const subject = 'Bienvenue — Votre invitation à l\'espace Blink Pharma';
+    const firstName = (toName || toEmail).split(' ')[0];
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/></head><body style="margin:0;padding:24px;background:#F4F7FB;font-family:'Segoe UI',Arial,sans-serif;">
+<div style="max-width:580px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.10);">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1a6640 0%,#1e7a4c 60%,#26C6DA 100%);padding:36px 36px 30px;text-align:center;">
+    <div style="display:inline-block;background:rgba(255,255,255,0.18);border-radius:12px;padding:8px 18px;margin-bottom:18px;">
+      <span style="color:#fff;font-size:15px;font-weight:700;letter-spacing:0.02em;">⬡ Blink <strong>Pharma</strong></span>
+    </div>
+    <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;letter-spacing:-0.02em;line-height:1.2;">
+      Vous avez été invité(e) à<br/>rejoindre l'espace admin
+    </h1>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:32px 36px;">
+    <p style="font-size:16px;color:#1a2332;margin:0 0 10px;font-weight:600;">Bonjour ${firstName},</p>
+    <p style="font-size:15px;color:#374151;line-height:1.65;margin:0 0 6px;">
+      Nous avons le plaisir de vous accueillir dans l'équipe <strong>Blink Pharma</strong>.
+    </p>
+    <p style="font-size:15px;color:#374151;line-height:1.65;margin:0 0 18px;">
+      <strong>${fromName || 'L\'équipe Blink Pharma'}</strong> vous a accordé un accès à notre espace d'administration premium.
+      Votre compte est prêt — il ne vous reste plus qu'à créer votre mot de passe pour commencer.
+    </p>
+
+    ${accessHtml}
+
+    <p style="font-size:15px;color:#374151;line-height:1.65;margin:18px 0 24px;">
+      Cliquez sur le bouton ci-dessous pour finaliser votre inscription :
+    </p>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin:8px 0 28px;">
+      <a href="${inviteUrl}"
+         style="display:inline-block;background:linear-gradient(135deg,#1a6640,#1e7a4c);color:#ffffff;padding:15px 40px;border-radius:999px;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 18px rgba(26,102,64,0.35);">
+        Créer mon accès →
+      </a>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #E2E8F0;margin:24px 0;"/>
+
+    <p style="font-size:13px;color:#64748B;line-height:1.65;margin:0 0 6px;">
+      ⏱ <strong>Important :</strong> ce lien d'invitation est valable <strong>72 heures</strong> à compter de sa réception.
+      Passé ce délai, il ne sera plus actif.
+    </p>
+    <p style="font-size:13px;color:#64748B;line-height:1.65;margin:0;">
+      Si vous n'étiez pas dans l'attente de cette invitation ou si vous pensez l'avoir reçue par erreur,
+      vous pouvez ignorer cet email en toute sécurité. Aucune action ne sera effectuée de votre côté.
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:22px 36px;text-align:center;">
+    <p style="font-size:14px;color:#64748B;margin:0 0 4px;">Bien cordialement,</p>
+    <p style="font-size:14px;color:#1a2332;font-weight:700;margin:0 0 10px;">${fromName || 'L\'équipe Blink Pharma'}</p>
+    <p style="font-size:11px;color:#94A3B8;margin:0;">Blink Pharma · Administration Premium · blinkpharmacie.ma</p>
+  </div>
+
+</div>
+</body></html>`.trim();
+
+    const text = `Bonjour ${firstName},\n\nVous avez été invité(e) à rejoindre l'espace d'administration Blink Pharma par ${fromName || 'l\'équipe Blink Pharma'}.\n\nCréez votre accès ici : ${inviteUrl}\n\nCe lien expire dans 72 heures.\n\nBien cordialement,\n${fromName || 'L\'équipe Blink Pharma'}`;
+
+    const mail = { to: toEmail, from: config.from, subject, text, html };
     if (config.provider === 'msgraph') {
       await sendContactLeadViaMicrosoftGraph(mail, config);
     } else {
@@ -1635,6 +1769,22 @@ router.get('/api/ammps/actions', asyncHandler(async (req, res) => {
   res.json(await ammpsActions.listActions(filters));
 }));
 
+router.get('/api/ammps/template', asyncHandler(async (req, res) => {
+  const themeId = ammpsBroadcasts.getBroadcastThemeId(req.query.theme_id);
+  const theme = await storage.getTheme(themeId);
+  const sid = await ammpsBroadcasts.ensureTemplateSid();
+
+  res.json({
+    theme_id: themeId,
+    theme_title: theme ? theme.title : null,
+    template_env: ammpsBroadcasts.TEMPLATE_ENV,
+    template_friendly_name: ammpsBroadcasts.TEMPLATE_FRIENDLY_NAME,
+    configured_sid: String(process.env[ammpsBroadcasts.TEMPLATE_ENV] || '').trim() || null,
+    resolved_sid: sid || null,
+    spec: ammpsBroadcasts.buildTemplateSpec(),
+  });
+}));
+
 router.post('/api/ammps/recalls', asyncHandler(async (req, res) => {
   res.status(201).json(await ammpsActions.createRecall(req.adminUser, req.body));
 }));
@@ -1646,6 +1796,20 @@ router.post('/api/ammps/warnings', asyncHandler(async (req, res) => {
 router.put('/api/ammps/actions/:id/status', asyncHandler(async (req, res) => {
   const status = String(req.body.status || '').trim();
   res.json(await ammpsActions.updateStatus(req.params.id, status));
+}));
+
+router.post('/api/ammps/actions/:id/broadcast', asyncHandler(async (req, res) => {
+  const action = await ammpsActions.getAction(req.params.id);
+  if (!action) {
+    return res.status(404).json({ error: 'Action AMMPS introuvable' });
+  }
+
+  const result = await ammpsBroadcasts.sendActionBroadcast(action, req.adminUser, {
+    themeId: req.body.theme_id ? String(req.body.theme_id).trim() : null,
+    force: Boolean(req.body.force),
+  });
+
+  res.status(201).json(result);
 }));
 
 router.delete('/api/ammps/actions/:id', asyncHandler(async (req, res) => {

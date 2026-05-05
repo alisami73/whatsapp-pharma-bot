@@ -304,13 +304,26 @@
   </div>
 
   <script>
+    const PAGE_FIRST = { dashboard:'/admin', actu:'/admin/actu', themes:'/admin/themes',
+      content:'/admin/content', crm:'/admin/crm', consents:'/admin/consents',
+      templates:'/admin/templates', monitoring:'/admin/monitoring',
+      refopposables:'/admin/refopposables', 'stock-alerts':'/admin/stock-alerts',
+      ammps:'/admin/ammps', users:'/admin/users' };
+
+    function getPostLoginUrl(u) {
+      if (!u) return '/admin';
+      if (u.role === 'ammps') return '/admin/ammps';
+      if (u.pages && u.pages.length > 0) return PAGE_FIRST[u.pages[0]] || '/admin';
+      return '/admin';
+    }
+
     // Redirect if already authenticated
     (function () {
       const token = localStorage.getItem('admin_token');
       if (!token) return;
       fetch('/admin/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
         .then(r => r.ok ? r.json() : null)
-        .then(d => { if (d) window.location.href = d.role === 'ammps' ? '/admin/ammps' : '/admin'; })
+        .then(d => { if (d) window.location.href = getPostLoginUrl(d); })
         .catch(() => {});
     })();
 
@@ -340,7 +353,7 @@
         if (!res.ok) throw new Error(data.error || 'Erreur de connexion');
         localStorage.setItem('admin_token', data.token);
         localStorage.setItem('admin_user', JSON.stringify(data.user));
-        window.location.href = data.user && data.user.role === 'ammps' ? '/admin/ammps' : '/admin';
+        window.location.href = getPostLoginUrl(data.user);
       } catch (ex) {
         errText.textContent = ex.message;
         banner.classList.add('visible');
