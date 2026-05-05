@@ -48,6 +48,19 @@ async function listActions(filters = {}) {
   return selectMany(q);
 }
 
+async function getAction(id) {
+  const safeId = trim(id, 120);
+  if (!safeId) {
+    return null;
+  }
+
+  const db = getDb();
+  return mutateSingle(
+    db.from(TABLE).select('*').eq('id', safeId).maybeSingle(),
+    'Échec du chargement de l\'action AMMPS',
+  );
+}
+
 async function createRecall(adminUser, payload) {
   const title = trim(payload.product_name, 240);
   if (!title) throw Object.assign(new Error('Nom du produit requis'), { status: 400 });
@@ -113,4 +126,4 @@ async function updateStatus(id, status) {
   );
 }
 
-module.exports = { listActions, createRecall, createWarning, deleteAction, updateStatus };
+module.exports = { listActions, getAction, createRecall, createWarning, deleteAction, updateStatus };

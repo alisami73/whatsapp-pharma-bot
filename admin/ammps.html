@@ -371,6 +371,7 @@ function renderRecalls(){
       <td>${statusBadge(r.status)}</td>
       <td>
         <div class="tbl-actions">
+          ${r.status==='published'?`<button class="tbl-btn" onclick="broadcast('${r.id}')">Envoyer aux abonnés</button>`:''}
           ${r.status==='published'?`<button class="tbl-btn" onclick="archive('${r.id}')">Archiver</button>`:''}
           <button class="tbl-btn danger" onclick="del('${r.id}')">Supprimer</button>
         </div>
@@ -401,6 +402,7 @@ function renderWarnings(){
       <td>${statusBadge(w.status)}</td>
       <td>
         <div class="tbl-actions">
+          ${w.status==='published'?`<button class="tbl-btn" onclick="broadcast('${w.id}')">Envoyer aux abonnés</button>`:''}
           ${w.status==='published'?`<button class="tbl-btn" onclick="archive('${w.id}')">Archiver</button>`:''}
           <button class="tbl-btn danger" onclick="del('${w.id}')">Supprimer</button>
         </div>
@@ -486,6 +488,24 @@ async function submitWarning(){
     toast('Avertissement publié.','success');
   }catch(e){ toast(e.message,'error'); }
   finally{ btn.disabled=false; btn.textContent='📋 Publier l\'avertissement'; }
+}
+
+async function broadcast(id){
+  const item = recalls.find(r=>r.id===id) || warnings.find(w=>w.id===id);
+  if(!item){ toast('Element introuvable.','error'); return; }
+  const label = item.action_type === 'warning' ? 'cet avertissement' : 'ce retrait de lot';
+  if(!confirm(`Envoyer ${label} aux abonnes WhatsApp du chatbot ?`)) return;
+
+  try{
+    const res=await fetch(`/admin/api/ammps/actions/${id}/broadcast`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({})
+    });
+    const payload=await res.json().catch(()=>({}));
+    if(!res.ok){ throw new Error(payload.error || payload.details || 'Erreur d envoi'); }
+    toast(`Diffusion terminee : ${payload.sent_count || 0} envoye(s), ${payload.failed_count || 0} echec(s).`,'success');
+  }catch(e){ toast(e.message,'error'); }
 }
 
 async function archive(id){
