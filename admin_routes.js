@@ -1772,16 +1772,31 @@ router.get('/api/ammps/actions', asyncHandler(async (req, res) => {
 router.get('/api/ammps/template', asyncHandler(async (req, res) => {
   const themeId = ammpsBroadcasts.getBroadcastThemeId(req.query.theme_id);
   const theme = await storage.getTheme(themeId);
-  const sid = await ammpsBroadcasts.ensureTemplateSid();
+
+  const [recallSid, warningSid] = await Promise.all([
+    ammpsBroadcasts.ensureTemplateSid('recall'),
+    ammpsBroadcasts.ensureTemplateSid('warning'),
+  ]);
 
   res.json({
     theme_id: themeId,
     theme_title: theme ? theme.title : null,
-    template_env: ammpsBroadcasts.TEMPLATE_ENV,
-    template_friendly_name: ammpsBroadcasts.TEMPLATE_FRIENDLY_NAME,
-    configured_sid: String(process.env[ammpsBroadcasts.TEMPLATE_ENV] || '').trim() || null,
-    resolved_sid: sid || null,
-    spec: ammpsBroadcasts.buildTemplateSpec(),
+    templates: {
+      recall: {
+        env: ammpsBroadcasts.TEMPLATES.recall.envVar,
+        friendly_name: ammpsBroadcasts.TEMPLATES.recall.friendlyName,
+        configured_sid: String(process.env[ammpsBroadcasts.TEMPLATES.recall.envVar] || '').trim() || null,
+        resolved_sid: recallSid || null,
+        spec: ammpsBroadcasts.buildRecallSpec(),
+      },
+      warning: {
+        env: ammpsBroadcasts.TEMPLATES.warning.envVar,
+        friendly_name: ammpsBroadcasts.TEMPLATES.warning.friendlyName,
+        configured_sid: String(process.env[ammpsBroadcasts.TEMPLATES.warning.envVar] || '').trim() || null,
+        resolved_sid: warningSid || null,
+        spec: ammpsBroadcasts.buildWarningSpec(),
+      },
+    },
   });
 }));
 
